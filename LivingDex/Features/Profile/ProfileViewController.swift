@@ -21,6 +21,11 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
         super.viewDidLoad()
         title = "Profile"
         navigationController?.navigationBar.prefersLargeTitles = true
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "gearshape"),
+            primaryAction: UIAction { [weak self] _ in
+                self?.navigationController?.pushViewController(SettingsViewController(), animated: true)
+            })
         view.backgroundColor = .systemGroupedBackground
         tableView.frame = view.bounds
         tableView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -70,12 +75,6 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
                     guard let self else { return }
                     GameCenterService.shared.presentDashboard(from: self)
                 },
-            ]),
-            Section(header: "Diagnostics", rows: [
-                .action(title: "Export logs", symbol: "square.and.arrow.up") { [weak self] in self?.exportLogs() },
-            ]),
-            Section(header: "About", rows: [
-                .info(title: "Version", value: Self.appVersion),
             ]),
         ]
     }

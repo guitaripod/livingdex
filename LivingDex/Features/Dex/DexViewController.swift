@@ -4,11 +4,12 @@ import UIKit
 /// • **Nearby**: your Regional Dex — every species that occurs near you, as
 ///   fillable slots (locked silhouettes you reveal by catching), with completion.
 /// • **Caught**: your lifetime collection, searchable and sortable.
-final class DexViewController: UIViewController, UICollectionViewDelegate, UISearchResultsUpdating {
+final class DexViewController: UIViewController, UICollectionViewDelegate, UISearchBarDelegate {
     private enum Section { case main }
     private enum Mode: Int { case nearby, caught }
 
     private let segmented = UISegmentedControl(items: ["Nearby", "Caught"])
+    private let searchBar = UISearchBar()
     private let header = DexHeaderView()
     private var collectionView: UICollectionView!
     private var dataSource: UICollectionViewDiffableDataSource<Section, DexTile>!
@@ -122,32 +123,53 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
     }
 
     private func configureSearchAndSort() {
-        let search = UISearchController(searchResultsController: nil)
-        search.searchResultsUpdater = self
-        search.obscuresBackgroundDuringPresentation = false
-        search.searchBar.placeholder = "Search your dex"
-        navigationItem.searchController = search
-        navigationItem.hidesSearchBarWhenScrolling = true
-        updateSortButton()
+        searchBar.placeholder = "Search your dex"
+        searchBar.delegate = self
+        searchBar.showsCancelButton = true
+        searchBar.searchBarStyle = .minimal
+        updateBarButtons()
     }
 
-    private func updateSortButton() {
+    /// Sort/filter menu + a search button, shown only in Caught mode.
+    private func updateBarButtons() {
+        guard mode == .caught else { navigationItem.rightBarButtonItems = []; return }
         let sortActions = Sort.allCases.map { s in
             UIAction(title: s.rawValue, state: sort == s ? .on : .off) { [weak self] _ in
-                self?.sort = s; self?.updateSortButton(); self?.reload()
+                self?.sort = s; self?.updateBarButtons(); self?.reload()
             }
         }
         let realmActions = ([nil] + Realm.allCases.map { Optional($0) }).map { r in
             UIAction(title: r?.rawValue.capitalized ?? "All realms", state: realmFilter == r ? .on : .off) { [weak self] _ in
-                self?.realmFilter = r; self?.updateSortButton(); self?.reload()
+                self?.realmFilter = r; self?.updateBarButtons(); self?.reload()
             }
         }
-        let menu = UIMenu(children: [
-            UIMenu(title: "Sort", options: .displayInline, children: sortActions),
-            UIMenu(title: "Filter", options: .displayInline, children: realmActions),
-        ])
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            image: UIImage(systemName: "line.3.horizontal.decrease.circle"), menu: menu)
+        let sortItem = UIBarButtonItem(
+            image: UIImage(systemName: "line.3.horizontal.decrease.circle"),
+            menu: UIMenu(children: [
+                UIMenu(title: "Sort", options: .displayInline, children: sortActions),
+                UIMenu(title: "Filter", options: .displayInline, children: realmActions),
+            ]))
+        let searchItem = UIBarButtonItem(image: UIImage(systemName: "magnifyingglass"),
+                                         primaryAction: UIAction { [weak self] _ in self?.beginSearch() })
+        navigationItem.rightBarButtonItems = [sortItem, searchItem]
+    }
+
+    private func beginSearch() {
+        navigationItem.titleView = searchBar
+        searchBar.becomeFirstResponder()
+    }
+
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.text = ""
+        query = ""
+        searchBar.resignFirstResponder()
+        navigationItem.titleView = segmented
+        reload()
+    }
+
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        query = searchText
+        reload()
     }
 
     // MARK: Data
@@ -174,11 +196,6 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         mode = Mode(rawValue: segmented.selectedSegmentIndex) ?? .nearby
         navigationItem.rightBarButtonItem?.isHidden = (mode == .nearby)
         reload()
-    }
-
-    func updateSearchResults(for searchController: UISearchController) {
-        query = searchController.searchBar.text ?? ""
-        if mode == .caught { reload() }
     }
 
     private func reload() {

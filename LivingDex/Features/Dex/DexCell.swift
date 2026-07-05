@@ -40,7 +40,7 @@ final class DexCell: UICollectionViewCell {
         contentView.layer.cornerRadius = 16
         contentView.layer.cornerCurve = .continuous
         contentView.clipsToBounds = true
-        contentView.backgroundColor = UIColor(white: 0.11, alpha: 1)
+        contentView.backgroundColor = .secondarySystemBackground
 
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.contentMode = .scaleAspectFill
@@ -49,7 +49,7 @@ final class DexCell: UICollectionViewCell {
 
         lockedIcon.translatesAutoresizingMaskIntoConstraints = false
         lockedIcon.contentMode = .scaleAspectFit
-        lockedIcon.tintColor = UIColor(white: 0.28, alpha: 1)
+        lockedIcon.tintColor = .quaternaryLabel
         contentView.addSubview(lockedIcon)
 
         scrim.colors = [UIColor.clear.cgColor, UIColor.black.withAlphaComponent(0.72).cgColor]
@@ -137,7 +137,9 @@ final class DexCell: UICollectionViewCell {
             imageView.isHidden = true
             scrim.isHidden = true
             lockedIcon.isHidden = false
-            lockedIcon.image = UIImage(systemName: DexTile.realmSymbol(tile.realm))
+            // A "who's that?" mystery mark — we have no art for uncaught species.
+            lockedIcon.image = UIImage(systemName: "questionmark")
+            lockedIcon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(weight: .bold)
             nameLabel.text = "???"
             nameLabel.textColor = UIColor(white: 1, alpha: 0.5)
             rarityPip.alpha = 0.55

@@ -15,7 +15,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         observeCreditsEvents()
 
         let window = UIWindow(windowScene: windowScene)
-        window.overrideUserInterfaceStyle = .dark
+        window.overrideUserInterfaceStyle = AppSettings.appearance
         window.tintColor = DesignSystem.Color.accent
         window.rootViewController = Self.makeRoot()
         self.window = window

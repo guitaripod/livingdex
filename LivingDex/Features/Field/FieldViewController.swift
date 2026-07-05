@@ -154,7 +154,7 @@ final class FieldViewController: UIViewController {
         let result = await identifier.identify(image, context: context)
         guard var top = result.top else {
             Haptics.failure()
-            finishCapture(reset: "No match — reframe and retry")
+            finishCapture(reset: "No clear living thing — get closer to a plant, animal, or bug")
             return
         }
 
