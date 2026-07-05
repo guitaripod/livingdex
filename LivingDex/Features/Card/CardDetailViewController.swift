@@ -30,6 +30,9 @@ final class CardDetailViewController: UIViewController {
         view.backgroundColor = .systemBackground
         title = entry.commonName
         navigationItem.largeTitleDisplayMode = .never
+        navigationItem.rightBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "trash"),
+            primaryAction: UIAction { [weak self] _ in self?.confirmRelease() })
         buildLayout()
         fetchCall()
     }
@@ -188,6 +191,22 @@ final class CardDetailViewController: UIViewController {
         guard let call else { return }
         Haptics.tap()
         detailService.play(call)
+    }
+
+    private func confirmRelease() {
+        let alert = UIAlertController(
+            title: "Release \(entry.commonName)?",
+            message: "This removes it from your dex, along with your photos of it. This can't be undone.",
+            preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "Release", style: .destructive) { [weak self] _ in
+            guard let self else { return }
+            try? CollectionStore.shared.release(speciesId: self.entry.speciesId)
+            Haptics.tap()
+            self.navigationController?.popViewController(animated: true)
+        })
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+        present(alert, animated: true)
     }
 
     private func presentAskPlaceholder() {

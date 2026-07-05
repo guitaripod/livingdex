@@ -26,6 +26,13 @@ enum ImageStore {
         }
     }
 
+    static func delete(_ relativePath: String) {
+        guard let support = try? FileManager.default.url(
+            for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
+        else { return }
+        try? FileManager.default.removeItem(at: support.appendingPathComponent(relativePath))
+    }
+
     static func load(_ relativePath: String) -> UIImage? {
         guard let support = try? FileManager.default.url(
             for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: false)

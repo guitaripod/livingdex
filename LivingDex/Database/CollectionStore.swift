@@ -102,6 +102,20 @@ final class CollectionStore: Sendable {
         }
     }
 
+    /// Removes a species from the collection entirely — every sighting, its dex
+    /// entry, and the stored photos. Used to release a misidentification.
+    func release(speciesId: String) throws {
+        let paths: [String] = try dbQueue.write { db in
+            let imagePaths = try String.fetchAll(
+                db, sql: "SELECT imagePath FROM sightings WHERE speciesId = ?", arguments: [speciesId])
+            try db.execute(sql: "DELETE FROM sightings WHERE speciesId = ?", arguments: [speciesId])
+            try db.execute(sql: "DELETE FROM dex_entries WHERE speciesId = ?", arguments: [speciesId])
+            return imagePaths
+        }
+        for path in paths where !path.isEmpty { ImageStore.delete(path) }
+        AppLogger.shared.info("released \(speciesId)", category: .persistence)
+    }
+
     /// The most recent sighting of a species — powers the card detail (image +
     /// narration + capture metadata).
     func latestSighting(speciesId: String) throws -> Sighting? {

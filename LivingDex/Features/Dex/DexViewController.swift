@@ -277,6 +277,18 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         navigationController?.pushViewController(CardDetailViewController(entry: entry), animated: true)
     }
 
+    func collectionView(_ collectionView: UICollectionView, contextMenuConfigurationForItemsAt indexPaths: [IndexPath], point: CGPoint) -> UIContextMenuConfiguration? {
+        guard let indexPath = indexPaths.first,
+              let tile = dataSource.itemIdentifier(for: indexPath), !tile.locked else { return nil }
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+            let release = UIAction(title: "Release", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
+                try? CollectionStore.shared.release(speciesId: tile.speciesId)
+                Haptics.tap()
+            }
+            return UIMenu(title: tile.name, children: [release])
+        }
+    }
+
     private func showLockedPeek(_ tile: DexTile) {
         let alert = UIAlertController(
             title: "Not yet caught",
