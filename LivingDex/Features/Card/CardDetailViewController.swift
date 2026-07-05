@@ -1,14 +1,21 @@
 import UIKit
 
-/// The full species card, opened from the Dex grid. Shows the hero image, names,
-/// rarity + realm, the Claude-authored Pokédex entry (if narrated yet), capture
-/// metadata, and an "ask the creature" entry point (Pro). Reads the species'
-/// latest sighting for image + narration + geo/elevation.
+/// The full species card, opened from the Dex. Hero image, an evocative category
+/// ("the ___" epithet), rarity + realm, typical size, the narrated Pokédex entry,
+/// a playable call ("cry") where a commercial-safe recording exists, and an "ask
+/// the creature" entry point. Reads the species' latest sighting.
 final class CardDetailViewController: UIViewController {
     private let entry: DexEntry
+    private let detailService = SpeciesDetailService()
+    private var call: SpeciesCall?
+
     private let scrollView = UIScrollView()
     private let stack = UIStackView()
+    private let categoryLabel = UILabel()
+    private let sizeLabel = UILabel()
     private let narrationLabel = UILabel()
+    private let callButton = UIButton(configuration: .gray())
+    private let attributionLabel = UILabel()
 
     init(entry: DexEntry) {
         self.entry = entry
@@ -24,19 +31,17 @@ final class CardDetailViewController: UIViewController {
         title = entry.commonName
         navigationItem.largeTitleDisplayMode = .never
         buildLayout()
+        fetchCall()
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        // Re-read on each appearance: the Claude entry fills in the background
-        // after capture, so returning to this screen surfaces it once written.
         loadSighting()
     }
 
     private func buildLayout() {
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(scrollView)
-
         stack.axis = .vertical
         stack.spacing = DesignSystem.Spacing.m
         stack.translatesAutoresizingMaskIntoConstraints = false
@@ -68,12 +73,25 @@ final class CardDetailViewController: UIViewController {
         rarityRow.axis = .horizontal
         stack.addArrangedSubview(rarityRow)
 
+        // Evocative category ("the ___") — hidden until narrated.
+        categoryLabel.font = .systemFont(ofSize: 17, weight: .bold)
+        categoryLabel.textColor = DesignSystem.Color.accent
+        categoryLabel.adjustsFontForContentSizeCategory = true
+        categoryLabel.isHidden = true
+        stack.addArrangedSubview(categoryLabel)
+        stack.setCustomSpacing(4, after: categoryLabel)
+
         let sciBase = UIFont.preferredFont(forTextStyle: .callout)
         let sciFont = UIFont(descriptor: sciBase.fontDescriptor.withSymbolicTraits(.traitItalic) ?? sciBase.fontDescriptor, size: 0)
-        stack.addArrangedSubview(titleLabel(entry.scientificName, font: sciFont, color: .secondaryLabel))
-        stack.addArrangedSubview(titleLabel(
-            "\(entry.realm.rawValue.capitalized) · caught ×\(entry.sightingCount)",
-            font: .preferredFont(forTextStyle: .footnote), color: .tertiaryLabel))
+        stack.addArrangedSubview(makeLabel(entry.scientificName, font: sciFont, color: .secondaryLabel))
+
+        sizeLabel.font = .preferredFont(forTextStyle: .footnote)
+        sizeLabel.adjustsFontForContentSizeCategory = true
+        sizeLabel.textColor = .tertiaryLabel
+        stack.addArrangedSubview(sizeLabel)
+        setMeta(size: nil)
+
+        stack.addArrangedSubview(divider())
 
         narrationLabel.font = .preferredFont(forTextStyle: .body)
         narrationLabel.adjustsFontForContentSizeCategory = true
@@ -81,6 +99,25 @@ final class CardDetailViewController: UIViewController {
         narrationLabel.numberOfLines = 0
         narrationLabel.text = "Writing this creature's dex entry…"
         stack.addArrangedSubview(narrationLabel)
+
+        // Call ("cry") — hidden until a safe recording is found.
+        var callConfig = UIButton.Configuration.tinted()
+        callConfig.title = "Play call"
+        callConfig.image = UIImage(systemName: "speaker.wave.2.fill")
+        callConfig.imagePadding = 8
+        callConfig.baseForegroundColor = DesignSystem.Color.accent
+        callConfig.baseBackgroundColor = DesignSystem.Color.accent
+        callConfig.cornerStyle = .large
+        callButton.configuration = callConfig
+        callButton.addAction(UIAction { [weak self] _ in self?.playCall() }, for: .touchUpInside)
+        callButton.isHidden = true
+        stack.addArrangedSubview(callButton)
+
+        attributionLabel.font = .preferredFont(forTextStyle: .caption2)
+        attributionLabel.textColor = .tertiaryLabel
+        attributionLabel.numberOfLines = 0
+        attributionLabel.isHidden = true
+        stack.addArrangedSubview(attributionLabel)
 
         var config = UIButton.Configuration.borderedProminent()
         config.title = "Ask the creature"
@@ -94,7 +131,7 @@ final class CardDetailViewController: UIViewController {
         stack.addArrangedSubview(ask)
     }
 
-    private func titleLabel(_ text: String, font: UIFont, color: UIColor) -> UILabel {
+    private func makeLabel(_ text: String, font: UIFont, color: UIColor) -> UILabel {
         let label = UILabel()
         label.text = text
         label.font = font
@@ -104,17 +141,53 @@ final class CardDetailViewController: UIViewController {
         return label
     }
 
+    private func divider() -> UIView {
+        let line = UIView()
+        line.backgroundColor = .separator
+        line.heightAnchor.constraint(equalToConstant: 0.5).isActive = true
+        return line
+    }
+
+    private func setMeta(size: String?) {
+        var parts = ["\(entry.realm.rawValue.capitalized)", "caught ×\(entry.sightingCount)"]
+        if let size, !size.isEmpty { parts.insert(size, at: 1) }
+        sizeLabel.text = parts.joined(separator: "  ·  ")
+    }
+
     private func loadSighting() {
         let speciesId = entry.speciesId
         Task { @MainActor in
             let sighting = try? CollectionStore.shared.latestSighting(speciesId: speciesId)
             if let text = sighting?.pokedexEntry, !text.isEmpty {
                 narrationLabel.text = text
+                narrationLabel.textColor = .label
             } else {
                 narrationLabel.text = "This creature's dex entry will appear once it's written."
                 narrationLabel.textColor = .secondaryLabel
             }
+            if let category = sighting?.category, !category.isEmpty {
+                categoryLabel.text = "The \(category)"
+                categoryLabel.isHidden = false
+            }
+            setMeta(size: sighting?.typicalSize)
         }
+    }
+
+    private func fetchCall() {
+        let name = entry.scientificName
+        Task { @MainActor in
+            guard let call = await detailService.call(scientificName: name) else { return }
+            self.call = call
+            callButton.isHidden = false
+            attributionLabel.text = "Call: \(call.attribution)"
+            attributionLabel.isHidden = false
+        }
+    }
+
+    private func playCall() {
+        guard let call else { return }
+        Haptics.tap()
+        detailService.play(call)
     }
 
     private func presentAskPlaceholder() {

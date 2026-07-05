@@ -214,7 +214,7 @@ final class FieldViewController: UIViewController {
         Task.detached { [narrator, store] in
             guard let entry = await narrator.entry(for: candidate, grounding: grounding) else { return }
             do {
-                try store.setPokedexEntry(sightingId: sightingId, entry: entry.displayText)
+                try store.setNarration(sightingId: sightingId, entry: entry)
             } catch {
                 AppLogger.shared.error("persist narration failed: \(error)", category: .persistence)
             }

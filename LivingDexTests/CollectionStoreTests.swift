@@ -50,7 +50,11 @@ final class CollectionStoreTests: XCTestCase {
         let store = try makeStore()
         let s = sighting(species: "gbif:7")
         _ = try store.save(s)
-        try store.setPokedexEntry(sightingId: s.id, entry: "A test creature.")
-        XCTAssertEqual(try store.latestSighting(speciesId: "gbif:7")?.pokedexEntry, "A test creature.")
+        let entry = PokedexEntry(entry: "A test creature.", funFacts: ["fact"], category: "Test Beast", typicalSize: "~1 cm")
+        try store.setNarration(sightingId: s.id, entry: entry)
+        let fetched = try store.latestSighting(speciesId: "gbif:7")
+        XCTAssertEqual(fetched?.pokedexEntry, entry.displayText)
+        XCTAssertEqual(fetched?.category, "Test Beast")
+        XCTAssertEqual(fetched?.typicalSize, "~1 cm")
     }
 }

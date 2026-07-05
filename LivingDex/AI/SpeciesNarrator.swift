@@ -5,6 +5,10 @@ import AICreditsCore
 struct PokedexEntry: Codable, Sendable {
     var entry: String
     var funFacts: [String]
+    /// A short evocative epithet, the "the ___ Pokémon" analog (e.g. "Urban Songbird").
+    var category: String?
+    /// Typical adult size (e.g. "~16 cm · ~30 g").
+    var typicalSize: String?
 
     /// A single display string (entry + fun facts) persisted on the sighting.
     var displayText: String {
@@ -57,7 +61,8 @@ final class SpeciesNarrator: Narrator {
         Write a short, wondrous "Pokédex entry" for the real organism below, for a \
         nature-collection game. Ground every claim in well-established biology — do NOT \
         invent facts; if unsure, stay general. No markdown.
-        Reply with JSON only: {"entry": "<2-3 evocative sentences>", "funFacts": ["<fact>", "<fact>", "<fact>"]}.
+        Reply with JSON only: {"entry": "<2-3 evocative sentences>", "funFacts": ["<fact>", "<fact>", "<fact>"], \
+        "category": "<2-3 word evocative epithet, e.g. Urban Songbird>", "typicalSize": "<typical adult size, e.g. ~16 cm · ~30 g>"}.
 
         Common name: \(c.commonName)
         Scientific name: \(c.scientificName)

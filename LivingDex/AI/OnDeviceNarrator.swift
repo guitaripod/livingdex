@@ -36,7 +36,9 @@ struct OnDeviceNarrator: Narrator {
                 generating: GeneratedEntry.self)
             let generated = response.content
             AppLogger.shared.info("on-device narrated \(candidate.commonName)", category: .ai)
-            return PokedexEntry(entry: generated.entry, funFacts: generated.funFacts)
+            return PokedexEntry(
+                entry: generated.entry, funFacts: generated.funFacts,
+                category: generated.category, typicalSize: generated.typicalSize)
         } catch {
             AppLogger.shared.error("on-device narration failed: \(error.localizedDescription)", category: .ai)
             return nil
@@ -71,5 +73,11 @@ struct GeneratedEntry {
 
     @Guide(description: "Three short, true fun facts about the organism.", .count(3))
     var funFacts: [String]
+
+    @Guide(description: "A 2-3 word evocative category epithet, e.g. Urban Songbird or Woodland Fungus.")
+    var category: String
+
+    @Guide(description: "Typical adult size, e.g. ~16 cm · ~30 g.")
+    var typicalSize: String
 }
 #endif

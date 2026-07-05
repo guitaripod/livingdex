@@ -92,13 +92,13 @@ final class CollectionStore: Sendable {
         }
     }
 
-    /// Stores the Claude-authored Pokédex entry onto a sighting (filled async
-    /// after capture; the card detail reads the species' latest sighting).
-    func setPokedexEntry(sightingId: String, entry: String) throws {
+    /// Stores the narrated Pokédex entry (+ category and typical size) onto a
+    /// sighting, filled async after capture; the card reads the latest sighting.
+    func setNarration(sightingId: String, entry: PokedexEntry) throws {
         try dbQueue.write { db in
             try db.execute(
-                sql: "UPDATE sightings SET pokedexEntry = ? WHERE id = ?",
-                arguments: [entry, sightingId])
+                sql: "UPDATE sightings SET pokedexEntry = ?, category = ?, typicalSize = ? WHERE id = ?",
+                arguments: [entry.displayText, entry.category, entry.typicalSize, sightingId])
         }
     }
 

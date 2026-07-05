@@ -47,7 +47,17 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         loadRegionIfNeeded()
+        #if DEBUG
+        if DemoSeeder.route == "card", !didDemoPush, let entry = caught.first {
+            didDemoPush = true
+            navigationController?.pushViewController(CardDetailViewController(entry: entry), animated: false)
+        }
+        #endif
     }
+
+    #if DEBUG
+    private var didDemoPush = false
+    #endif
 
     // MARK: Layout
 

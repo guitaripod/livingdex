@@ -31,6 +31,8 @@ struct Sighting: Codable, FetchableRecord, MutablePersistableRecord, Identifiabl
     var elevationMeters: Double?
     var imagePath: String
     var pokedexEntry: String?
+    var category: String? = nil
+    var typicalSize: String? = nil
 }
 
 /// One collected species — the materialized "dex" row, upserted on each capture

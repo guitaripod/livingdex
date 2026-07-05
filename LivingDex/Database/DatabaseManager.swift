@@ -83,6 +83,12 @@ final class DatabaseManager: @unchecked Sendable {
                 sql: "INSERT OR IGNORE INTO player_progress (id, totalXP, currentStreak, longestStreak, lastCatchDay, freezes) VALUES (?, 0, 0, 0, NULL, ?)",
                 arguments: [PlayerProgress.singletonID, PlayerProgress.initialFreezes])
         }
+        migrator.registerMigration("v3_species_facts") { db in
+            try db.alter(table: "sightings") { t in
+                t.add(column: "category", .text)
+                t.add(column: "typicalSize", .text)
+            }
+        }
         try migrator.migrate(db)
     }
 }
