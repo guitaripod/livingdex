@@ -68,8 +68,10 @@ enum SpeciesIdentifierFactory {
             AppLogger.shared.info("using Core ML identifier", category: .identify)
             return coreML
         }
-        AppLogger.shared.warn("no bundled model/catalog — using stub identifier", category: .identify)
-        return StubSpeciesIdentifier()
+        // No bundled model yet → real cloud-vision ID through mako, with the stub
+        // as the offline fallback so the loop still works with no network.
+        AppLogger.shared.info("using cloud-vision identifier (stub fallback)", category: .identify)
+        return CloudVisionIdentifier(fallback: StubSpeciesIdentifier())
     }
 }
 
