@@ -1,0 +1,15 @@
+## Xcode / build
+build/
+DerivedData/
+*.xcodeproj
+*.xcworkspace
+!default.xcworkspace
+.DS_Store
+xcuserdata/
+
+## SPM
+.build/
+.swiftpm/
+
+## Secrets (real values injected locally / by CI)
+LivingDex/Secrets.swift

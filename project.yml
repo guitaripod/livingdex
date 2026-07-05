@@ -1,0 +1,123 @@
+name: LivingDex
+options:
+  bundleIdPrefix: com.guitaripod
+  deploymentTarget:
+    iOS: "26.0"
+  developmentLanguage: en
+  xcodeVersion: "26.6"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+  defaultConfig: Debug
+  groupSortPosition: top
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_EMIT_LOC_STRINGS: YES
+    SWIFT_STRICT_CONCURRENCY: complete
+    SWIFT_UPCOMING_FEATURE_EXISTENTIAL_ANY: YES
+    SWIFT_UPCOMING_FEATURE_REGION_BASED_ISOLATION: YES
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: P4DQK6SRKR
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    GENERATE_INFOPLIST_FILE: NO
+    IPHONEOS_DEPLOYMENT_TARGET: "26.0"
+    TARGETED_DEVICE_FAMILY: "1"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+  configs:
+    Debug:
+      SWIFT_ACTIVE_COMPILATION_CONDITIONS: DEBUG
+      SWIFT_OPTIMIZATION_LEVEL: "-Onone"
+    Release:
+      SWIFT_OPTIMIZATION_LEVEL: "-O"
+
+packages:
+  GRDB:
+    url: https://github.com/groue/GRDB.swift
+    from: "7.0.0"
+  AICredits:
+    url: git@github.com:guitaripod/AICredits.git
+    from: "1.3.0"
+
+targets:
+  LivingDex:
+    type: application
+    platform: iOS
+    sources:
+      - path: LivingDex
+        excludes:
+          - "Secrets.example.swift"
+      - path: LivingDex/Secrets.swift
+        optional: true
+    dependencies:
+      - package: GRDB
+      - package: AICredits
+        product: AICreditsCore
+      - package: AICredits
+        product: AICreditsRevenueCat
+      - package: AICredits
+        product: AICreditsUI
+    info:
+      path: LivingDex/Info.plist
+      properties:
+        CFBundleDisplayName: Living Dex
+        CFBundleShortVersionString: "0.1.0"
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: Default Configuration
+                UISceneDelegateClassName: $(PRODUCT_MODULE_NAME).SceneDelegate
+        UIRequiredDeviceCapabilities:
+          - arm64
+        UIViewControllerBasedStatusBarAppearance: true
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSCameraUsageDescription: Living Dex uses the camera to identify and collect the life forms you point it at.
+        NSLocationWhenInUseUsageDescription: Living Dex tags each sighting with its location to build your regional dex and gauge rarity. Your precise location is never shared with other players.
+        NSMotionUsageDescription: Living Dex records the elevation of a sighting to distinguish lowland from alpine species.
+        ITSAppUsesNonExemptEncryption: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.guitaripod.livingdex
+        PRODUCT_NAME: LivingDex
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.education
+
+  LivingDexTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - LivingDexTests
+    dependencies:
+      - target: LivingDex
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.guitaripod.livingdex.tests
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/LivingDex.app/LivingDex
+        BUNDLE_LOADER: $(TEST_HOST)
+        SWIFT_STRICT_CONCURRENCY: complete
+
+schemes:
+  LivingDex:
+    build:
+      targets:
+        LivingDex: all
+        LivingDexTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - LivingDexTests
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release
