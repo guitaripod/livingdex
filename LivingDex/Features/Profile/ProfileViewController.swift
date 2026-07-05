@@ -5,6 +5,7 @@ import UIKit
 /// on visible progress, so this is a first-class tab, not a buried settings page.
 final class ProfileViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     private let tableView = UITableView(frame: .zero, style: .insetGrouped)
+    private let headerView = ProfileHeaderView()
 
     private enum Row {
         case stat(title: String, value: String)
@@ -26,7 +27,17 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        headerView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: 210)
+        tableView.tableHeaderView = headerView
         view.addSubview(tableView)
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        if headerView.frame.width != tableView.bounds.width {
+            headerView.frame.size.width = tableView.bounds.width
+            tableView.tableHeaderView = headerView
+        }
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -40,15 +51,10 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
         let progress = (try? ProgressStore.shared.current()) ?? .initial()
         let balance = AICreditsManager.store.balance
 
-        let levelProgress = Level.progress(for: progress.totalXP)
-        let progressionRows: [Row] = [
-            .stat(title: "Level", value: "\(progress.level)"),
-            .stat(title: "Experience", value: "\(levelProgress.into) / \(levelProgress.span) to next"),
-            .stat(title: "Current streak", value: progress.currentStreak == 1 ? "1 day" : "\(progress.currentStreak) days"),
-            .stat(title: "Longest streak", value: progress.longestStreak == 1 ? "1 day" : "\(progress.longestStreak) days"),
-        ]
+        headerView.configure(with: progress, speciesCount: stats.speciesCount)
 
         var collection: [Row] = [
+            .stat(title: "Longest streak", value: progress.longestStreak == 1 ? "1 day" : "\(progress.longestStreak) days"),
             .stat(title: "Species collected", value: "\(stats.speciesCount)"),
             .stat(title: "Total catches", value: "\(stats.totalCatches)"),
         ]
@@ -57,7 +63,6 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
             .map { .rarity($0, count: stats.byRarity[$0] ?? 0) }
 
         sections = [
-            Section(header: "Progress", rows: progressionRows),
             Section(header: "Collection", rows: collection),
             Section(header: "Living Dex Pro", rows: [.pro(balance: balance)]),
             Section(header: "Compete", rows: [
