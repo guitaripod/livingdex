@@ -27,6 +27,17 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     private static func makeRoot() -> UIViewController {
+        #if DEBUG
+        if DemoSeeder.isEnabled {
+            let root = RootViewController()
+            switch DemoSeeder.route {
+            case "profile": root.selectedIndex = 2
+            case "dex", "card": root.selectedIndex = 1
+            default: root.selectedIndex = 0
+            }
+            return root
+        }
+        #endif
         guard AppSettings.hasOnboarded else {
             let onboarding = OnboardingViewController()
             onboarding.onFinish = { [weak onboarding] in

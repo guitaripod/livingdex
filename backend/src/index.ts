@@ -21,6 +21,8 @@ interface FactSheet {
   commonName: string | null;
   scientificName: string | null;
   kingdom: string | null;
+  family: string | null;
+  order: string | null;
   rank: string | null;
   iucnCategory: string | null;
   summary: string | null;
@@ -42,6 +44,12 @@ export default {
     }
     if (request.method === "GET" && url.pathname === "/v1/enrich") {
       return enrich(url).catch((e) => json({ error: String(e) }, 500));
+    }
+    if (request.method === "GET" && url.pathname === "/v1/region") {
+      return region(url).catch((e) => json({ error: String(e) }, 500));
+    }
+    if (request.method === "GET" && url.pathname === "/v1/detail") {
+      return detail(url).catch((e) => json({ error: String(e) }, 500));
     }
     return json({ error: "not found" }, 404);
   },
@@ -86,6 +94,8 @@ async function enrich(url: URL): Promise<Response> {
       commonName,
       scientificName,
       kingdom: species?.kingdom ?? null,
+      family: species?.family ?? null,
+      order: species?.order ?? null,
       rank: species?.rank ?? null,
       iucnCategory,
       summary,
@@ -157,6 +167,117 @@ function computeRarity(
   if (global >= 10_000) return "uncommon";
   if (global >= 1_000) return "rare";
   return "epic";
+}
+
+/**
+ * The species that plausibly occur near a point — the player's "Regional Dex".
+ * Uses a GBIF facet on speciesKey within LOCAL_RADIUS_KM (ranked by how many
+ * records exist locally), then resolves each to a name + realm + rarity. Cached
+ * hard at the edge since a coarse area's species list is stable.
+ */
+async function region(url: URL): Promise<Response> {
+  const lat = numParam(url, "lat");
+  const lng = numParam(url, "lng");
+  const limit = Math.min(120, intParam(url, "limit") ?? 80);
+  if (lat == null || lng == null) return json({ error: "lat and lng required" }, 400);
+
+  const facetUrl =
+    `${GBIF}/occurrence/search?hasCoordinate=true&geoDistance=${lat},${lng},${LOCAL_RADIUS_KM}km` +
+    `&facet=speciesKey&facetLimit=${limit}&limit=0`;
+  const data = await fetchJSON(facetUrl);
+  const counts: Array<{ name: string; count: number }> = data?.facets?.[0]?.counts ?? [];
+
+  const species = (
+    await Promise.all(
+      counts.map(async (c) => {
+        const key = Number(c.name);
+        if (!Number.isFinite(key)) return null;
+        const sp = await fetchJSON(`${GBIF}/species/${key}`).catch(() => null);
+        const scientificName = sp?.canonicalName ?? sp?.scientificName;
+        if (!scientificName || sp?.rank !== "SPECIES") return null;
+        return {
+          taxonKey: key,
+          commonName: sp?.vernacularName ?? null,
+          scientificName,
+          realm: kingdomToRealm(sp?.kingdom),
+          rarity: computeRarity(c.count, null, null, true),
+          localCount: c.count,
+        };
+      })
+    )
+  ).filter((s) => s !== null);
+
+  return json({ count: species.length, species }, 200, 24 * 60 * 60);
+}
+
+/**
+ * Card-detail extras, lazy-loaded when a card opens (kept out of the capture
+ * loop): a playable "call" for the species from Xeno-canto, filtered to
+ * commercial-safe (non-NonCommercial) Creative Commons licences.
+ */
+async function detail(url: URL): Promise<Response> {
+  const name = url.searchParams.get("name")?.trim();
+  if (!name) return json({ error: "name required" }, 400);
+  // Prefer commercial-safe Wikimedia Commons audio; fall back to any non-NC
+  // Xeno-canto recording. Best-effort — many species simply have no safe call.
+  const call = (await commonsCall(name).catch(() => null)) ?? (await xenoCantoCall(name).catch(() => null));
+  return json({ call }, 200, 7 * 24 * 60 * 60);
+}
+
+interface Call {
+  url: string;
+  recordist: string | null;
+  license: string | null;
+  source: string;
+}
+
+/** Wikimedia Commons audio (CC BY-SA / CC0 / public domain — commercial-safe). */
+async function commonsCall(scientificName: string): Promise<Call | null> {
+  const api =
+    `https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*` +
+    `&generator=search&gsrsearch=${encodeURIComponent(`filetype:audio ${scientificName}`)}` +
+    `&gsrnamespace=6&gsrlimit=10&prop=imageinfo&iiprop=url|mime|extmetadata`;
+  const data = await fetchJSON(api);
+  const pages: any[] = Object.values(data?.query?.pages ?? {});
+  for (const p of pages) {
+    const info = p?.imageinfo?.[0];
+    if (!info || typeof info.mime !== "string" || !info.mime.startsWith("audio")) continue;
+    const lic = (info.extmetadata?.LicenseShortName?.value ?? "").toLowerCase();
+    const safe = lic.includes("cc0") || lic.includes("public domain") ||
+      ((lic.includes("cc by") || lic.includes("cc-by")) && !lic.includes("nc"));
+    if (!safe || !info.url) continue;
+    return {
+      url: info.url,
+      recordist: info.extmetadata?.Artist?.value?.replace(/<[^>]+>/g, "").trim() || null,
+      license: info.extmetadata?.LicenseShortName?.value ?? null,
+      source: "Wikimedia Commons",
+    };
+  }
+  return null;
+}
+
+async function xenoCantoCall(scientificName: string): Promise<Call | null> {
+  const q = encodeURIComponent(`${scientificName} q:A`);
+  const data = await fetchJSON(`https://xeno-canto.org/api/2/recordings?query=${q}`);
+  const recordings: any[] = data?.recordings ?? [];
+  const rec = recordings.find(
+    (r) => r.file && typeof r.lic === "string" && !r.lic.toLowerCase().includes("-nc-")
+  );
+  if (!rec) return null;
+  const fileUrl = rec.file.startsWith("//") ? `https:${rec.file}` : rec.file;
+  const license = typeof rec.lic === "string" ? (rec.lic.startsWith("//") ? `https:${rec.lic}` : rec.lic) : null;
+  return { url: fileUrl, recordist: rec.rec ?? null, license, source: "Xeno-canto" };
+}
+
+function kingdomToRealm(kingdom: string | null | undefined): string {
+  switch (kingdom) {
+    case "Animalia": return "animals";
+    case "Plantae": return "plants";
+    case "Fungi": return "fungi";
+    case "Protozoa":
+    case "Chromista": return "protists";
+    default: return "other";
+  }
 }
 
 // MARK: helpers

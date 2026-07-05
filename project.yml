@@ -80,6 +80,7 @@ targets:
         NSLocationWhenInUseUsageDescription: Living Dex tags each sighting with its location to build your regional dex and gauge rarity. Your precise location is never shared with other players.
         NSMotionUsageDescription: Living Dex records the elevation of a sighting to distinguish lowland from alpine species.
         ITSAppUsesNonExemptEncryption: false
+        CADisableMinimumFrameDurationOnPhone: true
     entitlements:
       path: LivingDex/LivingDex.entitlements
       properties:

@@ -8,6 +8,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     ) -> Bool {
         warmUpLaunchServicesReceiptPath()
         _ = DatabaseManager.shared
+        #if DEBUG
+        DemoSeeder.seedIfNeeded()
+        #endif
         AppLogger.shared.info("app launched", category: .app)
         return true
     }
