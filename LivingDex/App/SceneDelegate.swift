@@ -22,6 +22,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window.makeKeyAndVisible()
 
         Task { await AICreditsManager.store.bootstrap() }
+        GameCenterService.shared.authenticate()
         AppLogger.shared.info("scene connected", category: .app)
     }
 

@@ -36,8 +36,17 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
     }
 
     private func rebuild() {
-        let stats = (try? CollectionStore.shared.stats()) ?? .init(speciesCount: 0, totalCatches: 0, byRarity: [:])
+        let stats = (try? CollectionStore.shared.stats()) ?? .init(speciesCount: 0, totalCatches: 0, byRarity: [:], realms: [], maxRarity: nil)
+        let progress = (try? ProgressStore.shared.current()) ?? .initial()
         let balance = AICreditsManager.store.balance
+
+        let levelProgress = Level.progress(for: progress.totalXP)
+        let progressionRows: [Row] = [
+            .stat(title: "Level", value: "\(progress.level)"),
+            .stat(title: "Experience", value: "\(levelProgress.into) / \(levelProgress.span) to next"),
+            .stat(title: "Current streak", value: progress.currentStreak == 1 ? "1 day" : "\(progress.currentStreak) days"),
+            .stat(title: "Longest streak", value: progress.longestStreak == 1 ? "1 day" : "\(progress.longestStreak) days"),
+        ]
 
         var collection: [Row] = [
             .stat(title: "Species collected", value: "\(stats.speciesCount)"),
@@ -48,8 +57,15 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
             .map { .rarity($0, count: stats.byRarity[$0] ?? 0) }
 
         sections = [
+            Section(header: "Progress", rows: progressionRows),
             Section(header: "Collection", rows: collection),
             Section(header: "Living Dex Pro", rows: [.pro(balance: balance)]),
+            Section(header: "Compete", rows: [
+                .action(title: "Leaderboards & achievements", symbol: "trophy.fill") { [weak self] in
+                    guard let self else { return }
+                    GameCenterService.shared.presentDashboard(from: self)
+                },
+            ]),
             Section(header: "Diagnostics", rows: [
                 .action(title: "Export logs", symbol: "square.and.arrow.up") { [weak self] in self?.exportLogs() },
             ]),

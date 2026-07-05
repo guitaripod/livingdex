@@ -8,7 +8,7 @@ final class FieldViewController: UIViewController {
     private let camera = CameraController()
     private let identifier: SpeciesIdentifier = SpeciesIdentifierFactory.make()
     private let store = CollectionStore.shared
-    private let narrator = SpeciesNarrator()
+    private let narrator = NarratorService.shared
 
     private let statusChip = GlassChipView()
     private let captureButton = CaptureButton()
@@ -182,7 +182,18 @@ final class FieldViewController: UIViewController {
             AppLogger.shared.error("save sighting failed: \(error)", category: .persistence)
         }
 
-        presentCard(for: sighting, image: image, isNew: isNew)
+        let event = try? ProgressStore.shared.record(rarity: top.rarity, isNew: isNew)
+        if let event {
+            AppLogger.shared.info("progress +\(event.xpGained)xp streak=\(event.streak) level=\(event.leveledUpTo.map(String.init) ?? "-")", category: .capture)
+        }
+
+        if let stats = try? store.stats(), let progress = try? ProgressStore.shared.current() {
+            GameCenterService.shared.recordCatch(context: AchievementContext(
+                speciesCount: stats.speciesCount, realms: stats.realms,
+                maxRarity: stats.maxRarity, longestStreak: progress.longestStreak))
+        }
+
+        presentCard(for: sighting, image: image, isNew: isNew, progress: event)
         finishCapture(reset: "Point at anything alive")
         narrate(top, sightingId: id)
     }
@@ -200,8 +211,8 @@ final class FieldViewController: UIViewController {
         }
     }
 
-    private func presentCard(for sighting: Sighting, image: UIImage, isNew: Bool) {
-        let card = CardRevealViewController(sighting: sighting, image: image, isNewDexEntry: isNew)
+    private func presentCard(for sighting: Sighting, image: UIImage, isNew: Bool, progress: ProgressEvent?) {
+        let card = CardRevealViewController(sighting: sighting, image: image, isNewDexEntry: isNew, progress: progress)
         card.modalPresentationStyle = .overFullScreen
         card.modalTransitionStyle = .crossDissolve
         present(card, animated: true)

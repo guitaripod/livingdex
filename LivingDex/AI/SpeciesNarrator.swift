@@ -19,7 +19,7 @@ struct PokedexEntry: Codable, Sendable {
 /// live fill; the richer Sonnet-batch narration is precomputed server-side and
 /// cached per species+locale. All identification stays on-device; this is only
 /// prose, so a failure degrades to a nil entry (the card still shows fine).
-final class SpeciesNarrator: Sendable {
+final class SpeciesNarrator: Narrator {
     private let client: AICreditsClient
     private let model = "claude-haiku-4-5"
 

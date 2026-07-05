@@ -70,18 +70,25 @@ final class CollectionStore: Sendable {
         var speciesCount: Int
         var totalCatches: Int
         var byRarity: [Rarity: Int]
+        var realms: Set<Realm>
+        var maxRarity: Rarity?
     }
 
     func stats() throws -> Stats {
         try dbQueue.read { db in
             let entries = try DexEntry.fetchAll(db)
             var byRarity: [Rarity: Int] = [:]
+            var realms: Set<Realm> = []
             var totalCatches = 0
             for e in entries {
                 byRarity[e.rarity, default: 0] += 1
+                realms.insert(e.realm)
                 totalCatches += e.sightingCount
             }
-            return Stats(speciesCount: entries.count, totalCatches: totalCatches, byRarity: byRarity)
+            let maxRarity = Rarity.allCases.last { byRarity[$0] != nil }
+            return Stats(
+                speciesCount: entries.count, totalCatches: totalCatches,
+                byRarity: byRarity, realms: realms, maxRarity: maxRarity)
         }
     }
 

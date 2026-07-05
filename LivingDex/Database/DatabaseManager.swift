@@ -70,6 +70,19 @@ final class DatabaseManager: @unchecked Sendable {
                 t.column("bestImagePath", .text).notNull()
             }
         }
+        migrator.registerMigration("v2_progress") { db in
+            try db.create(table: "player_progress") { t in
+                t.primaryKey("id", .integer)
+                t.column("totalXP", .integer).notNull().defaults(to: 0)
+                t.column("currentStreak", .integer).notNull().defaults(to: 0)
+                t.column("longestStreak", .integer).notNull().defaults(to: 0)
+                t.column("lastCatchDay", .integer)
+                t.column("freezes", .integer).notNull().defaults(to: 2)
+            }
+            try db.execute(
+                sql: "INSERT OR IGNORE INTO player_progress (id, totalXP, currentStreak, longestStreak, lastCatchDay, freezes) VALUES (?, 0, 0, 0, NULL, ?)",
+                arguments: [PlayerProgress.singletonID, PlayerProgress.initialFreezes])
+        }
         try migrator.migrate(db)
     }
 }

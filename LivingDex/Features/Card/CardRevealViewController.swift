@@ -9,15 +9,17 @@ final class CardRevealViewController: UIViewController {
     private let sighting: Sighting
     private let image: UIImage
     private let isNewDexEntry: Bool
+    private let progress: ProgressEvent?
 
     private let card = GlassPanel(cornerRadius: DesignSystem.Radius.card)
     private var sparkleLayer: CAEmitterLayer?
     private var dismissAnimator: UIViewPropertyAnimator?
 
-    init(sighting: Sighting, image: UIImage, isNewDexEntry: Bool) {
+    init(sighting: Sighting, image: UIImage, isNewDexEntry: Bool, progress: ProgressEvent? = nil) {
         self.sighting = sighting
         self.image = image
         self.isNewDexEntry = isNewDexEntry
+        self.progress = progress
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -160,6 +162,11 @@ final class CardRevealViewController: UIViewController {
         stack.setCustomSpacing(DesignSystem.Spacing.s, after: badges)
         stack.translatesAutoresizingMaskIntoConstraints = false
 
+        if let progressView = progressRow() {
+            stack.addArrangedSubview(progressView)
+            stack.setCustomSpacing(DesignSystem.Spacing.s, after: meta)
+        }
+
         card.contentView.addSubview(grabber)
         card.contentView.addSubview(photo)
         card.contentView.addSubview(stack)
@@ -187,6 +194,21 @@ final class CardRevealViewController: UIViewController {
         ])
 
         if isNewDexEntry { addNewBanner() }
+    }
+
+    /// A compact "+40 XP · 🔥 3 · Level 4!" progress line under the card meta.
+    private func progressRow() -> UIView? {
+        guard let progress else { return nil }
+        var parts: [String] = ["+\(progress.xpGained) XP"]
+        if progress.streak > 1 { parts.append("🔥 \(progress.streak)") }
+        if let level = progress.leveledUpTo { parts.append("Level \(level)!") }
+        let label = scalingLabel(parts.joined(separator: "  ·  "), style: .subheadline, weight: .semibold, color: .white)
+        label.isAccessibilityElement = true
+        var a11y = "Gained \(progress.xpGained) experience."
+        if progress.streak > 1 { a11y += " \(progress.streak) day streak." }
+        if let level = progress.leveledUpTo { a11y += " Reached level \(level)." }
+        label.accessibilityLabel = a11y
+        return label
     }
 
     private func confidenceChip() -> UIView {
