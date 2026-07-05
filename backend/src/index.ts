@@ -62,11 +62,14 @@ async function enrich(url: URL): Promise<Response> {
     return json({ error: "provide taxonKey or a resolvable name" }, 400);
   }
 
+  // Every upstream is independently best-effort: a single GBIF hiccup (e.g. a
+  // 429 on the occurrence search) must not sink the whole fact-sheet, so each
+  // failure degrades to null and the response is still useful.
   const [species, iucn, localCount, globalCount] = await Promise.all([
-    fetchJSON(`${GBIF}/species/${taxonKey}`),
+    fetchJSON(`${GBIF}/species/${taxonKey}`).catch(() => null),
     fetchJSON(`${GBIF}/species/${taxonKey}/iucnRedListCategory`).catch(() => null),
-    lat != null && lng != null ? occurrenceCount(taxonKey, lat, lng) : Promise.resolve(null),
-    occurrenceCount(taxonKey, null, null),
+    lat != null && lng != null ? occurrenceCount(taxonKey, lat, lng).catch(() => null) : Promise.resolve(null),
+    occurrenceCount(taxonKey, null, null).catch(() => null),
   ]);
 
   const scientificName = species?.canonicalName ?? matched?.canonicalName ?? name;
@@ -146,12 +149,14 @@ function computeRarity(
     return "epic";
   }
 
-  const count = global ?? 0;
-  if (count >= 100_000) return "common";
-  if (count >= 10_000) return "uncommon";
-  if (count >= 1_000) return "rare";
-  if (count >= 1) return "epic";
-  return "legendary";
+  // No location: coarser global-density fallback. A missing count (lookup
+  // failed) is *unknown*, not a jackpot — default to uncommon rather than
+  // minting a legendary from a data gap. Legendary comes only from IUCN status.
+  if (global == null) return "uncommon";
+  if (global >= 100_000) return "common";
+  if (global >= 10_000) return "uncommon";
+  if (global >= 1_000) return "rare";
+  return "epic";
 }
 
 // MARK: helpers

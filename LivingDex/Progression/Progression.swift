@@ -65,10 +65,11 @@ struct PlayerProgress: Codable, FetchableRecord, PersistableRecord, Sendable {
 
     var level: Int { Level.level(for: totalXP) }
 
-    /// Local-calendar day index for a date (days since a fixed reference).
+    /// Local-calendar day index — increments by exactly 1 per calendar day
+    /// regardless of DST. (Epoch/86400 division would miscount the ±1h DST
+    /// boundary days, spuriously burning a freeze or resetting a streak.)
     static func dayNumber(_ date: Date, calendar: Calendar = .current) -> Int {
-        let start = calendar.startOfDay(for: date)
-        return Int(start.timeIntervalSince1970 / 86_400)
+        calendar.ordinality(of: .day, in: .era, for: date) ?? Int(calendar.startOfDay(for: date).timeIntervalSince1970 / 86_400)
     }
 }
 
