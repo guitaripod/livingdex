@@ -17,6 +17,7 @@ final class FieldViewController: UIViewController {
     private var isBusy = false
 
     private var hasConfigured = false
+    private var cameraStarted = false
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -41,7 +42,17 @@ final class FieldViewController: UIViewController {
             LocationProvider.shared.requestAuthorization()
             configureCameraIfAllowed()
         } else if CameraController.authorizationStatus() == .authorized {
-            camera.start()
+            // Recover if access was granted in Settings after a prior denial: the
+            // camera may never have been configured, so start it from scratch and
+            // dismiss the permission gate.
+            if cameraStarted {
+                camera.start()
+            } else {
+                permissionView.isHidden = true
+                captureButton.isHidden = false
+                statusChip.isHidden = false
+                startCamera()
+            }
         }
     }
 
@@ -107,6 +118,7 @@ final class FieldViewController: UIViewController {
     }
 
     private func startCamera() {
+        cameraStarted = true
         camera.configureAndStart()
         // `canCapture` flips async after configuration; if no usable device
         // attached (Simulator, hardware busy), surface a distinct state rather
@@ -152,23 +164,42 @@ final class FieldViewController: UIViewController {
     private func process(_ image: UIImage) async {
         let context = LocationProvider.shared.currentContext()
         let result = await identifier.identify(image, context: context)
-        guard var top = result.top else {
+        guard var top = result.top, top.confidence >= 0.35 else {
             Haptics.failure()
             finishCapture(reset: "No clear living thing — get closer to a plant, animal, or bug")
             return
         }
 
-        // Enrich with real rarity + fact-sheet from the domain Worker (GBIF/Wikipedia).
-        // Best-effort: on timeout/failure the on-device candidate's values stand.
+        // Ground the candidate against GBIF via the domain Worker. A `unresolved`
+        // result means GBIF actively rejected the name — a likely hallucination we
+        // must not mint. `unavailable` (offline/timeout) mints provisionally and
+        // heals on a later card open.
         var grounding: String?
-        if let enrichment = await enricher.enrich(candidate: top, context: context) {
+        var enriched = false
+        switch await enricher.enrich(candidate: top, context: context) {
+        case let .resolved(enrichment):
             top.rarity = enrichment.rarity
-            if let name = enrichment.commonName, !name.isEmpty { top.commonName = name }
+            if let sci = enrichment.scientificName,
+               sci.caseInsensitiveCompare(top.scientificName) == .orderedSame,
+               let name = enrichment.commonName, !name.isEmpty {
+                top.commonName = name
+            }
             grounding = enrichment.summary
+            enriched = true
+        case .unresolved:
+            Haptics.failure()
+            finishCapture(reset: "Couldn't confirm that species — try a clearer, closer shot")
+            return
+        case .unavailable:
+            break
         }
 
         let id = UUID().uuidString
-        let path = ImageStore.save(image, id: id) ?? ""
+        guard let path = ImageStore.save(image, id: id) else {
+            Haptics.failure()
+            finishCapture(reset: "Couldn't save that photo — try again")
+            return
+        }
         let sighting = Sighting(
             id: id,
             speciesId: top.speciesId,
@@ -182,7 +213,8 @@ final class FieldViewController: UIViewController {
             longitude: context.longitude,
             elevationMeters: context.elevationMeters,
             imagePath: path,
-            pokedexEntry: nil)
+            pokedexEntry: nil,
+            enriched: enriched)
 
         var isNew = false
         do {

@@ -62,7 +62,7 @@ final class SpeciesNarrator: Narrator {
         nature-collection game. Ground every claim in well-established biology — do NOT \
         invent facts; if unsure, stay general. No markdown.
         Reply with JSON only: {"entry": "<2-3 evocative sentences>", "funFacts": ["<fact>", "<fact>", "<fact>"], \
-        "category": "<2-3 word evocative epithet, e.g. Urban Songbird>", "typicalSize": "<typical adult size, e.g. ~16 cm · ~30 g>"}.
+        "category": "<2-3 word evocative epithet, e.g. Urban Songbird>", "typicalSize": "<typical adult size for the species, e.g. ~16 cm · ~30 g, or empty string if not well-known>"}.
 
         Common name: \(c.commonName)
         Scientific name: \(c.scientificName)

@@ -89,6 +89,14 @@ final class DatabaseManager: @unchecked Sendable {
                 t.add(column: "typicalSize", .text)
             }
         }
+        migrator.registerMigration("v4_enriched") { db in
+            try db.alter(table: "sightings") { t in
+                t.add(column: "enriched", .boolean).notNull().defaults(to: false)
+            }
+            try db.alter(table: "dex_entries") { t in
+                t.add(column: "enriched", .boolean).notNull().defaults(to: false)
+            }
+        }
         try migrator.migrate(db)
     }
 }

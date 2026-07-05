@@ -31,10 +31,10 @@ protocol SpeciesIdentifier: Sendable {
     func identify(_ image: UIImage, context: CaptureContext) async -> IdentificationResult
 }
 
-/// Placeholder identifier so the capture → card → dex loop is exercisable before
-/// the Core ML model ships. Returns a plausible candidate deterministically
-/// derived from the image so the same subject reads consistently. NOT for
-/// production — replace with `CoreMLSpeciesIdentifier`.
+#if DEBUG
+/// DEBUG-only placeholder for exercising the loop in the simulator (no camera).
+/// Never compiled into Release — it mints a random species with no confidence
+/// gate, which must never reach a user.
 struct StubSpeciesIdentifier: SpeciesIdentifier {
     private static let catalog: [SpeciesCandidate] = [
         .init(speciesId: "gbif:5231190", commonName: "House Sparrow", scientificName: "Passer domesticus", realm: .animals, rarity: .common, confidence: 0),
@@ -54,3 +54,4 @@ struct StubSpeciesIdentifier: SpeciesIdentifier {
         return IdentificationResult(candidates: [top])
     }
 }
+#endif

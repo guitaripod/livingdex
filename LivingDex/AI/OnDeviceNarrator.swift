@@ -77,7 +77,7 @@ struct GeneratedEntry {
     @Guide(description: "A 2-3 word evocative category epithet, e.g. Urban Songbird or Woodland Fungus.")
     var category: String
 
-    @Guide(description: "Typical adult size, e.g. ~16 cm · ~30 g.")
-    var typicalSize: String
+    @Guide(description: "Typical adult size for the species if it is well-known, e.g. ~16 cm · ~30 g. Leave empty rather than guess.")
+    var typicalSize: String?
 }
 #endif

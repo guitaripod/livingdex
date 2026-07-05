@@ -6,9 +6,21 @@ import Foundation
 /// timeout or failure leaves the on-device candidate's own values intact.
 struct SpeciesEnrichment: Sendable {
     var rarity: Rarity
+    var scientificName: String?
     var commonName: String?
     var summary: String?
     var iucnCategory: String?
+}
+
+/// The outcome of asking the worker to ground a candidate against GBIF.
+/// The distinction matters for correctness: `unresolved` means GBIF actively
+/// rejected the name (a likely hallucination — must NOT be minted), while
+/// `unavailable` means we couldn't reach the service (offline/timeout — mint
+/// provisionally and heal on a later card open).
+enum EnrichmentResult: Sendable {
+    case resolved(SpeciesEnrichment)
+    case unresolved
+    case unavailable
 }
 
 final class SpeciesEnricher: Sendable {
@@ -25,9 +37,9 @@ final class SpeciesEnricher: Sendable {
         self.session = URLSession(configuration: config)
     }
 
-    func enrich(candidate: SpeciesCandidate, context: CaptureContext) async -> SpeciesEnrichment? {
+    func enrich(candidate: SpeciesCandidate, context: CaptureContext) async -> EnrichmentResult {
         guard var components = URLComponents(url: baseURL.appendingPathComponent("v1/enrich"), resolvingAgainstBaseURL: false) else {
-            return nil
+            return .unavailable
         }
         var items = [URLQueryItem(name: "name", value: candidate.scientificName)]
         if let key = Self.gbifKey(from: candidate.speciesId) {
@@ -38,22 +50,28 @@ final class SpeciesEnricher: Sendable {
             items.append(URLQueryItem(name: "lng", value: String(lng)))
         }
         components.queryItems = items
-        guard let url = components.url else { return nil }
+        guard let url = components.url else { return .unavailable }
 
         do {
             let (data, response) = try await session.data(from: url)
-            guard let http = response as? HTTPURLResponse, http.statusCode == 200 else { return nil }
+            guard let http = response as? HTTPURLResponse else { return .unavailable }
+            if http.statusCode == 404 {
+                AppLogger.shared.warn("enrich unresolved: \(candidate.scientificName)", category: .identify)
+                return .unresolved
+            }
+            guard http.statusCode == 200 else { return .unavailable }
             let decoded = try JSONDecoder().decode(EnrichResponse.self, from: data)
-            guard let rarity = Rarity(rawValue: decoded.rarity) else { return nil }
+            guard let rarity = Rarity(rawValue: decoded.rarity) else { return .unavailable }
             AppLogger.shared.info("enriched \(candidate.commonName) -> \(rarity.rawValue)", category: .identify)
-            return SpeciesEnrichment(
+            return .resolved(SpeciesEnrichment(
                 rarity: rarity,
+                scientificName: decoded.factSheet.scientificName,
                 commonName: decoded.factSheet.commonName,
                 summary: decoded.factSheet.summary,
-                iucnCategory: decoded.factSheet.iucnCategory)
+                iucnCategory: decoded.factSheet.iucnCategory))
         } catch {
             AppLogger.shared.warn("enrich failed: \(error.localizedDescription)", category: .identify)
-            return nil
+            return .unavailable
         }
     }
 
@@ -66,6 +84,7 @@ final class SpeciesEnricher: Sendable {
         var rarity: String
         var factSheet: FactSheet
         struct FactSheet: Decodable {
+            var scientificName: String?
             var commonName: String?
             var summary: String?
             var iucnCategory: String?

@@ -33,6 +33,9 @@ struct Sighting: Codable, FetchableRecord, MutablePersistableRecord, Identifiabl
     var pokedexEntry: String?
     var category: String? = nil
     var typicalSize: String? = nil
+    /// True once GBIF confirmed the species (real rarity + names). A provisional
+    /// capture (saved offline) starts false and heals on a later card open.
+    var enriched: Bool = false
 }
 
 /// One collected species — the materialized "dex" row, upserted on each capture
@@ -50,9 +53,10 @@ struct DexEntry: Codable, FetchableRecord, MutablePersistableRecord, Identifiabl
     var lastCaughtAt: Date
     var sightingCount: Int
     var bestImagePath: String
+    var enriched: Bool = false
 
     enum CodingKeys: String, CodingKey {
         case speciesId, commonName, scientificName, realm, rarity
-        case firstCaughtAt, lastCaughtAt, sightingCount, bestImagePath
+        case firstCaughtAt, lastCaughtAt, sightingCount, bestImagePath, enriched
     }
 }

@@ -27,6 +27,14 @@ final class CollectionStore: Sendable {
                 entry.sightingCount += 1
                 entry.lastCaughtAt = sighting.capturedAt
                 if sighting.capturedAt < entry.firstCaughtAt { entry.firstCaughtAt = sighting.capturedAt }
+                // A confirmed capture heals a previously-provisional dex entry:
+                // adopt the real rarity/names once GBIF has spoken.
+                if sighting.enriched && !entry.enriched {
+                    entry.rarity = sighting.rarity
+                    entry.commonName = sighting.commonName
+                    entry.scientificName = sighting.scientificName
+                    entry.enriched = true
+                }
                 try entry.update(db)
                 return false
             } else {
@@ -39,7 +47,8 @@ final class CollectionStore: Sendable {
                     firstCaughtAt: sighting.capturedAt,
                     lastCaughtAt: sighting.capturedAt,
                     sightingCount: 1,
-                    bestImagePath: sighting.imagePath)
+                    bestImagePath: sighting.imagePath,
+                    enriched: sighting.enriched)
                 try entry.insert(db)
                 return true
             }
@@ -114,6 +123,27 @@ final class CollectionStore: Sendable {
         }
         for path in paths where !path.isEmpty { ImageStore.delete(path) }
         AppLogger.shared.info("released \(speciesId)", category: .persistence)
+    }
+
+    /// Applies a late GBIF confirmation to a provisional species: real rarity +
+    /// names, marked enriched. Returns the updated entry (nil if it's gone).
+    @discardableResult
+    func healEnrichment(speciesId: String, rarity: Rarity, commonName: String, scientificName: String) throws -> DexEntry? {
+        try dbQueue.write { db in
+            guard var entry = try DexEntry.fetchOne(db, key: speciesId), !entry.enriched else {
+                return try DexEntry.fetchOne(db, key: speciesId)
+            }
+            entry.rarity = rarity
+            entry.commonName = commonName
+            entry.scientificName = scientificName
+            entry.enriched = true
+            try entry.update(db)
+            try db.execute(
+                sql: "UPDATE sightings SET rarity = ?, commonName = ?, scientificName = ?, enriched = 1 WHERE speciesId = ?",
+                arguments: [rarity.rawValue, commonName, scientificName, speciesId])
+            AppLogger.shared.info("healed \(speciesId) -> \(rarity.rawValue)", category: .persistence)
+            return entry
+        }
     }
 
     /// The most recent sighting of a species — powers the card detail (image +

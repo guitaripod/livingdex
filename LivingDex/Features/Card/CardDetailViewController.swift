@@ -5,8 +5,10 @@ import UIKit
 /// a playable call ("cry") where a commercial-safe recording exists, and an "ask
 /// the creature" entry point. Reads the species' latest sighting.
 final class CardDetailViewController: UIViewController {
-    private let entry: DexEntry
+    private var entry: DexEntry
     private let detailService = SpeciesDetailService()
+    private let enricher = SpeciesEnricher.shared
+    private let rarityBadge = RarityBadge()
     private var call: SpeciesCall?
 
     private let scrollView = UIScrollView()
@@ -40,6 +42,29 @@ final class CardDetailViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         loadSighting()
+        healIfProvisional()
+    }
+
+    /// A capture saved while offline holds only the on-device guess for rarity.
+    /// The first time its card is opened online, confirm it against GBIF and
+    /// adopt the real rarity + names (or leave it if still unreachable).
+    private func healIfProvisional() {
+        guard !entry.enriched else { return }
+        let candidate = SpeciesCandidate(
+            speciesId: entry.speciesId, commonName: entry.commonName,
+            scientificName: entry.scientificName, realm: entry.realm,
+            rarity: entry.rarity, confidence: 1)
+        Task { @MainActor in
+            guard case let .resolved(e) = await enricher.enrich(candidate: candidate, context: CaptureContext()) else { return }
+            let common = (e.scientificName?.caseInsensitiveCompare(entry.scientificName) == .orderedSame)
+                ? (e.commonName ?? entry.commonName) : entry.commonName
+            guard let healed = try? CollectionStore.shared.healEnrichment(
+                speciesId: entry.speciesId, rarity: e.rarity,
+                commonName: common, scientificName: entry.scientificName) else { return }
+            entry = healed
+            rarityBadge.configure(healed.rarity)
+            title = healed.commonName
+        }
     }
 
     private func buildLayout() {
@@ -70,9 +95,8 @@ final class CardDetailViewController: UIViewController {
         hero.heightAnchor.constraint(equalTo: hero.widthAnchor, multiplier: 0.9).isActive = true
         stack.addArrangedSubview(hero)
 
-        let rarity = RarityBadge()
-        rarity.configure(entry.rarity)
-        let rarityRow = UIStackView(arrangedSubviews: [rarity, UIView()])
+        rarityBadge.configure(entry.rarity)
+        let rarityRow = UIStackView(arrangedSubviews: [rarityBadge, UIView()])
         rarityRow.axis = .horizontal
         stack.addArrangedSubview(rarityRow)
 
@@ -121,17 +145,6 @@ final class CardDetailViewController: UIViewController {
         attributionLabel.numberOfLines = 0
         attributionLabel.isHidden = true
         stack.addArrangedSubview(attributionLabel)
-
-        var config = UIButton.Configuration.borderedProminent()
-        config.title = "Ask the creature"
-        config.image = UIImage(systemName: "bubble.left.and.text.bubble.right")
-        config.imagePadding = 8
-        config.baseBackgroundColor = DesignSystem.Color.accent
-        config.cornerStyle = .large
-        let ask = UIButton(configuration: config, primaryAction: UIAction { [weak self] _ in
-            self?.presentAskPlaceholder()
-        })
-        stack.addArrangedSubview(ask)
     }
 
     private func makeLabel(_ text: String, font: UIFont, color: UIColor) -> UILabel {
@@ -209,12 +222,4 @@ final class CardDetailViewController: UIViewController {
         present(alert, animated: true)
     }
 
-    private func presentAskPlaceholder() {
-        let alert = UIAlertController(
-            title: "Ask the creature",
-            message: "Conversational Q&A about this species is a Living Dex Pro feature — coming soon.",
-            preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
-    }
 }
