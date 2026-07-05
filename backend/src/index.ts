@@ -14,6 +14,17 @@
 
 const GBIF = "https://api.gbif.org/v1";
 const LOCAL_RADIUS_KM = 150;
+// Humans + common domestics dominate occurrence density in populated areas and
+// aren't wild "catches" — keep them out of the Regional Dex.
+const EXCLUDED_TAXA = new Set<number>([
+  2436436,  // Homo sapiens
+  6164210,  // Canis lupus familiaris
+  2435035,  // Felis catus
+  2441022,  // Bos taurus
+  2441176,  // Ovis aries
+  2441119,  // Sus scrofa (incl. domestic pig)
+  9761484,  // Gallus gallus domesticus
+]);
 
 type Rarity = "common" | "uncommon" | "rare" | "epic" | "legendary";
 
@@ -64,10 +75,17 @@ async function enrich(url: URL): Promise<Response> {
   let matched: any = null;
   if (taxonKey == null && name) {
     matched = await fetchJSON(`${GBIF}/species/match?name=${encodeURIComponent(name)}`);
-    taxonKey = matched?.usageKey ?? null;
+    // Only trust a confident species-level match. A hallucinated/misspelled binomial
+    // otherwise fuzzy- or higher-rank-matches to a neighbouring taxon and every fact
+    // (name, rarity, IUCN, summary) resolves to the WRONG species.
+    const ok = matched?.matchType === "EXACT" ||
+      (matched?.matchType === "FUZZY" && (matched?.confidence ?? 0) >= 95 && matched?.rank === "SPECIES");
+    taxonKey = ok ? matched?.usageKey ?? null : null;
   }
   if (taxonKey == null) {
-    return json({ error: "provide taxonKey or a resolvable name" }, 400);
+    // 404 = "we can't confirm this species" (distinct from a 5xx upstream error);
+    // the app treats it as unverified rather than a hard failure.
+    return json({ error: "unresolved species", resolved: false }, 404);
   }
 
   // Every upstream is independently best-effort: a single GBIF hiccup (e.g. a
@@ -118,15 +136,22 @@ async function occurrenceCount(taxonKey: number, lat: number | null, lng: number
 
 async function vernacularName(taxonKey: number): Promise<string | null> {
   const data = await fetchJSON(`${GBIF}/species/${taxonKey}/vernacularNames?limit=40`).catch(() => null);
-  const names: any[] = data?.results ?? [];
-  const english = names.find((n) => n.language === "eng" && n.vernacularName);
-  return english?.vernacularName ?? names[0]?.vernacularName ?? null;
+  const eng: string[] = (data?.results ?? [])
+    .filter((n: any) => n.language === "eng" && typeof n.vernacularName === "string")
+    .map((n: any) => n.vernacularName.trim());
+  // Skip banding codes ("GRTI") and acronyms — an all-caps token with no space.
+  const proper = eng.find((n) => /\s/.test(n) || n !== n.toUpperCase());
+  const name = proper ?? null;
+  // Title-case a lowercased vernacular ("common buzzard" -> "Common Buzzard").
+  return name ? name.replace(/\b\w/g, (c) => c.toUpperCase()) : null;
 }
 
 async function wikiSummary(title: string): Promise<string | null> {
   const data = await fetchJSON(
     `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`
   ).catch(() => null);
+  // Drop disambiguation / no-extract stubs — only real article summaries ground well.
+  if (data?.type && data.type !== "standard") return null;
   const extract: string | undefined = data?.extract;
   if (!extract) return null;
   // First 2 sentences, so the fact-sheet stays tight for the narrator.
@@ -181,9 +206,11 @@ async function region(url: URL): Promise<Response> {
   const limit = Math.min(120, intParam(url, "limit") ?? 80);
   if (lat == null || lng == null) return json({ error: "lat and lng required" }, 400);
 
+  // Wild things only: HUMAN_OBSERVATION drops specimen/fossil noise; fetch extra
+  // and trim, since humans + domestics are filtered out below.
   const facetUrl =
     `${GBIF}/occurrence/search?hasCoordinate=true&geoDistance=${lat},${lng},${LOCAL_RADIUS_KM}km` +
-    `&facet=speciesKey&facetLimit=${limit}&limit=0`;
+    `&basisOfRecord=HUMAN_OBSERVATION&facet=speciesKey&facetLimit=${limit + 20}&limit=0`;
   const data = await fetchJSON(facetUrl);
   const counts: Array<{ name: string; count: number }> = data?.facets?.[0]?.counts ?? [];
 
@@ -191,13 +218,13 @@ async function region(url: URL): Promise<Response> {
     await Promise.all(
       counts.map(async (c) => {
         const key = Number(c.name);
-        if (!Number.isFinite(key)) return null;
+        if (!Number.isFinite(key) || EXCLUDED_TAXA.has(key)) return null;
         const sp = await fetchJSON(`${GBIF}/species/${key}`).catch(() => null);
         const scientificName = sp?.canonicalName ?? sp?.scientificName;
         if (!scientificName || sp?.rank !== "SPECIES") return null;
         return {
           taxonKey: key,
-          commonName: sp?.vernacularName ?? null,
+          commonName: await vernacularName(key),
           scientificName,
           realm: kingdomToRealm(sp?.kingdom),
           rarity: computeRarity(c.count, null, null, true),
@@ -205,7 +232,7 @@ async function region(url: URL): Promise<Response> {
         };
       })
     )
-  ).filter((s) => s !== null);
+  ).filter((s) => s !== null).slice(0, limit);
 
   return json({ count: species.length, species }, 200, 24 * 60 * 60);
 }
