@@ -8,4 +8,7 @@ enum Secrets {
 
     /// RevenueCat public SDK key for the `livingdex` app.
     static let revenueCatPublicKey = "appl_XXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+    /// Living Dex domain Worker (real rarity + fact-sheets from GBIF/Wikipedia).
+    static let workerBaseURL = URL(string: "https://livingdex-worker.guitaripod.workers.dev")!
 }

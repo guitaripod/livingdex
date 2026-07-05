@@ -1,0 +1,11 @@
+name = "livingdex-worker"
+main = "src/index.ts"
+compatibility_date = "2026-07-01"
+
+# The Living Dex domain Worker: real rarity from GBIF occurrence density +
+# grounded fact-sheets (GBIF taxonomy/IUCN + Wikipedia summary). No secrets —
+# all upstreams are free, keyless public APIs. LLM inference is NOT here; it
+# routes through mako. Deploy: `npx wrangler deploy`.
+
+[observability]
+enabled = true

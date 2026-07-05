@@ -9,6 +9,7 @@ final class FieldViewController: UIViewController {
     private let identifier: SpeciesIdentifier = SpeciesIdentifierFactory.make()
     private let store = CollectionStore.shared
     private let narrator = NarratorService.shared
+    private let enricher = SpeciesEnricher.shared
 
     private let statusChip = GlassChipView()
     private let captureButton = CaptureButton()
@@ -151,10 +152,19 @@ final class FieldViewController: UIViewController {
     private func process(_ image: UIImage) async {
         let context = LocationProvider.shared.currentContext()
         let result = await identifier.identify(image, context: context)
-        guard let top = result.top else {
+        guard var top = result.top else {
             Haptics.failure()
             finishCapture(reset: "No match — reframe and retry")
             return
+        }
+
+        // Enrich with real rarity + fact-sheet from the domain Worker (GBIF/Wikipedia).
+        // Best-effort: on timeout/failure the on-device candidate's values stand.
+        var grounding: String?
+        if let enrichment = await enricher.enrich(candidate: top, context: context) {
+            top.rarity = enrichment.rarity
+            if let name = enrichment.commonName, !name.isEmpty { top.commonName = name }
+            grounding = enrichment.summary
         }
 
         let id = UUID().uuidString
@@ -195,14 +205,14 @@ final class FieldViewController: UIViewController {
 
         presentCard(for: sighting, image: image, isNew: isNew, progress: event)
         finishCapture(reset: "Point at anything alive")
-        narrate(top, sightingId: id)
+        narrate(top, sightingId: id, grounding: grounding)
     }
 
-    /// Fills the Claude Pokédex entry in the background; the card detail reads it
-    /// once persisted. Never blocks the capture loop.
-    private func narrate(_ candidate: SpeciesCandidate, sightingId: String) {
+    /// Fills the Pokédex entry in the background (on-device model first, cloud
+    /// fallback), grounded in the Worker fact-sheet. Never blocks the capture loop.
+    private func narrate(_ candidate: SpeciesCandidate, sightingId: String, grounding: String?) {
         Task.detached { [narrator, store] in
-            guard let entry = await narrator.entry(for: candidate) else { return }
+            guard let entry = await narrator.entry(for: candidate, grounding: grounding) else { return }
             do {
                 try store.setPokedexEntry(sightingId: sightingId, entry: entry.displayText)
             } catch {

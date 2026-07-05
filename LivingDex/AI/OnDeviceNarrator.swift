@@ -26,13 +26,13 @@ struct OnDeviceNarrator: Narrator {
         #endif
     }
 
-    func entry(for candidate: SpeciesCandidate) async -> PokedexEntry? {
+    func entry(for candidate: SpeciesCandidate, grounding: String?) async -> PokedexEntry? {
         #if canImport(FoundationModels)
         guard case .available = SystemLanguageModel.default.availability else { return nil }
         let session = LanguageModelSession(instructions: Self.instructions)
         do {
             let response = try await session.respond(
-                to: Self.prompt(for: candidate),
+                to: Self.prompt(for: candidate, grounding: grounding),
                 generating: GeneratedEntry.self)
             let generated = response.content
             AppLogger.shared.info("on-device narrated \(candidate.commonName)", category: .ai)
@@ -52,12 +52,13 @@ struct OnDeviceNarrator: Narrator {
         Keep it vivid but honest.
         """
 
-    private static func prompt(for c: SpeciesCandidate) -> String {
-        """
+    private static func prompt(for c: SpeciesCandidate, grounding: String?) -> String {
+        let facts = grounding.map { "\nFacts to stay faithful to: \($0)" } ?? ""
+        return """
         Write a Pokédex entry for this organism.
         Common name: \(c.commonName)
         Scientific name: \(c.scientificName)
-        Kingdom/realm: \(c.realm.rawValue)
+        Kingdom/realm: \(c.realm.rawValue)\(facts)
         """
     }
 }

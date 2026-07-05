@@ -27,8 +27,8 @@ final class SpeciesNarrator: Narrator {
         self.client = client
     }
 
-    func entry(for candidate: SpeciesCandidate) async -> PokedexEntry? {
-        let prompt = Self.prompt(for: candidate)
+    func entry(for candidate: SpeciesCandidate, grounding: String?) async -> PokedexEntry? {
+        let prompt = Self.prompt(for: candidate, grounding: grounding)
         let request = CapabilityRequest.chat(
             messages: [ChatTurn(role: "user", content: prompt)],
             responseJSON: true,
@@ -51,8 +51,9 @@ final class SpeciesNarrator: Narrator {
         }
     }
 
-    private static func prompt(for c: SpeciesCandidate) -> String {
-        """
+    private static func prompt(for c: SpeciesCandidate, grounding: String?) -> String {
+        let facts = grounding.map { "\n\nGround it in these facts (do not contradict them):\n\($0)" } ?? ""
+        return """
         Write a short, wondrous "Pokédex entry" for the real organism below, for a \
         nature-collection game. Ground every claim in well-established biology — do NOT \
         invent facts; if unsure, stay general. No markdown.
@@ -60,7 +61,7 @@ final class SpeciesNarrator: Narrator {
 
         Common name: \(c.commonName)
         Scientific name: \(c.scientificName)
-        Kingdom/realm: \(c.realm.rawValue)
+        Kingdom/realm: \(c.realm.rawValue)\(facts)
         """
     }
 
