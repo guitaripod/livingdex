@@ -9,7 +9,10 @@ import AICreditsCore
 final class CloudVisionIdentifier: SpeciesIdentifier {
     private let client: AICreditsClient
     private let fallback: SpeciesIdentifier
-    private let model = "claude-sonnet-4-6"
+    // Gemini vision: ~10x cheaper than Claude Sonnet, no image premium, and plenty
+    // accurate for species ID — keeps the free tier's per-ID cost (and the user's
+    // credit burn) low. Pro could escalate hard cases to Sonnet later.
+    private let model = "gemini-2.5-flash"
 
     init(client: AICreditsClient = AICreditsManager.shared.client, fallback: SpeciesIdentifier) {
         self.client = client
