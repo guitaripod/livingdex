@@ -35,22 +35,24 @@ final class RegionStore: @unchecked Sendable {
         "\(Int((lat * 2).rounded())),\(Int((lng * 2).rounded()))"
     }
 
-    func regionalSpecies(latitude: Double, longitude: Double) async -> [RegionSpecies] {
+    /// Regional species list, or nil if the fetch failed (network/timeout) — the
+    /// caller distinguishes that from a genuine empty region so it can offer retry.
+    func regionalSpecies(latitude: Double, longitude: Double) async -> [RegionSpecies]? {
         let k = key(latitude, longitude)
         if let hit = lock.withLock({ cache[k] }) { return hit }
 
         guard var components = URLComponents(url: baseURL.appendingPathComponent("v1/region"), resolvingAgainstBaseURL: false) else {
-            return []
+            return nil
         }
         components.queryItems = [
             URLQueryItem(name: "lat", value: String(latitude)),
             URLQueryItem(name: "lng", value: String(longitude)),
             URLQueryItem(name: "limit", value: "120"),
         ]
-        guard let url = components.url else { return [] }
+        guard let url = components.url else { return nil }
         do {
             let (data, response) = try await session.data(from: url)
-            guard let http = response as? HTTPURLResponse, http.statusCode == 200 else { return [] }
+            guard let http = response as? HTTPURLResponse, http.statusCode == 200 else { return nil }
             let decoded = try JSONDecoder().decode(RegionResponse.self, from: data)
             let species = decoded.species.map {
                 RegionSpecies(
@@ -63,7 +65,7 @@ final class RegionStore: @unchecked Sendable {
             return species
         } catch {
             AppLogger.shared.warn("region fetch failed: \(error.localizedDescription)", category: .identify)
-            return []
+            return nil
         }
     }
 

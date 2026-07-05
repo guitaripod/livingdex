@@ -15,11 +15,13 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
     private var dataSource: UICollectionViewDiffableDataSource<Section, DexTile>!
     private let emptyLabel = UILabel()
 
+    private enum RegionState { case idle, loading, loaded, failed }
     private var mode: Mode = .nearby
     private var caught: [DexEntry] = []
     private var regional: [RegionSpecies] = []
     private var observer: AnyObject?
-    private var didLoadRegion = false
+    private var regionState: RegionState = .idle
+    private let spinner = UIActivityIndicatorView(style: .medium)
 
     private var sort: Sort = .recent
     private var realmFilter: Realm?
@@ -113,12 +115,19 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         emptyLabel.textAlignment = .center
         emptyLabel.numberOfLines = 0
         emptyLabel.translatesAutoresizingMaskIntoConstraints = false
+        emptyLabel.isUserInteractionEnabled = true
+        emptyLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(retryRegion)))
         collectionView.addSubview(emptyLabel)
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        spinner.hidesWhenStopped = true
+        collectionView.addSubview(spinner)
         NSLayoutConstraint.activate([
             emptyLabel.centerXAnchor.constraint(equalTo: collectionView.safeAreaLayoutGuide.centerXAnchor),
             emptyLabel.topAnchor.constraint(equalTo: collectionView.topAnchor, constant: 120),
             emptyLabel.leadingAnchor.constraint(equalTo: collectionView.leadingAnchor, constant: 40),
             emptyLabel.trailingAnchor.constraint(equalTo: collectionView.trailingAnchor, constant: -40),
+            spinner.centerXAnchor.constraint(equalTo: collectionView.safeAreaLayoutGuide.centerXAnchor),
+            spinner.topAnchor.constraint(equalTo: emptyLabel.bottomAnchor, constant: 16),
         ])
     }
 
@@ -176,25 +185,39 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
 
     private func startObserving() {
         observer = CollectionStore.shared.observeDex { [weak self] entries in
-            self?.caught = entries
-            self?.reload()
+            MainActor.assumeIsolated {
+                self?.caught = entries
+                self?.reload()
+            }
         }
     }
 
     private func loadRegionIfNeeded() {
-        guard !didLoadRegion else { return }
+        guard regionState == .idle || regionState == .failed else { return }
         let ctx = LocationProvider.shared.currentContext()
         guard let lat = ctx.latitude, let lng = ctx.longitude else { reload(); return }
-        didLoadRegion = true
+        regionState = .loading
+        reload()
         Task { @MainActor in
-            regional = await RegionStore.shared.regionalSpecies(latitude: lat, longitude: lng)
+            if let species = await RegionStore.shared.regionalSpecies(latitude: lat, longitude: lng) {
+                regional = species
+                regionState = .loaded
+            } else {
+                regionState = .failed
+            }
             reload()
         }
     }
 
+    @objc private func retryRegion() {
+        guard mode == .nearby, regionState == .failed else { return }
+        Haptics.tap()
+        loadRegionIfNeeded()
+    }
+
     @objc private func modeChanged() {
         mode = Mode(rawValue: segmented.selectedSegmentIndex) ?? .nearby
-        navigationItem.rightBarButtonItem?.isHidden = (mode == .nearby)
+        updateBarButtons()
         reload()
     }
 
@@ -203,6 +226,7 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         updateHeader()
         emptyLabel.text = emptyText(for: tiles)
         emptyLabel.isHidden = !tiles.isEmpty
+        if mode == .nearby && regionState == .loading && tiles.isEmpty { spinner.startAnimating() } else { spinner.stopAnimating() }
         var snapshot = NSDiffableDataSourceSnapshot<Section, DexTile>()
         snapshot.appendSections([.main])
         snapshot.appendItems(tiles, toSection: .main)
@@ -254,12 +278,16 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
 
     private func emptyText(for tiles: [DexTile]) -> String {
         if mode == .nearby {
-            if regional.isEmpty {
-                return LocationProvider.shared.currentContext().latitude == nil
-                    ? "Grant location access to reveal the species living near you — your Regional Dex."
-                    : "Finding the species near you…"
+            guard regional.isEmpty else { return "" }
+            if LocationProvider.shared.currentContext().latitude == nil {
+                return "Grant location access to reveal the species living near you — your Regional Dex."
             }
-            return ""
+            switch regionState {
+            case .loading: return "Finding the species near you…"
+            case .failed: return "Couldn't reach the field guide.\nTap to retry."
+            case .loaded: return "No catalogued species near this spot yet — try catching something to start your Regional Dex."
+            case .idle: return "Finding the species near you…"
+            }
         }
         return query.isEmpty
             ? "Your dex is empty.\nPoint the camera at anything alive to make your first catch."
@@ -281,7 +309,7 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         guard let indexPath = indexPaths.first,
               let tile = dataSource.itemIdentifier(for: indexPath), !tile.locked else { return nil }
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
-            let release = UIAction(title: "Release", image: UIImage(systemName: "trash"), attributes: .destructive) { [weak self] _ in
+            let release = UIAction(title: "Release", image: UIImage(systemName: "trash"), attributes: .destructive) { _ in
                 try? CollectionStore.shared.release(speciesId: tile.speciesId)
                 Haptics.tap()
             }

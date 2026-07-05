@@ -11,6 +11,7 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate, @unchecked Se
     private let altimeter = CMAltimeter()
     private var pending: [(CaptureContext) -> Void] = []
     private var lastElevation: Double?
+    private var lastLocation: CLLocation?
 
     override init() {
         super.init()
@@ -27,18 +28,30 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate, @unchecked Se
         manager.requestWhenInUseAuthorization()
     }
 
+    func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        switch manager.authorizationStatus {
+        case .authorizedWhenInUse, .authorizedAlways:
+            // Warm up a fix immediately so the first capture is already geo-tagged
+            // rather than falling back to a global (non-local) rarity.
+            manager.startUpdatingLocation()
+        default:
+            break
+        }
+    }
+
     /// Returns the best currently-available context. Non-blocking: uses the last
-    /// known fix (requesting a fresh one for next time) so capture stays instant.
+    /// known fix (warmed on authorization) so capture stays instant.
     func currentContext() -> CaptureContext {
-        manager.requestLocation()
-        let loc = manager.location
+        let loc = lastLocation ?? manager.location
         return CaptureContext(
             latitude: loc?.coordinate.latitude,
             longitude: loc?.coordinate.longitude,
             elevationMeters: lastElevation ?? loc?.altitude)
     }
 
-    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {}
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        if let loc = locations.last { lastLocation = loc }
+    }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         AppLogger.shared.warn("location error: \(error.localizedDescription)", category: .location)
