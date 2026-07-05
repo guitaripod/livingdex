@@ -28,6 +28,9 @@ final class CardRevealViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        // Always a dark dim backdrop — keep semantic label colors light-on-dark
+        // in both appearances.
+        overrideUserInterfaceStyle = .dark
         view.backgroundColor = UIColor.black.withAlphaComponent(0.55)
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(dismissCard)))
         view.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(handlePan)))

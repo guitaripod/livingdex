@@ -40,6 +40,9 @@ final class CameraPermissionView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .black
+        // The camera surface is always dark; keep semantic label colors readable
+        // in Light Mode too.
+        overrideUserInterfaceStyle = .dark
 
         iconView.image = UIImage(systemName: "camera.viewfinder")
         iconView.tintColor = DesignSystem.Color.accent

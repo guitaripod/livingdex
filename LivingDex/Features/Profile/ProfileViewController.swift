@@ -69,7 +69,7 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
 
         sections = [
             Section(header: "Collection", rows: collection),
-            Section(header: "Living Dex Pro", rows: [.pro(balance: balance)]),
+            Section(header: "Cloud AI", rows: [.pro(balance: balance)]),
             Section(header: "Compete", rows: [
                 .action(title: "Leaderboards & achievements", symbol: "trophy.fill") { [weak self] in
                     guard let self else { return }
@@ -116,13 +116,12 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
             badge.sizeToFit()
             cell.accessoryView = badge
         case let .pro(balance):
-            content.text = "Living Dex Pro"
-            content.secondaryText = "Unlimited cloud IDs, rich entries & ask-the-creature · \(balance) credits"
-            content.image = UIImage(systemName: "crown.fill")
-            content.imageProperties.tintColor = DesignSystem.Color.rarityLegendary
+            content.text = "Cloud IDs"
+            content.secondaryText = balance == 1 ? "1 credit remaining" : "\(balance) credits remaining"
+            content.image = UIImage(systemName: "sparkles")
+            content.imageProperties.tintColor = DesignSystem.Color.accent
             cell.contentConfiguration = content
-            cell.accessoryType = .disclosureIndicator
-            cell.selectionStyle = .default
+            cell.selectionStyle = .none
         case let .action(title, symbol, _):
             content.text = title
             content.image = UIImage(systemName: symbol)
@@ -145,8 +144,6 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         switch sections[indexPath.section].rows[indexPath.row] {
-        case .pro:
-            presentProPlaceholder()
         case let .action(_, _, handler):
             handler()
         default:
@@ -155,15 +152,6 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
     }
 
     // MARK: Actions
-
-    private func presentProPlaceholder() {
-        let alert = UIAlertController(
-            title: "Living Dex Pro",
-            message: "Unlimited high-accuracy cloud identifications, richer dex entries, and conversational \"ask the creature\" Q&A. Coming soon — basic on-device ID stays free forever.",
-            preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
-    }
 
     private func exportLogs() {
         guard let logs = try? FileManager.default.url(

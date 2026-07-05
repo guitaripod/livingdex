@@ -34,7 +34,7 @@ final class OnboardingViewController: UIViewController {
         title.textAlignment = .center
 
         let subtitle = UILabel()
-        subtitle.text = "The only Pokédex where the creatures are real."
+        subtitle.text = "The living field guide where the creatures are real."
         subtitle.font = .preferredFont(forTextStyle: .subheadline)
         subtitle.adjustsFontForContentSizeCategory = true
         subtitle.textColor = .secondaryLabel
