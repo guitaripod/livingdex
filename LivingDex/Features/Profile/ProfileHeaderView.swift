@@ -28,10 +28,14 @@ final class ProfileHeaderView: UIView {
         ringContainer.layer.addSublayer(trackLayer)
         ringContainer.layer.addSublayer(ringLayer)
 
-        levelLabel.font = .systemFont(ofSize: 30, weight: .heavy)
+        levelLabel.font = UIFontMetrics(forTextStyle: .largeTitle)
+            .scaledFont(for: .systemFont(ofSize: 30, weight: .heavy), maximumPointSize: 38)
+        levelLabel.adjustsFontForContentSizeCategory = true
         levelLabel.textColor = .label
         levelLabel.textAlignment = .center
-        levelCaption.font = .systemFont(ofSize: 11, weight: .semibold)
+        levelCaption.font = UIFontMetrics(forTextStyle: .caption2)
+            .scaledFont(for: .systemFont(ofSize: 11, weight: .semibold), maximumPointSize: 14)
+        levelCaption.adjustsFontForContentSizeCategory = true
         levelCaption.textColor = .secondaryLabel
         levelCaption.text = "LEVEL"
         levelCaption.textAlignment = .center
@@ -78,12 +82,24 @@ final class ProfileHeaderView: UIView {
             xpLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
         ])
         self.ringContainer = ringContainer
+
+        updateLayerColors()
+        registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (view: ProfileHeaderView, _) in
+            view.updateLayerColors()
+        }
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError() }
 
     private weak var ringContainer: UIView?
+
+    /// CALayer colors are cached CGColors that do not re-resolve on appearance
+    /// changes, so re-resolve the track against the current traits when the theme
+    /// toggles. The ring stroke uses a static accent and needs no re-resolution.
+    private func updateLayerColors() {
+        trackLayer.strokeColor = UIColor.tertiarySystemFill.resolvedColor(with: traitCollection).cgColor
+    }
 
     override func layoutSubviews() {
         super.layoutSubviews()
@@ -132,9 +148,13 @@ private final class StatTile: UIView {
         layer.cornerCurve = .continuous
 
         icon.contentMode = .scaleAspectFit
-        valueLabel.font = .systemFont(ofSize: 22, weight: .bold)
+        valueLabel.font = UIFontMetrics(forTextStyle: .title2)
+            .scaledFont(for: .systemFont(ofSize: 22, weight: .bold), maximumPointSize: 28)
+        valueLabel.adjustsFontForContentSizeCategory = true
         valueLabel.textColor = .label
-        nameLabel.font = .systemFont(ofSize: 10, weight: .semibold)
+        nameLabel.font = UIFontMetrics(forTextStyle: .caption2)
+            .scaledFont(for: .systemFont(ofSize: 10, weight: .semibold), maximumPointSize: 13)
+        nameLabel.adjustsFontForContentSizeCategory = true
         nameLabel.textColor = .secondaryLabel
 
         let text = UIStackView(arrangedSubviews: [valueLabel, nameLabel])
