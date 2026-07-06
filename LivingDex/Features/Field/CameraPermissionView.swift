@@ -62,6 +62,7 @@ final class CameraPermissionView: UIView {
 
         var config = UIButton.Configuration.borderedProminent()
         config.baseBackgroundColor = DesignSystem.Color.accent
+        config.baseForegroundColor = .black
         config.cornerStyle = .large
         button.configuration = config
         button.addAction(UIAction { [weak self] _ in self?.onAction?() }, for: .touchUpInside)

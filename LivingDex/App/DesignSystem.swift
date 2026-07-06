@@ -4,8 +4,14 @@ import UIKit
 /// iOS 26 renders its Liquid Glass — a custom opaque background suppresses it.
 enum DesignSystem {
     enum Color {
-        /// Living, verdant accent — the "collect life" identity.
-        static let accent = UIColor(red: 0.20, green: 0.80, blue: 0.55, alpha: 1.0)
+        /// Living, verdant accent — the "collect life" identity. A deeper green in
+        /// Light Mode keeps text/icons legible on white; the vivid variant reads on
+        /// dark surfaces. Prominent buttons pair this with a black foreground.
+        static let accent = UIColor { traits in
+            traits.userInterfaceStyle == .dark
+                ? UIColor(red: 0.20, green: 0.80, blue: 0.55, alpha: 1.0)
+                : UIColor(red: 0.10, green: 0.54, blue: 0.36, alpha: 1.0)
+        }
         static let rarityCommon = UIColor.systemGray
         static let rarityUncommon = UIColor.systemGreen
         static let rarityRare = UIColor.systemBlue

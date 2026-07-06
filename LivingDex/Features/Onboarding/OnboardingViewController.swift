@@ -48,6 +48,7 @@ final class OnboardingViewController: UIViewController {
         var config = UIButton.Configuration.borderedProminent()
         config.title = "Start collecting"
         config.baseBackgroundColor = DesignSystem.Color.accent
+        config.baseForegroundColor = .black
         config.cornerStyle = .large
         config.buttonSize = .large
         let button = UIButton(configuration: config, primaryAction: UIAction { [weak self] _ in

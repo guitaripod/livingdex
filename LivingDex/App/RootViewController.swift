@@ -13,7 +13,6 @@ final class RootViewController: UITabBarController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        tabBar.tintColor = DesignSystem.Color.accent
 
         let field = FieldViewController()
         field.tabBarItem = UITabBarItem(
