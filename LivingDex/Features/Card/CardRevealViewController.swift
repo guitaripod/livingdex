@@ -14,6 +14,7 @@ final class CardRevealViewController: UIViewController {
     private let card = GlassPanel(cornerRadius: DesignSystem.Radius.card)
     private var sparkleLayer: CAEmitterLayer?
     private var dismissAnimator: UIViewPropertyAnimator?
+    private weak var shareButton: UIButton?
 
     init(sighting: Sighting, image: UIImage, isNewDexEntry: Bool, progress: ProgressEvent? = nil) {
         self.sighting = sighting
@@ -32,10 +33,18 @@ final class CardRevealViewController: UIViewController {
         // in both appearances.
         overrideUserInterfaceStyle = .dark
         view.backgroundColor = UIColor.black.withAlphaComponent(0.55)
-        view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(dismissCard)))
+        let tap = UITapGestureRecognizer(target: self, action: #selector(dismissCard))
+        tap.delegate = self
+        view.addGestureRecognizer(tap)
         view.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(handlePan)))
         configureRarityGlow()
         buildCard()
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        card.layer.shadowPath = UIBezierPath(
+            roundedRect: card.bounds, cornerRadius: DesignSystem.Radius.card).cgPath
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -91,9 +100,11 @@ final class CardRevealViewController: UIViewController {
         cell.velocity = 90
         cell.velocityRange = 40
         cell.emissionRange = .pi
-        cell.scale = 0.05
-        cell.scaleRange = 0.03
+        cell.scale = 0.5
+        cell.scaleRange = 0.25
         cell.spin = 2
+        cell.alphaSpeed = -1.0 / Float(cell.lifetime)
+        cell.alphaRange = 0.2
         cell.color = sighting.rarity.color.cgColor
         cell.contents = Self.sparkImage()?.cgImage
         emitter.emitterCells = [cell]
@@ -103,11 +114,12 @@ final class CardRevealViewController: UIViewController {
     }
 
     private static func sparkImage() -> UIImage? {
-        let size = CGSize(width: 12, height: 12)
-        let renderer = UIGraphicsImageRenderer(size: size)
-        return renderer.image { ctx in
-            UIColor.white.setFill()
-            ctx.cgContext.fillEllipse(in: CGRect(origin: .zero, size: size))
+        let config = UIImage.SymbolConfiguration(pointSize: 24, weight: .regular)
+        guard let symbol = UIImage(systemName: "sparkle", withConfiguration: config) else { return nil }
+        let renderer = UIGraphicsImageRenderer(size: symbol.size)
+        return renderer.image { _ in
+            symbol.withTintColor(.white, renderingMode: .alwaysOriginal)
+                .draw(in: CGRect(origin: .zero, size: symbol.size))
         }
     }
 
@@ -196,7 +208,32 @@ final class CardRevealViewController: UIViewController {
             stack.bottomAnchor.constraint(equalTo: card.contentView.bottomAnchor, constant: -DesignSystem.Spacing.l),
         ])
 
+        addShareButton()
         if isNewDexEntry { addNewBanner() }
+    }
+
+    private func addShareButton() {
+        var config = UIButton.Configuration.plain()
+        config.image = UIImage(systemName: "square.and.arrow.up")
+        config.baseForegroundColor = .white
+        let button = UIButton(configuration: config)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityLabel = "Share"
+        button.addAction(UIAction { [weak self] _ in self?.shareCatch() }, for: .touchUpInside)
+        card.contentView.addSubview(button)
+        NSLayoutConstraint.activate([
+            button.topAnchor.constraint(equalTo: card.contentView.topAnchor, constant: DesignSystem.Spacing.s),
+            button.leadingAnchor.constraint(equalTo: card.contentView.leadingAnchor, constant: DesignSystem.Spacing.s),
+        ])
+        shareButton = button
+    }
+
+    private func shareCatch() {
+        Haptics.tap()
+        let share = UIActivityViewController(
+            activityItems: [image, sighting.commonName], applicationActivities: nil)
+        share.popoverPresentationController?.sourceView = shareButton ?? view
+        present(share, animated: true)
     }
 
     /// A compact "+40 XP · 🔥 3 · Level 4!" progress line under the card meta.
@@ -303,6 +340,18 @@ final class CardRevealViewController: UIViewController {
     @objc private func dismissCard() {
         Haptics.tap()
         dismiss(animated: true)
+    }
+
+    override func accessibilityPerformEscape() -> Bool {
+        dismissCard()
+        return true
+    }
+}
+
+extension CardRevealViewController: UIGestureRecognizerDelegate {
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        guard let shareButton, let touched = touch.view else { return true }
+        return !touched.isDescendant(of: shareButton)
     }
 }
 

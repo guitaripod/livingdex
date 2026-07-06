@@ -2,8 +2,8 @@ import UIKit
 
 /// The full species card, opened from the Dex. Hero image, an evocative category
 /// ("the ___" epithet), rarity + realm, typical size, the narrated Pokédex entry,
-/// a playable call ("cry") where a commercial-safe recording exists, and an "ask
-/// the creature" entry point. Reads the species' latest sighting.
+/// and a playable call ("cry") where a commercial-safe recording exists. Reads the
+/// species' latest sighting.
 final class CardDetailViewController: UIViewController {
     private var entry: DexEntry
     private let detailService = SpeciesDetailService()
@@ -13,6 +13,7 @@ final class CardDetailViewController: UIViewController {
 
     private let scrollView = UIScrollView()
     private let stack = UIStackView()
+    private let hero = UIImageView()
     private let categoryLabel = UILabel()
     private let sizeLabel = UILabel()
     private let narrationLabel = UILabel()
@@ -32,11 +33,34 @@ final class CardDetailViewController: UIViewController {
         view.backgroundColor = .systemBackground
         title = entry.commonName
         navigationItem.largeTitleDisplayMode = .never
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
-            image: UIImage(systemName: "trash"),
-            primaryAction: UIAction { [weak self] _ in self?.confirmRelease() })
+        configureNavigationActions()
         buildLayout()
         fetchCall()
+    }
+
+    private func configureNavigationActions() {
+        let shareItem = UIBarButtonItem(
+            image: UIImage(systemName: "square.and.arrow.up"),
+            primaryAction: UIAction { [weak self] _ in self?.shareCatch() })
+        shareItem.accessibilityLabel = "Share"
+        let releaseAction = UIAction(
+            title: "Release",
+            image: UIImage(systemName: "trash"),
+            attributes: .destructive) { [weak self] _ in self?.confirmRelease() }
+        let overflowItem = UIBarButtonItem(
+            image: UIImage(systemName: "ellipsis.circle"),
+            menu: UIMenu(children: [releaseAction]))
+        overflowItem.accessibilityLabel = "More"
+        navigationItem.rightBarButtonItems = [shareItem, overflowItem]
+    }
+
+    private func shareCatch() {
+        let image = hero.image ?? ImageStore.load(entry.bestImagePath)
+        var items: [Any] = [entry.commonName]
+        if let image { items.insert(image, at: 0) }
+        let share = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        share.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItems?.first
+        present(share, animated: true)
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -56,8 +80,7 @@ final class CardDetailViewController: UIViewController {
             rarity: entry.rarity, confidence: 1)
         Task { @MainActor in
             guard case let .resolved(e) = await enricher.enrich(candidate: candidate, context: CaptureContext()) else { return }
-            let common = (e.scientificName?.caseInsensitiveCompare(entry.scientificName) == .orderedSame)
-                ? (e.commonName ?? entry.commonName) : entry.commonName
+            let common = e.adoptedCommonName(current: entry.commonName, scientificName: entry.scientificName)
             guard let healed = try? CollectionStore.shared.healEnrichment(
                 speciesId: entry.speciesId, rarity: e.rarity,
                 commonName: common, scientificName: entry.scientificName) else { return }
@@ -86,7 +109,7 @@ final class CardDetailViewController: UIViewController {
             stack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -DesignSystem.Spacing.l),
         ])
 
-        let hero = UIImageView(image: ImageStore.load(entry.bestImagePath))
+        hero.image = ImageLoader.shared.cached(entry.bestImagePath)
         hero.contentMode = .scaleAspectFill
         hero.clipsToBounds = true
         hero.layer.cornerRadius = DesignSystem.Radius.card
@@ -94,6 +117,9 @@ final class CardDetailViewController: UIViewController {
         hero.translatesAutoresizingMaskIntoConstraints = false
         hero.heightAnchor.constraint(equalTo: hero.widthAnchor, multiplier: 0.9).isActive = true
         stack.addArrangedSubview(hero)
+        if hero.image == nil {
+            ImageLoader.shared.load(entry.bestImagePath) { [weak self] image in self?.hero.image = image }
+        }
 
         rarityBadge.configure(entry.rarity)
         let rarityRow = UIStackView(arrangedSubviews: [rarityBadge, UIView()])
@@ -218,7 +244,7 @@ final class CardDetailViewController: UIViewController {
             self.navigationController?.popViewController(animated: true)
         })
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        alert.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItem
+        alert.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItems?.last
         present(alert, animated: true)
     }
 
