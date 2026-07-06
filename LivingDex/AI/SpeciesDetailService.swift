@@ -23,6 +23,7 @@ final class SpeciesDetailService: NSObject, @unchecked Sendable {
     private let baseURL: URL
     private let session: URLSession
     private var player: AVPlayer?
+    private var endObservers: [NSObjectProtocol] = []
 
     init(baseURL: URL = Secrets.workerBaseURL) {
         self.baseURL = baseURL
@@ -51,9 +52,38 @@ final class SpeciesDetailService: NSObject, @unchecked Sendable {
     @MainActor func play(_ call: SpeciesCall) {
         try? AVAudioSession.sharedInstance().setCategory(.playback, options: [.duckOthers])
         try? AVAudioSession.sharedInstance().setActive(true)
-        player = AVPlayer(url: call.url)
+        removeEndObservers()
+        let item = AVPlayerItem(url: call.url)
+        observeEnd(of: item)
+        player = AVPlayer(playerItem: item)
         player?.play()
         AppLogger.shared.info("playing call from \(call.source)", category: .ai)
+    }
+
+    /// Releases the player and hands the audio session back so ducked Music /
+    /// podcast audio restores to full volume once the short clip ends or fails.
+    @MainActor private func finishPlayback() {
+        player?.pause()
+        player = nil
+        removeEndObservers()
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        AppLogger.shared.info("call finished, audio session released", category: .ai)
+    }
+
+    @MainActor private func observeEnd(of item: AVPlayerItem) {
+        let center = NotificationCenter.default
+        let handler: @Sendable (Notification) -> Void = { [weak self] _ in
+            Task { @MainActor in self?.finishPlayback() }
+        }
+        endObservers.append(center.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime, object: item, queue: .main, using: handler))
+        endObservers.append(center.addObserver(
+            forName: .AVPlayerItemFailedToPlayToEndTime, object: item, queue: .main, using: handler))
+    }
+
+    @MainActor private func removeEndObservers() {
+        for token in endObservers { NotificationCenter.default.removeObserver(token) }
+        endObservers.removeAll()
     }
 
     private struct DetailResponse: Decodable {

@@ -6,10 +6,29 @@ import Foundation
 /// timeout or failure leaves the on-device candidate's own values intact.
 struct SpeciesEnrichment: Sendable {
     var rarity: Rarity
+    /// GBIF taxon key of the confirmed species, when the Worker resolved one. Lets
+    /// a cloud "sci:" capture adopt the canonical "gbif:<taxonKey>" id so it fills
+    /// its (gbif-keyed) Regional Dex slot instead of orphaning in an unmatchable id.
+    var taxonKey: Int?
     var scientificName: String?
     var commonName: String?
     var summary: String?
     var iucnCategory: String?
+
+    /// The single common-name adoption rule shared by the capture and heal paths:
+    /// take the enrichment's common name only when it confirms the same species
+    /// (case-insensitive scientific-name match) and is non-empty; otherwise keep
+    /// the caller's current name unchanged. Centralized so the two call sites can't
+    /// drift (the heal copy previously omitted the non-empty guard and could blank
+    /// a card title with an empty enrichment name).
+    func adoptedCommonName(current commonName: String, scientificName: String) -> String {
+        guard let sci = self.scientificName,
+              sci.caseInsensitiveCompare(scientificName) == .orderedSame,
+              let candidate = self.commonName, !candidate.isEmpty else {
+            return commonName
+        }
+        return candidate
+    }
 }
 
 /// The outcome of asking the worker to ground a candidate against GBIF.
@@ -65,6 +84,7 @@ final class SpeciesEnricher: Sendable {
             AppLogger.shared.info("enriched \(candidate.commonName) -> \(rarity.rawValue)", category: .identify)
             return .resolved(SpeciesEnrichment(
                 rarity: rarity,
+                taxonKey: decoded.taxonKey,
                 scientificName: decoded.factSheet.scientificName,
                 commonName: decoded.factSheet.commonName,
                 summary: decoded.factSheet.summary,
@@ -82,6 +102,7 @@ final class SpeciesEnricher: Sendable {
 
     private struct EnrichResponse: Decodable {
         var rarity: String
+        var taxonKey: Int?
         var factSheet: FactSheet
         struct FactSheet: Decodable {
             var scientificName: String?

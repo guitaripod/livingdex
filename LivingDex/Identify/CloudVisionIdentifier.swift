@@ -13,16 +13,17 @@ final class CloudVisionIdentifier: SpeciesIdentifier {
     // credit burn) low. Pro could escalate hard cases to Sonnet later.
     private let model = "gemini-2.5-flash"
     /// Below this the model isn't sure enough — treat as "nothing here" rather
-    /// than mint a confident wrong species.
-    private let minConfidence = 0.35
+    /// than mint a confident wrong species. Shared with the capture flow's gate via
+    /// `IdentificationPolicy` so the two thresholds can never diverge.
+    private let minConfidence = IdentificationPolicy.minConfidence
 
     init(client: AICreditsClient = AICreditsManager.shared.client) {
         self.client = client
     }
 
     func identify(_ image: UIImage, context: CaptureContext) async -> IdentificationResult {
-        guard let base64 = image.jpegData(compressionQuality: 0.6)?.base64EncodedString() else {
-            return IdentificationResult(candidates: [])
+        guard let base64 = Self.visionJPEG(image)?.base64EncodedString() else {
+            return IdentificationResult(candidates: [], error: .serverError)
         }
         let request = CapabilityRequest.chat(
             messages: [ChatTurn(role: "user", content: Self.prompt)],
@@ -34,14 +35,58 @@ final class CloudVisionIdentifier: SpeciesIdentifier {
             guard let content = MakoChat.messageContent(result.raw),
                   let candidate = Self.parse(content, minConfidence: minConfidence) else {
                 AppLogger.shared.info("cloud vision: no clear organism", category: .identify)
-                return IdentificationResult(candidates: [])
+                return IdentificationResult(candidates: [], error: .noSpecies)
             }
             AppLogger.shared.info("cloud vision -> \(candidate.scientificName) \(String(format: "%.2f", candidate.confidence))", category: .identify)
             return IdentificationResult(candidates: [candidate])
         } catch {
-            AppLogger.shared.warn("cloud vision failed: \(error.localizedDescription)", category: .identify)
-            return IdentificationResult(candidates: [])
+            let mapped = Self.identifyError(from: error)
+            AppLogger.shared.warn("cloud vision failed (\(mapped)): \(error.localizedDescription)", category: .identify)
+            return IdentificationResult(candidates: [], error: mapped)
         }
+    }
+
+    /// Longest-edge cap for the uploaded frame. Vision models gain nothing above
+    /// ~1.5k px, so we downscale before base64 to slash upload bytes (the
+    /// dominant capture→card latency on cellular) and image-token spend. The
+    /// full-resolution capture is persisted separately by `ImageStore`.
+    private static let maxVisionEdge: CGFloat = 1536
+
+    private static func visionJPEG(_ image: UIImage) -> Data? {
+        let longestEdge = max(image.size.width, image.size.height)
+        guard longestEdge > maxVisionEdge else {
+            return image.jpegData(compressionQuality: 0.7)
+        }
+        let scale = maxVisionEdge / longestEdge
+        let target = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+        format.opaque = true
+        let downscaled = UIGraphicsImageRenderer(size: target, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: target))
+        }
+        return downscaled.jpegData(compressionQuality: 0.7)
+    }
+
+    static func identifyError(from error: Error) -> IdentifyError {
+        if let creditsError = error as? AICreditsError {
+            switch creditsError {
+            case .insufficientCredits: return .creditsExhausted
+            case .transport: return .offline
+            default: return .serverError
+            }
+        }
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .notConnectedToInternet, .networkConnectionLost, .timedOut,
+                 .cannotConnectToHost, .cannotFindHost, .dataNotAllowed,
+                 .internationalRoamingOff:
+                return .offline
+            default:
+                return .serverError
+            }
+        }
+        return .serverError
     }
 
     private static let prompt = """
@@ -63,7 +108,7 @@ final class CloudVisionIdentifier: SpeciesIdentifier {
         let confidence: Double
     }
 
-    private static func parse(_ content: String, minConfidence: Double) -> SpeciesCandidate? {
+    static func parse(_ content: String, minConfidence: Double = IdentificationPolicy.minConfidence) -> SpeciesCandidate? {
         let decoded: VisionID
         if let d = try? JSONDecoder().decode(VisionID.self, from: Data(content.utf8)) {
             decoded = d
