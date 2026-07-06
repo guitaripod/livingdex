@@ -23,7 +23,8 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         Task { await AICreditsManager.store.bootstrap() }
         SubscriptionService.shared.bootstrap()
-        GameCenterService.shared.authenticate()
+        // Game Center auth is deferred to the first non-Field tab (see
+        // RootViewController) so its foreground-steal never freezes the camera at launch.
         AppLogger.shared.info("scene connected", category: .app)
     }
 

@@ -3,7 +3,14 @@ import UIKit
 /// The app's tab shell. The Field (camera-first capture) tab is the default —
 /// the app opens ready to catch. Bar backgrounds are left default so iOS 26
 /// keeps its Liquid Glass.
-final class RootViewController: UITabBarController {
+final class RootViewController: UITabBarController, UITabBarControllerDelegate {
+    /// Game Center authentication briefly steals foreground (it can present a
+    /// sign-in sheet), which the running capture session reports as
+    /// `videoDeviceNotAvailableInBackground` — a multi-second freeze right on the
+    /// camera-first launch. So it is deferred until the user first leaves Field,
+    /// where no live preview is on screen to interrupt.
+    private var didAuthenticateGameCenter = false
+
     init() {
         super.init(nibName: nil, bundle: nil)
     }
@@ -13,6 +20,7 @@ final class RootViewController: UITabBarController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        delegate = self
 
         let field = FieldViewController()
         field.tabBarItem = UITabBarItem(
@@ -23,6 +31,12 @@ final class RootViewController: UITabBarController {
             wrap(DexViewController(), title: "Dex", symbol: "square.grid.2x2.fill"),
             wrap(ProfileViewController(), title: "Profile", symbol: "person.crop.circle.fill"),
         ]
+    }
+
+    func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
+        guard !didAuthenticateGameCenter, selectedIndex != 0 else { return }
+        didAuthenticateGameCenter = true
+        GameCenterService.shared.authenticate()
     }
 
     private func wrap(_ vc: UIViewController, title: String, symbol: String) -> UINavigationController {
