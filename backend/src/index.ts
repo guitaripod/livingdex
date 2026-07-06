@@ -216,7 +216,7 @@ async function occurrenceCount(taxonKey: number, lat: number | null, lng: number
 }
 
 async function vernacularName(taxonKey: number): Promise<string | null> {
-  const data = await fetchJSON(`${GBIF}/species/${taxonKey}/vernacularNames?limit=40`).catch(() => null);
+  const data = await fetchJSONRetry(`${GBIF}/species/${taxonKey}/vernacularNames?limit=40`).catch(() => null);
   const eng: string[] = (data?.results ?? [])
     .filter((n: any) => n.language === "eng" && typeof n.vernacularName === "string")
     .map((n: any) => n.vernacularName.trim());
@@ -279,8 +279,11 @@ function computeRarity(
 
 /**
  * The species that plausibly occur near a point — the player's "Regional Dex".
- * Uses a GBIF facet on speciesKey within LOCAL_RADIUS_KM (ranked by how many
- * records exist locally), then resolves each to a name + realm + rarity. Cached
+ * A single occurrence-density facet is dominated by birds/animals (that is what
+ * HUMAN_OBSERVATION density overwhelmingly records), which collapses the dex into
+ * an all-animals list. So we facet each kingdom separately within
+ * LOCAL_RADIUS_KM and round-robin interleave them, giving a balanced mix of
+ * animals, plants, and fungi ranked by local abundance within each realm. Cached
  * hard at the edge since a coarse area's species list is stable.
  */
 async function region(url: URL): Promise<Response> {
@@ -289,37 +292,128 @@ async function region(url: URL): Promise<Response> {
   const limit = Math.min(120, intParam(url, "limit") ?? 80);
   if (lat == null || lng == null) return json({ error: "lat and lng required" }, 400);
 
-  // Wild things only: HUMAN_OBSERVATION drops specimen/fossil noise; fetch extra
-  // and trim, since humans + domestics are filtered out below.
-  const facetUrl =
-    `${GBIF}/occurrence/search?hasCoordinate=true&geoDistance=${lat},${lng},${LOCAL_RADIUS_KM}km` +
-    `&basisOfRecord=HUMAN_OBSERVATION&facet=speciesKey&facetLimit=${limit + 20}&limit=0`;
-  const data = await fetchJSON(facetUrl);
-  const counts: Array<{ name: string; count: number }> = data?.facets?.[0]?.counts ?? [];
+  // Per-realm resolve budgets: animals genuinely dominate local observation, but
+  // plants and fungi get guaranteed representation so the dex reads as a living
+  // cross-section rather than a bird list. Protists (Chromista/Protozoa) are
+  // sparse in citizen-science data — a small slice, best-effort.
+  const REALM_FACETS: Array<{ kingdomKey: number; realm: string; budget: number }> = [
+    { kingdomKey: 1, realm: "animals", budget: Math.ceil(limit * 0.42) }, // Animalia
+    { kingdomKey: 6, realm: "plants", budget: Math.ceil(limit * 0.34) }, //  Plantae
+    { kingdomKey: 5, realm: "fungi", budget: Math.ceil(limit * 0.2) }, //    Fungi
+    { kingdomKey: 4, realm: "protists", budget: 1 }, //                       Chromista
+    { kingdomKey: 7, realm: "protists", budget: 1 }, //                       Protozoa
+  ];
 
-  // Bounded pool caps simultaneous GBIF subrequests; the two per-item lookups
-  // run in parallel to halve per-item latency.
-  const resolved = await mapPool(counts, REGION_CONCURRENCY, async (c) => {
-    const key = Number(c.name);
-    if (!Number.isFinite(key) || EXCLUDED_TAXA.has(key)) return null;
-    const [sp, commonName] = await Promise.all([
-      fetchJSON(`${GBIF}/species/${key}`).catch(() => null),
-      vernacularName(key),
-    ]);
+  // Facet each kingdom (cheap, count-only) — the realm is known from the query,
+  // so the per-species lookup never needs the kingdom back.
+  const perRealm = await Promise.all(
+    REALM_FACETS.map(async (f) => {
+      const counts = await facetSpeciesKeys(lat, lng, f.kingdomKey, f.budget);
+      return counts.map((c) => ({ key: Number(c.name), count: c.count, realm: f.realm }));
+    }),
+  );
+
+  // Resolve every candidate through ONE bounded pool so the GBIF concurrency
+  // profile matches the old single-facet path (five separate pools fan out to
+  // 5×N concurrent requests and get rate-limited). Candidates are round-robined
+  // across realms *before* resolving, so if GBIF rate-limits the tail, the
+  // species that do resolve are still a balanced mix rather than all-animals.
+  const candidates = roundRobinByRealm(
+    perRealm.flat().filter((c) => Number.isFinite(c.key) && !EXCLUDED_TAXA.has(c.key)),
+    (c) => c.key,
+  );
+
+  // One GBIF call per species (not two): `species/{key}` carries the English
+  // vernacular inline, so the separate vernacularNames lookup is dropped —
+  // halving subrequests and roughly doubling how many species fit under the
+  // Worker's per-request subrequest budget, common names intact.
+  const resolved = await mapPool(candidates, REGION_CONCURRENCY, async (c) => {
+    const sp = await fetchJSON(`${GBIF}/species/${c.key}`).catch(() => null);
     const scientificName = sp?.canonicalName ?? sp?.scientificName;
     if (!scientificName || sp?.rank !== "SPECIES") return null;
     return {
-      taxonKey: key,
-      commonName,
+      taxonKey: c.key,
+      commonName: cleanVernacular(sp?.vernacularName),
       scientificName,
-      realm: kingdomToRealm(sp?.kingdom),
+      realm: c.realm,
       rarity: computeRarity(c.count, null, null, true),
       localCount: c.count,
-    };
+    } satisfies RegionItem;
   });
-  const species = resolved.filter((s) => s !== null).slice(0, limit);
 
+  const species = roundRobinByRealm(
+    resolved.filter((s): s is RegionItem => s !== null),
+    (s) => s.taxonKey,
+  ).slice(0, limit);
   return json({ count: species.length, species }, 200, 24 * 60 * 60);
+}
+
+interface RegionItem {
+  taxonKey: number;
+  commonName: string | null;
+  scientificName: string;
+  realm: string;
+  rarity: Rarity;
+  localCount: number;
+}
+
+/**
+ * Normalizes the inline vernacular from `species/{key}`: trims, drops empty or
+ * banding-code names (all-caps, no space — "GRTI"), and title-cases an
+ * all-lowercase name, leaving proper names ("Steller's Jay") untouched.
+ */
+function cleanVernacular(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const name = raw.trim();
+  if (!name) return null;
+  if (name === name.toUpperCase() && !/\s/.test(name)) return null;
+  return /[A-Z]/.test(name) ? name : name.replace(/\b\w/g, (ch) => ch.toUpperCase());
+}
+
+/** Top `budget` most-locally-observed species keys of one kingdom (count-only). */
+async function facetSpeciesKeys(
+  lat: number,
+  lng: number,
+  kingdomKey: number,
+  budget: number,
+): Promise<Array<{ name: string; count: number }>> {
+  const facetUrl =
+    `${GBIF}/occurrence/search?hasCoordinate=true&geoDistance=${lat},${lng},${LOCAL_RADIUS_KM}km` +
+    `&basisOfRecord=HUMAN_OBSERVATION&kingdomKey=${kingdomKey}` +
+    `&facet=speciesKey&facetLimit=${budget + 4}&limit=0`;
+  const data = await fetchJSON(facetUrl).catch(() => null);
+  const counts: Array<{ name: string; count: number }> = data?.facets?.[0]?.counts ?? [];
+  // Slice to the realm's budget (small headroom for resolution dropout) so the
+  // per-realm candidate counts actually control the dex's realm mix.
+  return counts.slice(0, budget + 2);
+}
+
+/**
+ * Round-robin merge across realms: take the top item of each realm, then the
+ * next, and so on (within-realm order is preserved), deduping by `keyOf`. Keeps
+ * the dex balanced instead of letting animals crowd everything out.
+ */
+function roundRobinByRealm<T extends { realm: string }>(items: T[], keyOf: (item: T) => number): T[] {
+  const byRealm = new Map<string, T[]>();
+  for (const item of items) {
+    const list = byRealm.get(item.realm);
+    if (list) list.push(item);
+    else byRealm.set(item.realm, [item]);
+  }
+  const lists = [...byRealm.values()];
+  const out: T[] = [];
+  const seen = new Set<number>();
+  const depth = Math.max(0, ...lists.map((l) => l.length));
+  for (let i = 0; i < depth; i++) {
+    for (const list of lists) {
+      const item = list[i];
+      if (item && !seen.has(keyOf(item))) {
+        seen.add(keyOf(item));
+        out.push(item);
+      }
+    }
+  }
+  return out;
 }
 
 /**
@@ -425,6 +519,26 @@ async function fetchJSON(u: string): Promise<any> {
   });
   if (!resp.ok) throw new Error(`upstream ${resp.status} for ${u}`);
   return resp.json();
+}
+
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+/**
+ * `fetchJSON` with jittered backoff retries. GBIF rate-limits the Worker's shared
+ * egress IP under the Regional-Dex burst (~250 calls); one or two spaced retries
+ * recover most of the 429s, taking the dex from a couple-dozen species to a full
+ * list. The result is edge-cached 24h, so the extra cold-fill latency is paid
+ * once per area.
+ */
+async function fetchJSONRetry(u: string, retries = 2): Promise<any> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fetchJSON(u);
+    } catch (e) {
+      if (attempt >= retries) throw e;
+      await sleep(300 * (attempt + 1) + Math.random() * 250);
+    }
+  }
 }
 
 function numParam(url: URL, key: string): number | null {
