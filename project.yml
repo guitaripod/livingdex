@@ -95,6 +95,9 @@ targets:
         TARGETED_DEVICE_FAMILY: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.education
+        CODE_SIGN_STYLE: Manual
+        "CODE_SIGN_IDENTITY[sdk=iphoneos*]": "Apple Development: Marcus Ziadé (AUJJ76QHS7)"
+        "PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]": "LivingDex Dev iPhone Air 2026"
 
   LivingDexTests:
     type: bundle.unit-test
