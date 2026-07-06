@@ -90,6 +90,11 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
                     GameCenterService.shared.presentDashboard(from: self)
                 },
             ]),
+            Section(header: "Learn", rows: [
+                .action(title: "Field Guide", symbol: "book.fill") { [weak self] in
+                    self?.navigationController?.pushViewController(FieldGuideViewController(), animated: true)
+                },
+            ]),
         ]
     }
 
@@ -153,6 +158,7 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
             content.imageProperties.tintColor = DesignSystem.Color.accent
             cell.contentConfiguration = content
             cell.selectionStyle = .default
+            cell.accessoryType = .disclosureIndicator
         case let .info(title, value):
             cell.contentConfiguration = pairConfig(title: title, value: value)
         }
