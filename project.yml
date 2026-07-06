@@ -62,7 +62,8 @@ targets:
       path: LivingDex/Info.plist
       properties:
         CFBundleDisplayName: Living Dex
-        CFBundleShortVersionString: "0.1.0"
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen:
           UIColorName: LaunchBackground
         UIApplicationSceneManifest:
