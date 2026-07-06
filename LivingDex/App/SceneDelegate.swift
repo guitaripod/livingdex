@@ -22,8 +22,18 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window.makeKeyAndVisible()
 
         Task { await AICreditsManager.store.bootstrap() }
+        SubscriptionService.shared.bootstrap()
         GameCenterService.shared.authenticate()
         AppLogger.shared.info("scene connected", category: .app)
+    }
+
+    func sceneWillEnterForeground(_ scene: UIScene) {
+        LocationProvider.shared.warmUp()
+        SubscriptionService.shared.refreshEntitlementIfStale()
+    }
+
+    func sceneDidEnterBackground(_ scene: UIScene) {
+        LocationProvider.shared.stopUpdates()
     }
 
     private static func makeRoot() -> UIViewController {

@@ -2,22 +2,33 @@ import AVFoundation
 import UIKit
 
 /// The camera-first "Field" — the app's home. Live preview fills the screen; a
-/// Liquid Glass HUD floats the capture control and status. One tap runs the
-/// spot → identify → collect loop and reveals a minted card.
+/// Liquid Glass HUD floats the capture control, status, torch, and zoom. One tap
+/// runs the spot → identify → collect loop (delegated to `CaptureFlow`) and
+/// reveals a minted card; pinch zooms, tap focuses.
 final class FieldViewController: UIViewController {
     private let camera = CameraController()
-    private let identifier: SpeciesIdentifier = SpeciesIdentifierFactory.make()
     private let store = CollectionStore.shared
     private let narrator = NarratorService.shared
-    private let enricher = SpeciesEnricher.shared
+    private let captureFlow = CaptureFlow.live()
 
     private let statusChip = GlassChipView()
     private let captureButton = CaptureButton()
     private let permissionView = CameraPermissionView()
-    private var isBusy = false
+    private let torchButton = GlassIconButton()
+    private let zoomChip = GlassChipView()
 
+    private var pinchGesture: UIPinchGestureRecognizer!
+    private var focusTapGesture: UITapGestureRecognizer!
+
+    private var isBusy = false
     private var hasConfigured = false
     private var cameraStarted = false
+    private var cameraReady = false
+
+    private var currentUserZoom: CGFloat = 1
+    private var pinchStartZoom: CGFloat = 1
+    private var torchOn = false
+    private var zoomChipHide: DispatchWorkItem?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -25,6 +36,7 @@ final class FieldViewController: UIViewController {
         view.backgroundColor = .black
         view.layer.addSublayer(camera.previewLayer)
         setupHUD()
+        setupGestures()
     }
 
     override func viewDidLayoutSubviews() {
@@ -32,34 +44,27 @@ final class FieldViewController: UIViewController {
         camera.previewLayer.frame = view.bounds
     }
 
+    /// Requests camera/location only once the Field is actually on screen — not
+    /// eagerly at load — so a first-run user isn't prompted behind onboarding.
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         Haptics.prepare()
-        // Request camera/location only once the Field is actually on screen — not
-        // eagerly at load — so a first-run user isn't prompted behind onboarding.
         if !hasConfigured {
             hasConfigured = true
             LocationProvider.shared.requestAuthorization()
             configureCameraIfAllowed()
         } else if CameraController.authorizationStatus() == .authorized {
-            // Recover if access was granted in Settings after a prior denial: the
-            // camera may never have been configured, so start it from scratch and
-            // dismiss the permission gate.
-            if cameraStarted {
-                camera.start()
-            } else {
-                permissionView.isHidden = true
-                captureButton.isHidden = false
-                statusChip.isHidden = false
-                startCamera()
-            }
+            resumeCameraIfNeeded()
         }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        if torchOn { toggleTorch() }
         camera.stop()
     }
+
+    // MARK: Setup
 
     private func setupHUD() {
         statusChip.translatesAutoresizingMaskIntoConstraints = false
@@ -69,6 +74,17 @@ final class FieldViewController: UIViewController {
         captureButton.translatesAutoresizingMaskIntoConstraints = false
         captureButton.addTarget(self, action: #selector(didTapCapture), for: .touchUpInside)
         view.addSubview(captureButton)
+
+        torchButton.translatesAutoresizingMaskIntoConstraints = false
+        torchButton.isHidden = true
+        torchButton.setSymbol("flashlight.off.fill")
+        torchButton.accessibilityLabel = "Torch off"
+        torchButton.addTarget(self, action: #selector(didTapTorch), for: .touchUpInside)
+        view.addSubview(torchButton)
+
+        zoomChip.translatesAutoresizingMaskIntoConstraints = false
+        zoomChip.isHidden = true
+        view.addSubview(zoomChip)
 
         permissionView.translatesAutoresizingMaskIntoConstraints = false
         permissionView.isHidden = true
@@ -82,10 +98,18 @@ final class FieldViewController: UIViewController {
             statusChip.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             statusChip.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: DesignSystem.Spacing.m),
 
+            torchButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -DesignSystem.Spacing.m),
+            torchButton.centerYAnchor.constraint(equalTo: statusChip.centerYAnchor),
+            torchButton.widthAnchor.constraint(equalToConstant: 44),
+            torchButton.heightAnchor.constraint(equalToConstant: 44),
+
             captureButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             captureButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -DesignSystem.Spacing.l),
             captureButton.widthAnchor.constraint(equalToConstant: 76),
             captureButton.heightAnchor.constraint(equalToConstant: 76),
+
+            zoomChip.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            zoomChip.bottomAnchor.constraint(equalTo: captureButton.topAnchor, constant: -DesignSystem.Spacing.m),
 
             permissionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             permissionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -93,6 +117,20 @@ final class FieldViewController: UIViewController {
             permissionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
     }
+
+    private func setupGestures() {
+        pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch))
+        pinchGesture.delegate = self
+        pinchGesture.isEnabled = false
+        view.addGestureRecognizer(pinchGesture)
+
+        focusTapGesture = UITapGestureRecognizer(target: self, action: #selector(handleFocusTap))
+        focusTapGesture.delegate = self
+        focusTapGesture.isEnabled = false
+        view.addGestureRecognizer(focusTapGesture)
+    }
+
+    // MARK: Camera lifecycle
 
     private func configureCameraIfAllowed() {
         switch CameraController.authorizationStatus() {
@@ -117,31 +155,155 @@ final class FieldViewController: UIViewController {
         }
     }
 
+    /// Recovers when returning to the tab: restart a working camera, or re-attempt
+    /// configuration if a prior attach failed (so the "unavailable" gate is never
+    /// permanent).
+    private func resumeCameraIfNeeded() {
+        if !cameraStarted {
+            permissionView.isHidden = true
+            captureButton.isHidden = false
+            statusChip.isHidden = false
+            startCamera()
+        } else if cameraReady {
+            camera.start()
+        } else {
+            startCamera()
+        }
+    }
+
     private func startCamera() {
         cameraStarted = true
-        camera.configureAndStart()
-        // `canCapture` flips async after configuration; if no usable device
-        // attached (Simulator, hardware busy), surface a distinct state rather
-        // than a black screen with a dead shutter.
         Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(700))
-            if !camera.canCapture { showCameraUnavailable() }
+            let ready = await camera.configureAndStart()
+            cameraReady = ready
+            if ready {
+                dismissGates()
+                configureCameraControls()
+            } else {
+                showCameraUnavailable()
+            }
         }
+    }
+
+    private func dismissGates() {
+        permissionView.isHidden = true
+        captureButton.isHidden = false
+        statusChip.isHidden = false
+    }
+
+    /// Enables the live controls once a device is confirmed attached — driven by
+    /// the real configuration result, never a timer.
+    private func configureCameraControls() {
+        currentUserZoom = 1
+        torchOn = false
+        torchButton.setActive(false)
+        torchButton.setSymbol("flashlight.off.fill")
+        torchButton.accessibilityLabel = "Torch off"
+        torchButton.isHidden = !camera.hasTorch
+        pinchGesture.isEnabled = true
+        focusTapGesture.isEnabled = true
     }
 
     private func showPermissionGate() {
         permissionView.configure(.denied)
-        permissionView.isHidden = false
-        captureButton.isHidden = true
-        statusChip.isHidden = true
+        presentGate()
     }
 
     private func showCameraUnavailable() {
         permissionView.configure(.unavailable)
+        presentGate()
+    }
+
+    private func presentGate() {
         permissionView.isHidden = false
         captureButton.isHidden = true
         statusChip.isHidden = true
+        torchButton.isHidden = true
+        zoomChip.isHidden = true
+        pinchGesture.isEnabled = false
+        focusTapGesture.isEnabled = false
     }
+
+    // MARK: Live controls
+
+    @objc private func handlePinch(_ gesture: UIPinchGestureRecognizer) {
+        switch gesture.state {
+        case .began:
+            pinchStartZoom = currentUserZoom
+        case .changed:
+            let proposed = pinchStartZoom * gesture.scale
+            let clamped = min(max(proposed, camera.minUserZoom), camera.maxUserZoom)
+            currentUserZoom = clamped
+            camera.setUserZoom(clamped)
+            showZoomChip(clamped)
+        case .ended, .cancelled, .failed:
+            scheduleZoomChipHide()
+        default:
+            break
+        }
+    }
+
+    @objc private func handleFocusTap(_ gesture: UITapGestureRecognizer) {
+        let point = gesture.location(in: view)
+        let devicePoint = camera.previewLayer.captureDevicePointConverted(fromLayerPoint: point)
+        camera.focusAndExpose(atDevicePoint: devicePoint)
+        showFocusReticle(at: point)
+        Haptics.tap()
+    }
+
+    @objc private func didTapTorch() {
+        toggleTorch()
+        Haptics.tap()
+    }
+
+    private func toggleTorch() {
+        torchOn.toggle()
+        camera.setTorch(torchOn)
+        torchButton.setActive(torchOn)
+        torchButton.setSymbol(torchOn ? "flashlight.on.fill" : "flashlight.off.fill")
+        torchButton.accessibilityLabel = torchOn ? "Torch on" : "Torch off"
+    }
+
+    private func showZoomChip(_ factor: CGFloat) {
+        zoomChipHide?.cancel()
+        zoomChip.isHidden = false
+        zoomChip.setText(String(format: "%.1f×", factor), animated: false)
+    }
+
+    private func scheduleZoomChipHide() {
+        let work = DispatchWorkItem { [weak self] in self?.zoomChip.isHidden = true }
+        zoomChipHide = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2, execute: work)
+    }
+
+    private func showFocusReticle(at point: CGPoint) {
+        let reticle = focusReticle
+        view.bringSubviewToFront(reticle)
+        reticle.center = point
+        reticle.layer.removeAllAnimations()
+        reticle.alpha = 1
+        reticle.transform = CGAffineTransform(scaleX: 1.3, y: 1.3)
+        UIView.animate(withDuration: 0.25, delay: 0, usingSpringWithDamping: 0.6, initialSpringVelocity: 0.5) {
+            reticle.transform = .identity
+        }
+        UIView.animate(withDuration: 0.3, delay: 0.7, options: []) {
+            reticle.alpha = 0
+        }
+    }
+
+    private lazy var focusReticle: UIView = {
+        let reticle = UIView(frame: CGRect(x: 0, y: 0, width: 74, height: 74))
+        reticle.layer.borderColor = DesignSystem.Color.accent.cgColor
+        reticle.layer.borderWidth = 1.5
+        reticle.layer.cornerRadius = 6
+        reticle.layer.cornerCurve = .continuous
+        reticle.isUserInteractionEnabled = false
+        reticle.alpha = 0
+        view.addSubview(reticle)
+        return reticle
+    }()
+
+    // MARK: Capture
 
     @objc private func didTapCapture() {
         guard !isBusy else { return }
@@ -161,83 +323,60 @@ final class FieldViewController: UIViewController {
         }
     }
 
+    /// Renders the outcome of the capture pipeline. All decisions and side effects
+    /// happen inside `CaptureFlow.run`; the view controller only surfaces state.
     private func process(_ image: UIImage) async {
         let context = LocationProvider.shared.currentContext()
-        let result = await identifier.identify(image, context: context)
-        guard var top = result.top, top.confidence >= 0.35 else {
+        switch await captureFlow.run(image: image, context: context) {
+        case let .identifyFailed(error):
             Haptics.failure()
-            finishCapture(reset: "No clear living thing — get closer to a plant, animal, or bug")
-            return
-        }
-
-        // Ground the candidate against GBIF via the domain Worker. A `unresolved`
-        // result means GBIF actively rejected the name — a likely hallucination we
-        // must not mint. `unavailable` (offline/timeout) mints provisionally and
-        // heals on a later card open.
-        var grounding: String?
-        var enriched = false
-        switch await enricher.enrich(candidate: top, context: context) {
-        case let .resolved(enrichment):
-            top.rarity = enrichment.rarity
-            if let sci = enrichment.scientificName,
-               sci.caseInsensitiveCompare(top.scientificName) == .orderedSame,
-               let name = enrichment.commonName, !name.isEmpty {
-                top.commonName = name
-            }
-            grounding = enrichment.summary
-            enriched = true
-        case .unresolved:
+            finishCapture(reset: Self.message(for: error))
+            if case .creditsExhausted = error { promptGoProForCredits() }
+        case .lowConfidence:
+            Haptics.failure()
+            finishCapture(reset: Self.lowConfidenceMessage)
+        case .unresolvedSpecies:
             Haptics.failure()
             finishCapture(reset: "Couldn't confirm that species — try a clearer, closer shot")
-            return
-        case .unavailable:
-            break
-        }
-
-        let id = UUID().uuidString
-        guard let path = ImageStore.save(image, id: id) else {
+        case .saveFailed:
             Haptics.failure()
-            finishCapture(reset: "Couldn't save that photo — try again")
-            return
+            finishCapture(reset: "Couldn't save that catch — try again")
+        case let .minted(capture):
+            AppLogger.shared.info("captured \(capture.sighting.commonName) new=\(capture.isNew)", category: .capture)
+            presentCard(for: capture.sighting, image: capture.image, isNew: capture.isNew, progress: capture.progress)
+            finishCapture(reset: "Point at anything alive")
+            narrate(capture.candidate, sightingId: capture.sighting.id, grounding: capture.grounding)
         }
-        let sighting = Sighting(
-            id: id,
-            speciesId: top.speciesId,
-            commonName: top.commonName,
-            scientificName: top.scientificName,
-            realm: top.realm,
-            rarity: top.rarity,
-            confidence: top.confidence,
-            capturedAt: Date(),
-            latitude: context.latitude,
-            longitude: context.longitude,
-            elevationMeters: context.elevationMeters,
-            imagePath: path,
-            pokedexEntry: nil,
-            enriched: enriched)
+    }
 
-        var isNew = false
-        do {
-            isNew = try store.save(sighting)
-            AppLogger.shared.info("captured \(top.commonName) new=\(isNew)", category: .capture)
-        } catch {
-            AppLogger.shared.error("save sighting failed: \(error)", category: .persistence)
+    /// Offers the way out of the metered cap the instant a cloud ID is refused for want of
+    /// credits: go Pro for unlimited cloud IDs, or top up consumable credits. Silent for a
+    /// user who already holds Pro (they should never hit this) — the alert would be noise.
+    private func promptGoProForCredits() {
+        guard !SubscriptionService.shared.isPro else { return }
+        let alert = UIAlertController(
+            title: "Out of cloud IDs",
+            message: "You've used your cloud identifications. Go Pro for unlimited cloud IDs, or add credits to keep identifying.",
+            preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Go Pro", style: .default) { [weak self] _ in
+            guard let self else { return }
+            PaywallPresenter.present(from: self, reason: "You've hit the cloud-ID cap.")
+        })
+        alert.addAction(UIAlertAction(title: "Not now", style: .cancel))
+        present(alert, animated: true)
+    }
+
+    private static let lowConfidenceMessage = "No clear living thing — get closer to a plant, animal, or bug"
+
+    /// Distinct, honest recovery copy per identification failure — an offline user
+    /// or one out of credits is never told their photo was simply bad.
+    private static func message(for error: IdentifyError) -> String {
+        switch error {
+        case .offline: return "You're offline — reconnect and try again"
+        case .creditsExhausted: return "Out of cloud IDs — add credits to keep identifying"
+        case .serverError: return "Identification hiccup — try again in a moment"
+        case .noSpecies: return lowConfidenceMessage
         }
-
-        let event = try? ProgressStore.shared.record(rarity: top.rarity, isNew: isNew)
-        if let event {
-            AppLogger.shared.info("progress +\(event.xpGained)xp streak=\(event.streak) level=\(event.leveledUpTo.map(String.init) ?? "-")", category: .capture)
-        }
-
-        if let stats = try? store.stats(), let progress = try? ProgressStore.shared.current() {
-            GameCenterService.shared.recordCatch(context: AchievementContext(
-                speciesCount: stats.speciesCount, realms: stats.realms,
-                maxRarity: stats.maxRarity, longestStreak: progress.longestStreak))
-        }
-
-        presentCard(for: sighting, image: image, isNew: isNew, progress: event)
-        finishCapture(reset: "Point at anything alive")
-        narrate(top, sightingId: id, grounding: grounding)
     }
 
     /// Fills the Pokédex entry in the background (on-device model first, cloud
@@ -264,5 +403,16 @@ final class FieldViewController: UIViewController {
         isBusy = false
         captureButton.setCapturing(false)
         statusChip.setText(text)
+    }
+}
+
+extension FieldViewController: UIGestureRecognizerDelegate {
+    /// Keeps focus taps off the HUD controls (capture ring, torch, permission gate)
+    /// so tapping a button never also drops a focus reticle behind it.
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        guard gestureRecognizer === focusTapGesture, let touched = touch.view else { return true }
+        return !touched.isDescendant(of: captureButton)
+            && !touched.isDescendant(of: torchButton)
+            && !touched.isDescendant(of: permissionView)
     }
 }

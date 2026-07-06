@@ -65,10 +65,20 @@ struct PlayerProgress: Codable, FetchableRecord, PersistableRecord, Sendable {
 
     var level: Int { Level.level(for: totalXP) }
 
-    /// Local-calendar day index — increments by exactly 1 per calendar day
-    /// regardless of DST. (Epoch/86400 division would miscount the ±1h DST
-    /// boundary days, spuriously burning a freeze or resetting a streak.)
-    static func dayNumber(_ date: Date, calendar: Calendar = .current) -> Int {
+    /// A fixed UTC calendar. Using a stable timezone (not `.current`) means a
+    /// stored `lastCatchDay` keeps its meaning across timezone changes: the day
+    /// index of a real-time-later catch is always ≥ the stored one, so westward
+    /// travel can't reset an intact streak and eastward travel can't inflate the
+    /// gap and spuriously burn a freeze. UTC has no DST, so per-day ordinality
+    /// still increments by exactly 1.
+    static let streakCalendar: Calendar = {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC") ?? .gmt
+        return calendar
+    }()
+
+    /// Timezone-stable day index — increments by exactly 1 per UTC calendar day.
+    static func dayNumber(_ date: Date, calendar: Calendar = streakCalendar) -> Int {
         calendar.ordinality(of: .day, in: .era, for: date) ?? Int(calendar.startOfDay(for: date).timeIntervalSince1970 / 86_400)
     }
 }

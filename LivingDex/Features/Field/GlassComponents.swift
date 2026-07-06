@@ -83,9 +83,66 @@ final class GlassChipView: UIView {
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError() }
 
-    func setText(_ text: String) {
+    func setText(_ text: String, animated: Bool = true) {
+        guard animated else {
+            label.text = text
+            return
+        }
         UIView.transition(with: label, duration: 0.2, options: .transitionCrossDissolve) {
             self.label.text = text
+        }
+    }
+}
+
+/// A circular glass button hosting a single SF Symbol — HUD toggles like the
+/// torch. Mirrors the capture control's interactive-glass idiom at button size.
+final class GlassIconButton: UIControl {
+    private let panel = GlassPanel(cornerRadius: 22, interactive: true)
+    private let imageView = UIImageView()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        isAccessibilityElement = true
+        accessibilityTraits = .button
+
+        panel.translatesAutoresizingMaskIntoConstraints = false
+        panel.isUserInteractionEnabled = false
+        addSubview(panel)
+
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.contentMode = .center
+        imageView.tintColor = .white
+        imageView.isUserInteractionEnabled = false
+        panel.contentView.addSubview(imageView)
+
+        NSLayoutConstraint.activate([
+            panel.leadingAnchor.constraint(equalTo: leadingAnchor),
+            panel.trailingAnchor.constraint(equalTo: trailingAnchor),
+            panel.topAnchor.constraint(equalTo: topAnchor),
+            panel.bottomAnchor.constraint(equalTo: bottomAnchor),
+            imageView.centerXAnchor.constraint(equalTo: panel.contentView.centerXAnchor),
+            imageView.centerYAnchor.constraint(equalTo: panel.contentView.centerYAnchor),
+        ])
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError() }
+
+    func setSymbol(_ name: String) {
+        let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .semibold)
+        imageView.image = UIImage(systemName: name, withConfiguration: config)
+    }
+
+    /// Tints the glyph to signal an active/on state (e.g. torch lit).
+    func setActive(_ active: Bool) {
+        imageView.tintColor = active ? DesignSystem.Color.accent : .white
+    }
+
+    override var isHighlighted: Bool {
+        didSet {
+            UIView.animate(withDuration: 0.1) {
+                self.transform = self.isHighlighted ? CGAffineTransform(scaleX: 0.92, y: 0.92) : .identity
+            }
         }
     }
 }
