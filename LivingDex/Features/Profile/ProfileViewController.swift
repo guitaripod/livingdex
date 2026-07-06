@@ -1,4 +1,6 @@
+import Combine
 import UIKit
+import AICreditsUI
 
 /// Profile & progress: the collection's headline stats, a rarity breakdown, the
 /// Living Dex Pro surface, and diagnostics (log export). A collection game lives
@@ -6,11 +8,13 @@ import UIKit
 final class ProfileViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     private let tableView = UITableView(frame: .zero, style: .insetGrouped)
     private let headerView = ProfileHeaderView()
+    private let subscriptions = SubscriptionService.shared
+    private var cancellables = Set<AnyCancellable>()
 
     private enum Row {
         case stat(title: String, value: String)
         case rarity(Rarity, count: Int)
-        case pro(balance: Int)
+        case pro(balance: Int, isPro: Bool)
         case action(title: String, symbol: String, handler: () -> Void)
         case info(title: String, value: String)
     }
@@ -35,6 +39,16 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
         headerView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: 210)
         tableView.tableHeaderView = headerView
         view.addSubview(tableView)
+
+        subscriptions.entitlementPublisher
+            .dropFirst()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self, self.isViewLoaded, self.view.window != nil else { return }
+                self.rebuild()
+                self.tableView.reloadData()
+            }
+            .store(in: &cancellables)
     }
 
     override func viewDidLayoutSubviews() {
@@ -69,7 +83,7 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
 
         sections = [
             Section(header: "Collection", rows: collection),
-            Section(header: "Cloud AI", rows: [.pro(balance: balance)]),
+            Section(header: "Cloud AI", rows: [.pro(balance: balance, isPro: subscriptions.isPro)]),
             Section(header: "Compete", rows: [
                 .action(title: "Leaderboards & achievements", symbol: "trophy.fill") { [weak self] in
                     guard let self else { return }
@@ -115,13 +129,24 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
             badge.textColor = .secondaryLabel
             badge.sizeToFit()
             cell.accessoryView = badge
-        case let .pro(balance):
+        case let .pro(balance, isPro):
             content.text = "Cloud IDs"
-            content.secondaryText = balance == 1 ? "1 credit remaining" : "\(balance) credits remaining"
-            content.image = UIImage(systemName: "sparkles")
+            content.image = UIImage(systemName: isPro ? "sparkles.rectangle.stack.fill" : "sparkles")
             content.imageProperties.tintColor = DesignSystem.Color.accent
+            if isPro {
+                content.secondaryText = "Pro — unlimited"
+                content.secondaryTextProperties.color = DesignSystem.Color.accent
+                content.secondaryTextProperties.font = Self.boldSubheadline
+            } else if balance <= 0 {
+                content.secondaryText = "Go Pro or get credits"
+                content.secondaryTextProperties.color = DesignSystem.Color.accent
+                content.secondaryTextProperties.font = Self.boldSubheadline
+            } else {
+                content.secondaryText = balance == 1 ? "1 credit remaining" : "\(balance) credits remaining"
+            }
             cell.contentConfiguration = content
-            cell.selectionStyle = .none
+            cell.selectionStyle = .default
+            cell.accessoryType = .disclosureIndicator
         case let .action(title, symbol, _):
             content.text = title
             content.image = UIImage(systemName: symbol)
@@ -132,6 +157,12 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
             cell.contentConfiguration = pairConfig(title: title, value: value)
         }
         return cell
+    }
+
+    private static var boldSubheadline: UIFont {
+        let descriptor = UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
+            .withSymbolicTraits(.traitBold) ?? UIFontDescriptor.preferredFontDescriptor(withTextStyle: .subheadline)
+        return UIFont(descriptor: descriptor, size: 0)
     }
 
     private func pairConfig(title: String, value: String) -> UIListContentConfiguration {
@@ -146,25 +177,14 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
         switch sections[indexPath.section].rows[indexPath.row] {
         case let .action(_, _, handler):
             handler()
+        case let .pro(_, isPro):
+            if isPro {
+                UIApplication.shared.open(subscriptions.manageSubscriptionsURL)
+            } else {
+                PaywallPresenter.present(from: self)
+            }
         default:
             break
         }
-    }
-
-    // MARK: Actions
-
-    private func exportLogs() {
-        guard let logs = try? FileManager.default.url(
-            for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
-            .appendingPathComponent("Logs/livingdex.log"),
-            FileManager.default.fileExists(atPath: logs.path) else {
-            let alert = UIAlertController(title: "No logs yet", message: "Diagnostics will appear here after you use the app.", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
-            return
-        }
-        let share = UIActivityViewController(activityItems: [logs], applicationActivities: nil)
-        share.popoverPresentationController?.sourceView = view
-        present(share, animated: true)
     }
 }

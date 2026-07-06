@@ -1,4 +1,5 @@
 import UIKit
+import AICreditsCore
 import AICreditsUI
 
 /// App settings: appearance, purchases, diagnostics, and legal. Opened from the
@@ -123,13 +124,36 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
 
     // MARK: Actions
 
+    /// Routes through the single ``SubscriptionService/restore()`` path so the Pro gate
+    /// updates everywhere, and distinguishes a genuine empty restore from a failed call —
+    /// a paying subscriber is never told there was nothing to restore because the App Store
+    /// was simply unreachable. The credit balance is refreshed alongside so a restored
+    /// consumable purchase (packs) also reflects immediately.
     private func restorePurchases() {
         Task { @MainActor in
-            await AICreditsManager.store.restore()
-            let alert = UIAlertController(title: "Restore complete", message: "Any previous purchases have been restored.", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
+            let result = await SubscriptionService.shared.restore()
+            await AICreditsManager.store.refresh()
+            switch result {
+            case .restored:
+                presentRestoreAlert(
+                    title: "Restore complete",
+                    message: "Your Living Dex Pro subscription has been restored.")
+            case .nothingToRestore:
+                presentRestoreAlert(
+                    title: "No purchases found",
+                    message: "There were no previous purchases to restore for this Apple ID.")
+            case .failed:
+                presentRestoreAlert(
+                    title: "Restore failed",
+                    message: "We couldn't restore your purchases. Check your connection and try again.")
+            }
         }
+    }
+
+    private func presentRestoreAlert(title: String, message: String) {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 
     private func exportLogs() {
