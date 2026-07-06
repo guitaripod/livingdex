@@ -1,19 +1,19 @@
+import CoreLocation
 import UIKit
 
 /// The Dex — the heart of the game. Two modes:
 /// • **Nearby**: your Regional Dex — every species that occurs near you, as
 ///   fillable slots (locked silhouettes you reveal by catching), with completion.
 /// • **Caught**: your lifetime collection, searchable and sortable.
-final class DexViewController: UIViewController, UICollectionViewDelegate, UISearchBarDelegate {
+final class DexViewController: UIViewController, UICollectionViewDelegate, UISearchResultsUpdating {
     private enum Section { case main }
     private enum Mode: Int { case nearby, caught }
 
     private let segmented = UISegmentedControl(items: ["Nearby", "Caught"])
-    private let searchBar = UISearchBar()
-    private let header = DexHeaderView()
     private var collectionView: UICollectionView!
     private var dataSource: UICollectionViewDiffableDataSource<Section, DexTile>!
-    private let emptyLabel = UILabel()
+    private weak var headerView: DexHeaderView?
+    private let refreshControl = UIRefreshControl()
 
     private enum RegionState { case idle, loading, loaded, failed }
     private var mode: Mode = .nearby
@@ -21,12 +21,31 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
     private var regional: [RegionSpecies] = []
     private var observer: AnyObject?
     private var regionState: RegionState = .idle
-    private let spinner = UIActivityIndicatorView(style: .medium)
+    private var lastRegionCell: RegionCell?
+    private var displayedTileCount = 0
 
     private var sort: Sort = .recent
     private var realmFilter: Realm?
+    private var caughtFilter: CaughtFilter = .all
     private var query: String = ""
+    private var searchWork: DispatchWorkItem?
+    private lazy var locationManager = CLLocationManager()
+
     private enum Sort: String, CaseIterable { case recent = "Recent", name = "A–Z", rarity = "Rarity" }
+    private enum CaughtFilter: CaseIterable {
+        case all, caught, uncaught
+        var title: String {
+            switch self {
+            case .all: return "All"
+            case .caught: return "Caught"
+            case .uncaught: return "Not caught"
+            }
+        }
+    }
+
+    /// Coarse ~0.5° location bucket — matches RegionStore's per-cell cache so a
+    /// re-appearance in the same area is a no-op and travel triggers a refetch.
+    private struct RegionCell: Equatable { let x: Int; let y: Int }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -40,16 +59,15 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         #endif
 
         configureCollectionView()
-        configureHeader()
         configureDataSource()
-        configureEmptyState()
-        configureSearchAndSort()
+        configureSearch()
+        updateBarButtons()
         startObserving()
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        loadRegionIfNeeded()
+        if regionState != .loading { fetchRegion(force: false) }
         #if DEBUG
         if DemoSeeder.route == "card", !didDemoPush, let entry = caught.first {
             didDemoPush = true
@@ -74,6 +92,10 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
                 subitems: [item])
             let section = NSCollectionLayoutSection(group: group)
             section.contentInsets = .init(top: 6, leading: 8, bottom: 24, trailing: 8)
+            let header = NSCollectionLayoutBoundarySupplementaryItem(
+                layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(96)),
+                elementKind: DexHeaderView.elementKind, alignment: .top)
+            section.boundarySupplementaryItems = [header]
             return section
         }
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -82,17 +104,11 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         collectionView.alwaysBounceVertical = true
         collectionView.register(DexCell.self, forCellWithReuseIdentifier: DexCell.reuseID)
         collectionView.delegate = self
+        refreshControl.addTarget(self, action: #selector(pullToRefresh), for: .valueChanged)
+        collectionView.refreshControl = refreshControl
         view.addSubview(collectionView)
-    }
-
-    private func configureHeader() {
-        header.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(header)
         NSLayoutConstraint.activate([
-            header.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            header.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            header.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            collectionView.topAnchor.constraint(equalTo: header.bottomAnchor),
+            collectionView.topAnchor.constraint(equalTo: view.topAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -106,79 +122,78 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
             cell.configure(tile)
             return cell
         }
-    }
-
-    private func configureEmptyState() {
-        emptyLabel.font = .preferredFont(forTextStyle: .callout)
-        emptyLabel.adjustsFontForContentSizeCategory = true
-        emptyLabel.textColor = .secondaryLabel
-        emptyLabel.textAlignment = .center
-        emptyLabel.numberOfLines = 0
-        emptyLabel.translatesAutoresizingMaskIntoConstraints = false
-        emptyLabel.isUserInteractionEnabled = true
-        emptyLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(retryRegion)))
-        collectionView.addSubview(emptyLabel)
-        spinner.translatesAutoresizingMaskIntoConstraints = false
-        spinner.hidesWhenStopped = true
-        collectionView.addSubview(spinner)
-        NSLayoutConstraint.activate([
-            emptyLabel.centerXAnchor.constraint(equalTo: collectionView.safeAreaLayoutGuide.centerXAnchor),
-            emptyLabel.topAnchor.constraint(equalTo: collectionView.topAnchor, constant: 120),
-            emptyLabel.leadingAnchor.constraint(equalTo: collectionView.leadingAnchor, constant: 40),
-            emptyLabel.trailingAnchor.constraint(equalTo: collectionView.trailingAnchor, constant: -40),
-            spinner.centerXAnchor.constraint(equalTo: collectionView.safeAreaLayoutGuide.centerXAnchor),
-            spinner.topAnchor.constraint(equalTo: emptyLabel.bottomAnchor, constant: 16),
-        ])
-    }
-
-    private func configureSearchAndSort() {
-        searchBar.placeholder = "Search your dex"
-        searchBar.delegate = self
-        searchBar.showsCancelButton = true
-        searchBar.searchBarStyle = .minimal
-        updateBarButtons()
-    }
-
-    /// Sort/filter menu + a search button, shown only in Caught mode.
-    private func updateBarButtons() {
-        guard mode == .caught else { navigationItem.rightBarButtonItems = []; return }
-        let sortActions = Sort.allCases.map { s in
-            UIAction(title: s.rawValue, state: sort == s ? .on : .off) { [weak self] _ in
-                self?.sort = s; self?.updateBarButtons(); self?.reload()
-            }
+        let headerRegistration = UICollectionView.SupplementaryRegistration<DexHeaderView>(
+            elementKind: DexHeaderView.elementKind
+        ) { [weak self] view, _, _ in
+            self?.headerView = view
+            self?.configureHeaderView(view)
         }
-        let realmActions = ([nil] + Realm.allCases.map { Optional($0) }).map { r in
+        dataSource.supplementaryViewProvider = { cv, _, indexPath in
+            cv.dequeueConfiguredReusableSupplementary(using: headerRegistration, for: indexPath)
+        }
+    }
+
+    private func configureSearch() {
+        let searchController = UISearchController(searchResultsController: nil)
+        searchController.searchResultsUpdater = self
+        searchController.obscuresBackgroundDuringPresentation = false
+        searchController.searchBar.placeholder = "Search species"
+        navigationItem.searchController = searchController
+        navigationItem.preferredSearchBarPlacement = .integrated
+    }
+
+    /// Sort (Caught only) + realm filter + a caught/uncaught filter (Nearby only).
+    private func updateBarButtons() {
+        let item = UIBarButtonItem(
+            image: UIImage(systemName: "line.3.horizontal.decrease.circle"),
+            menu: buildFilterMenu())
+        navigationItem.rightBarButtonItems = [item]
+    }
+
+    private func buildFilterMenu() -> UIMenu {
+        var children: [UIMenuElement] = []
+        if mode == .caught {
+            let sortActions = Sort.allCases.map { s in
+                UIAction(title: s.rawValue, state: sort == s ? .on : .off) { [weak self] _ in
+                    self?.sort = s; self?.updateBarButtons(); self?.reload()
+                }
+            }
+            children.append(UIMenu(title: "Sort", options: .displayInline, children: sortActions))
+        }
+        let realmActions = ([Realm?.none] + Realm.allCases.map { Optional($0) }).map { r in
             UIAction(title: r?.rawValue.capitalized ?? "All realms", state: realmFilter == r ? .on : .off) { [weak self] _ in
                 self?.realmFilter = r; self?.updateBarButtons(); self?.reload()
             }
         }
-        let sortItem = UIBarButtonItem(
-            image: UIImage(systemName: "line.3.horizontal.decrease.circle"),
-            menu: UIMenu(children: [
-                UIMenu(title: "Sort", options: .displayInline, children: sortActions),
-                UIMenu(title: "Filter", options: .displayInline, children: realmActions),
-            ]))
-        let searchItem = UIBarButtonItem(image: UIImage(systemName: "magnifyingglass"),
-                                         primaryAction: UIAction { [weak self] _ in self?.beginSearch() })
-        navigationItem.rightBarButtonItems = [sortItem, searchItem]
+        children.append(UIMenu(title: "Realm", options: .displayInline, children: realmActions))
+        if mode == .nearby {
+            let showActions = CaughtFilter.allCases.map { f in
+                UIAction(title: f.title, state: caughtFilter == f ? .on : .off) { [weak self] _ in
+                    self?.caughtFilter = f; self?.updateBarButtons(); self?.reload()
+                }
+            }
+            children.append(UIMenu(title: "Show", options: .displayInline, children: showActions))
+        }
+        return UIMenu(children: children)
     }
 
-    private func beginSearch() {
-        navigationItem.titleView = searchBar
-        searchBar.becomeFirstResponder()
+    // MARK: Search
+
+    func updateSearchResults(for searchController: UISearchController) {
+        scheduleSearch(searchController.searchBar.text ?? "")
     }
 
-    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        searchBar.text = ""
-        query = ""
-        searchBar.resignFirstResponder()
-        navigationItem.titleView = segmented
-        reload()
-    }
-
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
-        query = searchText
-        reload()
+    private func scheduleSearch(_ text: String) {
+        searchWork?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            MainActor.assumeIsolated {
+                guard let self, self.query != text else { return }
+                self.query = text
+                self.reload(animated: false)
+            }
+        }
+        searchWork = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2, execute: work)
     }
 
     // MARK: Data
@@ -192,27 +207,40 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         }
     }
 
-    private func loadRegionIfNeeded() {
-        guard regionState == .idle || regionState == .failed else { return }
+    private func fetchRegion(force: Bool) {
         let ctx = LocationProvider.shared.currentContext()
-        guard let lat = ctx.latitude, let lng = ctx.longitude else { reload(); return }
-        regionState = .loading
+        guard let lat = ctx.latitude, let lng = ctx.longitude else {
+            refreshControl.endRefreshing()
+            reload()
+            return
+        }
+        let cell = RegionCell(x: Int((lat / 0.5).rounded(.down)), y: Int((lng / 0.5).rounded(.down)))
+        if !force, regionState == .loaded, cell == lastRegionCell {
+            refreshControl.endRefreshing()
+            return
+        }
+        if regionState != .loaded { regionState = .loading }
         reload()
         Task { @MainActor in
             if let species = await RegionStore.shared.regionalSpecies(latitude: lat, longitude: lng) {
                 regional = species
                 regionState = .loaded
-            } else {
+                lastRegionCell = cell
+            } else if regionState != .loaded {
                 regionState = .failed
             }
+            refreshControl.endRefreshing()
             reload()
         }
     }
 
-    @objc private func retryRegion() {
-        guard mode == .nearby, regionState == .failed else { return }
+    @objc private func pullToRefresh() {
         Haptics.tap()
-        loadRegionIfNeeded()
+        if mode == .nearby {
+            fetchRegion(force: true)
+        } else {
+            refreshControl.endRefreshing()
+        }
     }
 
     @objc private func modeChanged() {
@@ -221,27 +249,50 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         reload()
     }
 
-    private func reload() {
+    private func reload(animated: Bool = true) {
         let tiles = (mode == .nearby) ? nearbyTiles() : caughtTiles()
+        displayedTileCount = tiles.count
         updateHeader()
-        emptyLabel.text = emptyText(for: tiles)
-        emptyLabel.isHidden = !tiles.isEmpty
-        if mode == .nearby && regionState == .loading && tiles.isEmpty { spinner.startAnimating() } else { spinner.stopAnimating() }
+        applySnapshot(tiles, animated: animated)
+        setNeedsUpdateContentUnavailableConfiguration()
+    }
+
+    private func applySnapshot(_ tiles: [DexTile], animated: Bool) {
+        let previous = dataSource.snapshot()
+        let previousById = Dictionary(
+            previous.itemIdentifiers.map { ($0.speciesId, $0) }, uniquingKeysWith: { a, _ in a })
         var snapshot = NSDiffableDataSourceSnapshot<Section, DexTile>()
         snapshot.appendSections([.main])
         snapshot.appendItems(tiles, toSection: .main)
-        dataSource.apply(snapshot, animatingDifferences: true)
+        let reconfigured = tiles.filter { tile in
+            guard let old = previousById[tile.speciesId] else { return false }
+            return !old.contentEquals(tile)
+        }
+        if !reconfigured.isEmpty { snapshot.reconfigureItems(reconfigured) }
+        dataSource.apply(snapshot, animatingDifferences: animated)
     }
 
     private func nearbyTiles() -> [DexTile] {
-        let byId = Dictionary(caught.map { ($0.speciesId, $0) }, uniquingKeysWith: { a, _ in a })
-        return regional.enumerated().map { i, sp in
-            if let e = byId[sp.speciesId] {
+        let caughtById = Dictionary(caught.map { ($0.speciesId, $0) }, uniquingKeysWith: { a, _ in a })
+        let sciById = Dictionary(regional.map { ($0.speciesId, $0.scientificName) }, uniquingKeysWith: { a, _ in a })
+        let tiles: [DexTile] = regional.enumerated().map { i, sp in
+            if let e = caughtById[sp.speciesId] {
                 return DexTile(number: i + 1, speciesId: sp.speciesId, name: e.commonName,
                                imagePath: e.bestImagePath, rarity: e.rarity, realm: e.realm, locked: false)
             }
             return DexTile(number: i + 1, speciesId: sp.speciesId, name: sp.displayName,
                            imagePath: nil, rarity: sp.rarity, realm: sp.realm, locked: true)
+        }
+        return tiles.filter { tile in
+            if let realm = realmFilter, tile.realm != realm { return false }
+            switch caughtFilter {
+            case .all: break
+            case .caught: if tile.locked { return false }
+            case .uncaught: if !tile.locked { return false }
+            }
+            guard !query.isEmpty else { return true }
+            if tile.name.localizedCaseInsensitiveContains(query) { return true }
+            return sciById[tile.speciesId]?.localizedCaseInsensitiveContains(query) ?? false
         }
     }
 
@@ -266,6 +317,10 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
     }
 
     private func updateHeader() {
+        if let headerView { configureHeaderView(headerView) }
+    }
+
+    private func configureHeaderView(_ header: DexHeaderView) {
         if mode == .nearby {
             let caughtIds = Set(caught.map { $0.speciesId })
             let owned = regional.filter { caughtIds.contains($0.speciesId) }.count
@@ -276,23 +331,102 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         }
     }
 
-    private func emptyText(for tiles: [DexTile]) -> String {
-        if mode == .nearby {
-            guard regional.isEmpty else { return "" }
-            if LocationProvider.shared.currentContext().latitude == nil {
-                return "Grant location access to reveal the species living near you — your Regional Dex."
-            }
-            switch regionState {
-            case .loading: return "Finding the species near you…"
-            case .failed: return "Couldn't reach the field guide.\nTap to retry."
-            case .loaded: return "No catalogued species near this spot yet — try catching something to start your Regional Dex."
-            case .idle: return "Finding the species near you…"
+    // MARK: Empty / loading / error states
+
+    override func updateContentUnavailableConfiguration(using state: UIContentUnavailableConfigurationState) {
+        contentUnavailableConfiguration = unavailableConfiguration()
+    }
+
+    private func unavailableConfiguration() -> UIContentUnavailableConfiguration? {
+        guard displayedTileCount == 0 else { return nil }
+        return mode == .nearby ? nearbyUnavailable() : caughtUnavailable()
+    }
+
+    private func nearbyUnavailable() -> UIContentUnavailableConfiguration {
+        if LocationProvider.shared.currentContext().latitude == nil {
+            switch locationManager.authorizationStatus {
+            case .authorizedWhenInUse, .authorizedAlways: return .loading()
+            default: return locationAccessConfiguration()
             }
         }
-        return query.isEmpty
-            ? "Your dex is empty.\nPoint the camera at anything alive to make your first catch."
-            : "No matches for “\(query)”."
+        if !query.isEmpty { return .search() }
+        switch regionState {
+        case .idle, .loading:
+            return .loading()
+        case .failed:
+            return emptyConfiguration(
+                symbol: "wifi.slash", title: "Can't reach the field guide",
+                subtitle: "Check your connection and try again.",
+                buttonTitle: "Retry", action: UIAction { [weak self] _ in self?.fetchRegion(force: true) })
+        case .loaded:
+            if realmFilter != nil || caughtFilter != .all {
+                return emptyConfiguration(
+                    symbol: "line.3.horizontal.decrease.circle", title: "No matches",
+                    subtitle: "No nearby species match the current filters.")
+            }
+            return emptyConfiguration(
+                symbol: "leaf", title: "Nothing catalogued here yet",
+                subtitle: "Catch something nearby to start your Regional Dex.")
+        }
     }
+
+    private func caughtUnavailable() -> UIContentUnavailableConfiguration {
+        if !query.isEmpty { return .search() }
+        if realmFilter != nil {
+            return emptyConfiguration(
+                symbol: "line.3.horizontal.decrease.circle", title: "No matches",
+                subtitle: "No caught species match the current filters.")
+        }
+        return emptyConfiguration(
+            symbol: "camera.viewfinder", title: "Your dex is empty",
+            subtitle: "Point the camera at anything alive to make your first catch.",
+            buttonTitle: "Go to Field", action: UIAction { [weak self] _ in self?.goToField() })
+    }
+
+    private func locationAccessConfiguration() -> UIContentUnavailableConfiguration {
+        emptyConfiguration(
+            symbol: "location.slash", title: "Location access needed",
+            subtitle: "Turn on location to reveal the species living near you — your Regional Dex.",
+            buttonTitle: "Grant Access", action: UIAction { [weak self] _ in self?.handleLocationAccess() })
+    }
+
+    private func emptyConfiguration(
+        symbol: String, title: String, subtitle: String?,
+        buttonTitle: String? = nil, action: UIAction? = nil
+    ) -> UIContentUnavailableConfiguration {
+        var config = UIContentUnavailableConfiguration.empty()
+        config.image = UIImage(systemName: symbol)
+        config.text = title
+        config.secondaryText = subtitle
+        if let buttonTitle, let action {
+            var button = UIButton.Configuration.bordered()
+            button.title = buttonTitle
+            button.baseForegroundColor = DesignSystem.Color.accent
+            config.button = button
+            config.buttonProperties.primaryAction = action
+        }
+        return config
+    }
+
+    private func handleLocationAccess() {
+        switch locationManager.authorizationStatus {
+        case .notDetermined:
+            LocationProvider.shared.requestAuthorization()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
+                MainActor.assumeIsolated { self?.fetchRegion(force: true) }
+            }
+        default:
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(url)
+            }
+        }
+    }
+
+    private func goToField() {
+        tabBarController?.selectedIndex = 0
+    }
+
+    // MARK: Selection & context menu
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
@@ -302,27 +436,80 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
             if tile.locked { showLockedPeek(tile) }
             return
         }
-        navigationController?.pushViewController(CardDetailViewController(entry: entry), animated: true)
+        let detail = CardDetailViewController(entry: entry)
+        detail.preferredTransition = .zoom { [weak self] _ in
+            guard let self,
+                  let indexPath = self.dataSource.indexPath(for: tile),
+                  let cell = self.collectionView.cellForItem(at: indexPath) else { return nil }
+            return cell
+        }
+        navigationController?.pushViewController(detail, animated: true)
     }
 
     func collectionView(_ collectionView: UICollectionView, contextMenuConfigurationForItemsAt indexPaths: [IndexPath], point: CGPoint) -> UIContextMenuConfiguration? {
         guard let indexPath = indexPaths.first,
               let tile = dataSource.itemIdentifier(for: indexPath), !tile.locked else { return nil }
-        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
             let release = UIAction(title: "Release", image: UIImage(systemName: "trash"), attributes: .destructive) { _ in
-                try? CollectionStore.shared.release(speciesId: tile.speciesId)
-                Haptics.tap()
+                self?.confirmRelease(speciesId: tile.speciesId, name: tile.name,
+                                     sourceView: collectionView.cellForItem(at: indexPath))
             }
             return UIMenu(title: tile.name, children: [release])
+        }
+    }
+
+    /// Shared confirm-and-release flow, mirroring CardDetailViewController's sheet
+    /// so the grid's long-press action never destroys photos in a single tap.
+    private func confirmRelease(speciesId: String, name: String, sourceView: UIView?) {
+        let alert = UIAlertController(
+            title: "Release \(name)?",
+            message: "This removes it from your dex, along with your photos. It can't be undone.",
+            preferredStyle: .actionSheet)
+        alert.addAction(UIAlertAction(title: "Release", style: .destructive) { [weak self] _ in
+            self?.performRelease(speciesId: speciesId)
+        })
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        if let popover = alert.popoverPresentationController {
+            popover.sourceView = sourceView ?? view
+            popover.sourceRect = sourceView?.bounds ?? CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 0, height: 0)
+        }
+        present(alert, animated: true)
+    }
+
+    private func performRelease(speciesId: String) {
+        do {
+            try CollectionStore.shared.release(speciesId: speciesId)
+            Haptics.tap()
+        } catch {
+            AppLogger.shared.error("release failed: \(error.localizedDescription)", category: .persistence)
+            let alert = UIAlertController(
+                title: "Couldn't release",
+                message: "Something went wrong releasing that species. Please try again.",
+                preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
         }
     }
 
     private func showLockedPeek(_ tile: DexTile) {
         let alert = UIAlertController(
             title: "Not yet caught",
-            message: "A \(tile.rarity.title.lowercased()) \(tile.realm.rawValue) species lives near you. Find it in the field to add it to your dex.",
+            message: "A \(tile.rarity.title.lowercased()) \(realmNoun(tile.realm)) lives near you. Find it in the field to add it to your dex.",
             preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        alert.addAction(UIAlertAction(title: "To the Field", style: .default) { [weak self] _ in
+            self?.goToField()
+        })
+        alert.addAction(UIAlertAction(title: "OK", style: .cancel))
         present(alert, animated: true)
+    }
+
+    private func realmNoun(_ realm: Realm) -> String {
+        switch realm {
+        case .animals: return "animal"
+        case .plants: return "plant"
+        case .fungi: return "fungus"
+        case .protists: return "protist"
+        case .other: return "organism"
+        }
     }
 }

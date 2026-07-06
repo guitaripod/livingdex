@@ -2,7 +2,11 @@ import UIKit
 
 /// The Dex header: a big count, a caption, and a slim completion bar. Reads as
 /// "progress you're making", which is the retention hook of a collection game.
-final class DexHeaderView: UIView {
+/// Hosted as a boundary supplementary item so the grid scrolls under the nav
+/// bar's Liquid Glass and the count/progress scroll away with the content.
+final class DexHeaderView: UICollectionReusableView {
+    static let elementKind = "DexHeaderView"
+
     private let countLabel = UILabel()
     private let captionLabel = UILabel()
     private let track = UIView()

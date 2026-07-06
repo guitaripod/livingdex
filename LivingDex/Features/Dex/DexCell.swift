@@ -1,6 +1,11 @@
 import UIKit
 
 /// A single dex slot, from either a caught species or a locked regional target.
+///
+/// Diffable identity is `speciesId` only — `number`/`name`/`imagePath`/`rarity`/
+/// `realm`/`locked` are display content, so a re-sort or filter animates as a
+/// move (cells keep their decoded images) instead of a mass delete+insert.
+/// Content changes are pushed with `reconfigureItems` (see `contentEquals`).
 struct DexTile: Hashable {
     var number: Int
     var speciesId: String
@@ -9,6 +14,15 @@ struct DexTile: Hashable {
     var rarity: Rarity
     var realm: Realm
     var locked: Bool
+
+    static func == (lhs: DexTile, rhs: DexTile) -> Bool { lhs.speciesId == rhs.speciesId }
+    func hash(into hasher: inout Hasher) { hasher.combine(speciesId) }
+
+    /// True when the visible content of two tiles for the same species matches.
+    func contentEquals(_ other: DexTile) -> Bool {
+        number == other.number && name == other.name && imagePath == other.imagePath
+            && rarity == other.rarity && realm == other.realm && locked == other.locked
+    }
 
     static func realmSymbol(_ realm: Realm) -> String {
         switch realm {
@@ -110,6 +124,12 @@ final class DexCell: UICollectionViewCell {
         label.layer.shadowOffset = CGSize(width: 0, height: 1)
     }
 
+    private func setLabelShadows(_ visible: Bool) {
+        let opacity: Float = visible ? 0.6 : 0
+        nameLabel.layer.shadowOpacity = opacity
+        numberLabel.layer.shadowOpacity = opacity
+    }
+
     override func layoutSubviews() {
         super.layoutSubviews()
         scrim.frame = contentView.bounds
@@ -137,11 +157,12 @@ final class DexCell: UICollectionViewCell {
             imageView.isHidden = true
             scrim.isHidden = true
             lockedIcon.isHidden = false
-            // A "who's that?" mystery mark — we have no art for uncaught species.
             lockedIcon.image = UIImage(systemName: "questionmark")
             lockedIcon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(weight: .bold)
             nameLabel.text = "???"
-            nameLabel.textColor = UIColor(white: 1, alpha: 0.5)
+            nameLabel.textColor = .secondaryLabel
+            numberLabel.textColor = .tertiaryLabel
+            setLabelShadows(false)
             rarityPip.alpha = 0.55
             isAccessibilityElement = true
             accessibilityLabel = "Slot \(tile.number), \(tile.rarity.title), not yet caught"
@@ -153,6 +174,8 @@ final class DexCell: UICollectionViewCell {
         lockedIcon.isHidden = true
         nameLabel.text = tile.name
         nameLabel.textColor = .white
+        numberLabel.textColor = UIColor(white: 1, alpha: 0.85)
+        setLabelShadows(true)
         rarityPip.alpha = 1
         isAccessibilityElement = true
         accessibilityLabel = "\(tile.name), \(tile.rarity.title), number \(tile.number)"
