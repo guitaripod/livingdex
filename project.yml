@@ -86,6 +86,8 @@ targets:
       path: LivingDex/LivingDex.entitlements
       properties:
         com.apple.developer.game-center: true
+        com.apple.developer.applesignin:
+          - Default
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.guitaripod.livingdex
