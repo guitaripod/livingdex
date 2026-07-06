@@ -9,3 +9,14 @@ compatibility_date = "2026-07-01"
 
 [observability]
 enabled = true
+
+# Native Workers rate limiting (GA, no extra infra): a soft per-IP cap in front
+# of the /v1/* endpoints so anonymous callers can't burst the GBIF fan-out. A
+# normal capture is one /v1/enrich; 60/min/IP is generous for real use.
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 60
+  period = 60

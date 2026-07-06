@@ -47,24 +47,103 @@ interface EnrichResponse {
   factSheet: FactSheet;
 }
 
+type RateLimit = {
+  limit(config: { key: string }): Promise<{ success: boolean }>;
+};
+
+interface Env {
+  RATE_LIMITER?: RateLimit;
+}
+
 export default {
-  async fetch(request: Request): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
     if (request.method === "GET" && url.pathname === "/") {
       return json({ service: "livingdex-worker", ok: true });
     }
+
+    const limited = await rateLimited(request, env).catch(() => null);
+    if (limited) return limited;
+
     if (request.method === "GET" && url.pathname === "/v1/enrich") {
-      return enrich(url).catch((e) => json({ error: String(e) }, 500));
+      return withCache(request, ctx, LOCATION_GRID_DECIMALS, () => enrich(url)).catch(errorResponse);
     }
     if (request.method === "GET" && url.pathname === "/v1/region") {
-      return region(url).catch((e) => json({ error: String(e) }, 500));
+      return withCache(request, ctx, REGION_GRID_DECIMALS, () => region(url)).catch(errorResponse);
     }
     if (request.method === "GET" && url.pathname === "/v1/detail") {
-      return detail(url).catch((e) => json({ error: String(e) }, 500));
+      return withCache(request, ctx, LOCATION_GRID_DECIMALS, () => detail(url)).catch(errorResponse);
     }
     return json({ error: "not found" }, 404);
   },
 };
+
+const LOCATION_GRID_DECIMALS = 1;
+const REGION_GRID_DECIMALS = 1;
+const REGION_CONCURRENCY = 8;
+const UPSTREAM_TIMEOUT_MS = 5000;
+
+/**
+ * Soft per-IP rate limit via the native Workers rate-limiting binding (no extra
+ * paid infra). Absent in local dev / if unbound, so it degrades to a no-op.
+ */
+async function rateLimited(request: Request, env: Env): Promise<Response | null> {
+  const limiter = env.RATE_LIMITER;
+  if (!limiter) return null;
+  const ip = request.headers.get("CF-Connecting-IP") ?? "anon";
+  const { success } = await limiter.limit({ key: ip });
+  return success ? null : json({ error: "rate limited" }, 429);
+}
+
+/**
+ * Serve a 200 handler response from Cloudflare's Cache API keyed on a normalized
+ * URL (lat/lng snapped to a grid, name lowercased) so first-hit/cross-device
+ * requests reuse the aggregation instead of re-fanning every upstream. The edge
+ * cache honors the response's own Cache-Control max-age for TTL.
+ */
+async function withCache(
+  request: Request,
+  ctx: ExecutionContext,
+  gridDecimals: number,
+  producer: () => Promise<Response>
+): Promise<Response> {
+  const cache = caches.default;
+  const key = cacheKeyFor(request.url, gridDecimals);
+  const hit = await cache.match(key);
+  if (hit) return hit;
+  const resp = await producer();
+  if (resp.status === 200 && resp.headers.has("Cache-Control")) {
+    ctx.waitUntil(cache.put(key, resp.clone()));
+  }
+  return resp;
+}
+
+function cacheKeyFor(rawUrl: string, gridDecimals: number): string {
+  const src = new URL(rawUrl);
+  const key = new URL("https://livingdex-cache.internal" + src.pathname);
+  for (const name of [...src.searchParams.keys()].sort()) {
+    let v = src.searchParams.get(name) ?? "";
+    if (name === "lat" || name === "lng") {
+      const n = Number(v);
+      if (Number.isFinite(n)) v = snapToGrid(n, gridDecimals).toFixed(gridDecimals);
+    } else if (name === "name") {
+      v = v.trim().toLowerCase();
+    }
+    key.searchParams.append(name, v);
+  }
+  return key.toString();
+}
+
+function snapToGrid(n: number, decimals: number): number {
+  const factor = 10 ** decimals;
+  return Math.round(n * factor) / factor;
+}
+
+/** Generic 500 that hides upstream URLs / raw error strings; the real error is logged. */
+function errorResponse(e: unknown): Response {
+  console.error("livingdex-worker error:", e);
+  return json({ error: "upstream unavailable" }, 500);
+}
 
 async function enrich(url: URL): Promise<Response> {
   const name = url.searchParams.get("name")?.trim() || null;
@@ -78,8 +157,10 @@ async function enrich(url: URL): Promise<Response> {
     // Only trust a confident species-level match. A hallucinated/misspelled binomial
     // otherwise fuzzy- or higher-rank-matches to a neighbouring taxon and every fact
     // (name, rarity, IUCN, summary) resolves to the WRONG species.
-    const ok = matched?.matchType === "EXACT" ||
-      (matched?.matchType === "FUZZY" && (matched?.confidence ?? 0) >= 95 && matched?.rank === "SPECIES");
+    const speciesLevel = matched?.rank === "SPECIES" || matched?.rank === "SUBSPECIES";
+    const ok = speciesLevel &&
+      (matched?.matchType === "EXACT" ||
+        (matched?.matchType === "FUZZY" && (matched?.confidence ?? 0) >= 95));
     taxonKey = ok ? matched?.usageKey ?? null : null;
   }
   if (taxonKey == null) {
@@ -91,15 +172,15 @@ async function enrich(url: URL): Promise<Response> {
   // Every upstream is independently best-effort: a single GBIF hiccup (e.g. a
   // 429 on the occurrence search) must not sink the whole fact-sheet, so each
   // failure degrades to null and the response is still useful.
-  const [species, iucn, localCount, globalCount] = await Promise.all([
+  const [species, iucn, localCount, globalCount, commonName] = await Promise.all([
     fetchJSON(`${GBIF}/species/${taxonKey}`).catch(() => null),
     fetchJSON(`${GBIF}/species/${taxonKey}/iucnRedListCategory`).catch(() => null),
     lat != null && lng != null ? occurrenceCount(taxonKey, lat, lng).catch(() => null) : Promise.resolve(null),
     occurrenceCount(taxonKey, null, null).catch(() => null),
+    vernacularName(taxonKey),
   ]);
 
   const scientificName = species?.canonicalName ?? matched?.canonicalName ?? name;
-  const commonName = await vernacularName(taxonKey);
   const summary = scientificName ? await wikiSummary(scientificName) : null;
   const iucnCategory: string | null = iucn?.category ?? null;
 
@@ -128,7 +209,7 @@ async function enrich(url: URL): Promise<Response> {
 async function occurrenceCount(taxonKey: number, lat: number | null, lng: number | null): Promise<number | null> {
   let q = `${GBIF}/occurrence/search?taxonKey=${taxonKey}&limit=0`;
   if (lat != null && lng != null) {
-    q += `&hasCoordinate=true&geoDistance=${lat},${lng},${LOCAL_RADIUS_KM}km`;
+    q += `&hasCoordinate=true&geoDistance=${lat},${lng},${LOCAL_RADIUS_KM}km&basisOfRecord=HUMAN_OBSERVATION`;
   }
   const data = await fetchJSON(q);
   return typeof data?.count === "number" ? data.count : null;
@@ -142,8 +223,10 @@ async function vernacularName(taxonKey: number): Promise<string | null> {
   // Skip banding codes ("GRTI") and acronyms — an all-caps token with no space.
   const proper = eng.find((n) => /\s/.test(n) || n !== n.toUpperCase());
   const name = proper ?? null;
-  // Title-case a lowercased vernacular ("common buzzard" -> "Common Buzzard").
-  return name ? name.replace(/\b\w/g, (c) => c.toUpperCase()) : null;
+  if (!name) return null;
+  // Title-case an all-lowercase vernacular ("common buzzard" -> "Common Buzzard");
+  // leave already-capitalized names alone so "Steller's Jay" isn't corrupted.
+  return /[A-Z]/.test(name) ? name : name.replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 async function wikiSummary(title: string): Promise<string | null> {
@@ -214,25 +297,27 @@ async function region(url: URL): Promise<Response> {
   const data = await fetchJSON(facetUrl);
   const counts: Array<{ name: string; count: number }> = data?.facets?.[0]?.counts ?? [];
 
-  const species = (
-    await Promise.all(
-      counts.map(async (c) => {
-        const key = Number(c.name);
-        if (!Number.isFinite(key) || EXCLUDED_TAXA.has(key)) return null;
-        const sp = await fetchJSON(`${GBIF}/species/${key}`).catch(() => null);
-        const scientificName = sp?.canonicalName ?? sp?.scientificName;
-        if (!scientificName || sp?.rank !== "SPECIES") return null;
-        return {
-          taxonKey: key,
-          commonName: await vernacularName(key),
-          scientificName,
-          realm: kingdomToRealm(sp?.kingdom),
-          rarity: computeRarity(c.count, null, null, true),
-          localCount: c.count,
-        };
-      })
-    )
-  ).filter((s) => s !== null).slice(0, limit);
+  // Bounded pool caps simultaneous GBIF subrequests; the two per-item lookups
+  // run in parallel to halve per-item latency.
+  const resolved = await mapPool(counts, REGION_CONCURRENCY, async (c) => {
+    const key = Number(c.name);
+    if (!Number.isFinite(key) || EXCLUDED_TAXA.has(key)) return null;
+    const [sp, commonName] = await Promise.all([
+      fetchJSON(`${GBIF}/species/${key}`).catch(() => null),
+      vernacularName(key),
+    ]);
+    const scientificName = sp?.canonicalName ?? sp?.scientificName;
+    if (!scientificName || sp?.rank !== "SPECIES") return null;
+    return {
+      taxonKey: key,
+      commonName,
+      scientificName,
+      realm: kingdomToRealm(sp?.kingdom),
+      rarity: computeRarity(c.count, null, null, true),
+      localCount: c.count,
+    };
+  });
+  const species = resolved.filter((s) => s !== null).slice(0, limit);
 
   return json({ count: species.length, species }, 200, 24 * 60 * 60);
 }
@@ -309,8 +394,35 @@ function kingdomToRealm(kingdom: string | null | undefined): string {
 
 // MARK: helpers
 
+/**
+ * Run `fn` over `items` with at most `concurrency` in flight, preserving order.
+ * Bounds the total simultaneous subrequests a single handler can launch.
+ */
+async function mapPool<T, R>(
+  items: readonly T[],
+  concurrency: number,
+  fn: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results: R[] = new Array(items.length);
+  let next = 0;
+  async function worker(): Promise<void> {
+    while (true) {
+      const i = next++;
+      if (i >= items.length) return;
+      results[i] = await fn(items[i]);
+    }
+  }
+  const size = Math.max(1, Math.min(concurrency, items.length));
+  await Promise.all(Array.from({ length: size }, () => worker()));
+  return results;
+}
+
+/** GET JSON from an upstream, aborting after UPSTREAM_TIMEOUT_MS so hung calls hit their .catch paths. */
 async function fetchJSON(u: string): Promise<any> {
-  const resp = await fetch(u, { headers: { "User-Agent": "livingdex-worker/1.0", Accept: "application/json" } });
+  const resp = await fetch(u, {
+    headers: { "User-Agent": "livingdex-worker/1.0", Accept: "application/json" },
+    signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+  });
   if (!resp.ok) throw new Error(`upstream ${resp.status} for ${u}`);
   return resp.json();
 }
