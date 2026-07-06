@@ -16,14 +16,26 @@ final class FieldViewController: UIViewController {
     private let permissionView = CameraPermissionView()
     private let torchButton = GlassIconButton()
     private let zoomChip = GlassChipView()
+    private let loadingView = CameraLoadingView()
 
     private var pinchGesture: UIPinchGestureRecognizer!
     private var focusTapGesture: UITapGestureRecognizer!
 
     private var isBusy = false
-    private var hasConfigured = false
+    private var didRequestPermission = false
     private var cameraStarted = false
     private var cameraReady = false
+    private var isPreviewRevealed = false
+    private var isSessionStopped = false
+
+    /// Backstop reveal if no frame arrives within the window (interruption, device
+    /// contention) — better to drop the cover than strand the user on it.
+    private var revealTimeout: DispatchWorkItem?
+    /// Debounced teardown so a quick tab-away/return doesn't cold-start (and
+    /// re-cover) the camera on every switch.
+    private var pendingStop: DispatchWorkItem?
+    private static let stopDebounce: TimeInterval = 0.75
+    private static let revealTimeoutSeconds: TimeInterval = 2.0
 
     private var currentUserZoom: CGFloat = 1
     private var pinchStartZoom: CGFloat = 1
@@ -34,9 +46,32 @@ final class FieldViewController: UIViewController {
         super.viewDidLoad()
         AppLogger.shared.info("field view loaded", category: .capture)
         view.backgroundColor = .black
+        camera.previewLayer.opacity = 0
         view.layer.addSublayer(camera.previewLayer)
+
+        loadingView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(loadingView)
+
         setupHUD()
         setupGestures()
+
+        camera.onFirstFrame = { [weak self] in self?.revealPreview() }
+        camera.onInterrupted = { [weak self] in self?.handleInterruption() }
+
+        let center = NotificationCenter.default
+        center.addObserver(
+            self, selector: #selector(appDidBecomeActive),
+            name: UIApplication.didBecomeActiveNotification, object: nil)
+        center.addObserver(
+            self, selector: #selector(appWillResignActive),
+            name: UIApplication.willResignActiveNotification, object: nil)
+
+        NSLayoutConstraint.activate([
+            loadingView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            loadingView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            loadingView.topAnchor.constraint(equalTo: view.topAnchor),
+            loadingView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
     }
 
     override func viewDidLayoutSubviews() {
@@ -44,24 +79,81 @@ final class FieldViewController: UIViewController {
         camera.previewLayer.frame = view.bounds
     }
 
-    /// Requests camera/location only once the Field is actually on screen — not
-    /// eagerly at load — so a first-run user isn't prompted behind onboarding.
+    /// Shows the loading cover as the Field appears, then starts the camera only
+    /// when the app is already `.active`. Starting while the scene is still
+    /// `foregroundInactive` (the case during launch) makes AVFoundation interrupt
+    /// the session with `videoDeviceNotAvailableInBackground` — frames flow for a
+    /// beat, then freeze for seconds until the app finally activates. So on a cold
+    /// launch we wait for `didBecomeActive`; a warm tab-return (already active)
+    /// starts immediately. A pending debounced stop is cancelled so a quick
+    /// tab-away/return keeps the live preview.
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        Haptics.prepare()
+        pendingStop?.cancel()
+        pendingStop = nil
+        guard CameraController.authorizationStatus() == .authorized else { return }
+        LocationProvider.shared.requestAuthorization()
+        if UIApplication.shared.applicationState == .active {
+            resumeCameraIfNeeded()
+        } else if !isPreviewRevealed {
+            beginPreviewCover()
+        }
+    }
+
+    /// The permission prompt (and its denied/gate handling) waits for the view to
+    /// fully settle so the system alert never fires mid-transition, and so a
+    /// first-run user isn't prompted behind onboarding.
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        Haptics.prepare()
-        if !hasConfigured {
-            hasConfigured = true
+        guard !didRequestPermission else { return }
+        didRequestPermission = true
+        switch CameraController.authorizationStatus() {
+        case .authorized:
             LocationProvider.shared.requestAuthorization()
-            configureCameraIfAllowed()
-        } else if CameraController.authorizationStatus() == .authorized {
-            resumeCameraIfNeeded()
+        case .notDetermined:
+            requestCameraAccess()
+        default:
+            showPermissionGate()
         }
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         if torchOn { toggleTorch() }
+        cancelRevealTimeout()
+        scheduleDebouncedStop()
+    }
+
+    /// The camera can only run when the app is `.active`, so this is the correct
+    /// moment to (re)start on a cold launch and to recover after the app returns
+    /// from the background — but only while the Field is actually on screen.
+    @objc private func appDidBecomeActive() {
+        guard isViewLoaded, view.window != nil,
+              CameraController.authorizationStatus() == .authorized else { return }
+        pendingStop?.cancel()
+        pendingStop = nil
+        resumeCameraIfNeeded()
+    }
+
+    /// The system reclaims the camera when the app leaves the active state; tear
+    /// down immediately (no debounce) and re-cover so the next activation reveals
+    /// cleanly rather than flashing a stale frame.
+    @objc private func appWillResignActive() {
+        cancelRevealTimeout()
+        if isPreviewRevealed { beginPreviewCover() }
         camera.stop()
+        isSessionStopped = true
+    }
+
+    /// A live-session interruption (phone call, Control Center camera, or a
+    /// launch-time background window) froze the feed — hold the loading cover and
+    /// stop the reveal timeout so we never cross-fade to a frozen frame.
+    /// `CameraController` re-arms `onFirstFrame`, so the reveal fires when frames
+    /// actually resume.
+    private func handleInterruption() {
+        cancelRevealTimeout()
+        beginPreviewCover()
     }
 
     // MARK: Setup
@@ -132,17 +224,6 @@ final class FieldViewController: UIViewController {
 
     // MARK: Camera lifecycle
 
-    private func configureCameraIfAllowed() {
-        switch CameraController.authorizationStatus() {
-        case .authorized:
-            startCamera()
-        case .notDetermined:
-            requestCameraAccess()
-        default:
-            showPermissionGate()
-        }
-    }
-
     private func requestCameraAccess() {
         Task { @MainActor in
             let granted = await CameraController.requestAccess()
@@ -155,34 +236,104 @@ final class FieldViewController: UIViewController {
         }
     }
 
-    /// Recovers when returning to the tab: restart a working camera, or re-attempt
-    /// configuration if a prior attach failed (so the "unavailable" gate is never
-    /// permanent).
+    /// Recovers when returning to the tab: a still-running session (quick switch,
+    /// debounced stop cancelled) is already live and needs nothing; a stopped one
+    /// re-covers and restarts, revealing on its next first frame; an unattached one
+    /// re-configures so the "unavailable" gate is never permanent.
     private func resumeCameraIfNeeded() {
-        if !cameraStarted {
-            permissionView.isHidden = true
-            captureButton.isHidden = false
-            statusChip.isHidden = false
+        if !cameraStarted || !cameraReady {
             startCamera()
-        } else if cameraReady {
+        } else if isSessionStopped {
+            beginPreviewCover()
             camera.start()
-        } else {
-            startCamera()
+            armRevealTimeout()
         }
     }
 
+    /// Configures + starts the session, then waits for the first real frame (or the
+    /// timeout) to reveal — the preview is never shown while it is still black.
     private func startCamera() {
         cameraStarted = true
+        isSessionStopped = false
+        beginPreviewCover()
         Task { @MainActor in
             let ready = await camera.configureAndStart()
             cameraReady = ready
             if ready {
-                dismissGates()
-                configureCameraControls()
+                armRevealTimeout()
             } else {
                 showCameraUnavailable()
             }
         }
+    }
+
+    /// Restores the opaque loading cover and hides the HUD ahead of a (re)start, so
+    /// the reveal cross-fade always animates from a clean loading state.
+    private func beginPreviewCover() {
+        isPreviewRevealed = false
+        loadingView.isHidden = false
+        loadingView.alpha = 1
+        loadingView.startBreathing()
+        camera.previewLayer.opacity = 0
+        captureButton.isHidden = true
+        statusChip.isHidden = true
+        torchButton.isHidden = true
+        zoomChip.isHidden = true
+        UIAccessibility.post(notification: .announcement, argument: "Camera loading")
+    }
+
+    /// Cross-fades the live preview in and dismisses the loading cover the instant
+    /// real pixels land (driven by `CameraController.onFirstFrame`), or on the
+    /// backstop timeout. Idempotent per presentation.
+    private func revealPreview() {
+        guard !isPreviewRevealed else { return }
+        isPreviewRevealed = true
+        cancelRevealTimeout()
+        dismissGates()
+        configureCameraControls()
+
+        let fade = CABasicAnimation(keyPath: "opacity")
+        fade.fromValue = 0
+        fade.toValue = 1
+        fade.duration = 0.3
+        fade.timingFunction = CAMediaTimingFunction(name: .easeOut)
+        camera.previewLayer.opacity = 1
+        camera.previewLayer.add(fade, forKey: "reveal")
+
+        UIView.animate(withDuration: 0.3) {
+            self.loadingView.alpha = 0
+        } completion: { _ in
+            self.loadingView.isHidden = true
+            self.loadingView.stopBreathing()
+            UIAccessibility.post(notification: .announcement, argument: "Camera ready")
+        }
+        Haptics.tap()
+    }
+
+    private func armRevealTimeout() {
+        cancelRevealTimeout()
+        let work = DispatchWorkItem { [weak self] in
+            AppLogger.shared.warn("preview reveal timed out — no first frame", category: .capture)
+            self?.revealPreview()
+        }
+        revealTimeout = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.revealTimeoutSeconds, execute: work)
+    }
+
+    private func cancelRevealTimeout() {
+        revealTimeout?.cancel()
+        revealTimeout = nil
+    }
+
+    private func scheduleDebouncedStop() {
+        pendingStop?.cancel()
+        let work = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+            self.isSessionStopped = true
+            self.camera.stop()
+        }
+        pendingStop = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.stopDebounce, execute: work)
     }
 
     private func dismissGates() {
@@ -215,6 +366,9 @@ final class FieldViewController: UIViewController {
     }
 
     private func presentGate() {
+        cancelRevealTimeout()
+        loadingView.isHidden = true
+        loadingView.stopBreathing()
         permissionView.isHidden = false
         captureButton.isHidden = true
         statusChip.isHidden = true

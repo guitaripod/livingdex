@@ -15,15 +15,34 @@ import UIKit
 /// latches once a working video input is actually attached — so a transient
 /// cold-start attach failure is retried on the next call instead of wedging the
 /// "camera unavailable" gate for the whole process lifetime.
-final class CameraController: NSObject, AVCapturePhotoCaptureDelegate, @unchecked Sendable {
+final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
+    AVCaptureVideoDataOutputSampleBufferDelegate, @unchecked Sendable {
     let previewLayer: AVCaptureVideoPreviewLayer
+
+    /// Fired on the main queue exactly once per session start, the instant the
+    /// first real `CMSampleBuffer` lands — the only true "pixels are live" signal
+    /// (`isRunning` / `DidStartRunning` fire before any frame reaches the layer).
+    /// The host uses it to cross-fade the preview in from its loading cover so the
+    /// user never sees the bare layer's opaque-black pre-frame state.
+    var onFirstFrame: (@Sendable () -> Void)?
+
+    /// Fired on the main queue when the running session is interrupted (e.g. a
+    /// phone call or Control Center camera grabs the device) so the host can put
+    /// the loading cover back rather than showing a frozen frame. A matching reveal
+    /// arrives via `onFirstFrame` once the interruption ends and frames resume.
+    var onInterrupted: (@Sendable () -> Void)?
 
     private let session = AVCaptureSession()
     private let photoOutput = AVCapturePhotoOutput()
+    private let videoDataOutput = AVCaptureVideoDataOutput()
     private let sessionQueue = DispatchQueue(label: "com.guitaripod.livingdex.camera")
+    private let videoDataQueue = DispatchQueue(label: "com.guitaripod.livingdex.camera.videodata")
 
     private let lock = NSLock()
     private var captureContinuation: CheckedContinuation<Data?, Never>?
+    /// Armed on each `startRunning()`, disarmed by the first delivered frame, so
+    /// every (re)start — cold launch or tab return — emits exactly one reveal.
+    private var firstFrameArmed = false
 
     private var isConfigured = false
     /// True only once a working video input is actually attached — capturing
@@ -53,6 +72,51 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate, @unchecke
         previewLayer = AVCaptureVideoPreviewLayer(session: session)
         previewLayer.videoGravity = .resizeAspectFill
         super.init()
+        registerSessionObservers()
+    }
+
+    private func registerSessionObservers() {
+        let center = NotificationCenter.default
+        center.addObserver(
+            self, selector: #selector(sessionWasInterrupted(_:)),
+            name: AVCaptureSession.wasInterruptedNotification, object: session)
+        center.addObserver(
+            self, selector: #selector(sessionInterruptionEnded(_:)),
+            name: AVCaptureSession.interruptionEndedNotification, object: session)
+        center.addObserver(
+            self, selector: #selector(sessionRuntimeError(_:)),
+            name: AVCaptureSession.runtimeErrorNotification, object: session)
+    }
+
+    @objc private func sessionWasInterrupted(_ note: Notification) {
+        let raw = note.userInfo?[AVCaptureSessionInterruptionReasonKey] as? Int ?? -1
+        let name: String
+        switch AVCaptureSession.InterruptionReason(rawValue: raw) {
+        case .videoDeviceNotAvailableInBackground: name = "notAvailableInBackground"
+        case .audioDeviceInUseByAnotherClient: name = "audioInUseByAnotherClient"
+        case .videoDeviceInUseByAnotherClient: name = "videoInUseByAnotherClient"
+        case .videoDeviceNotAvailableWithMultipleForegroundApps: name = "multipleForegroundApps"
+        case .videoDeviceNotAvailableDueToSystemPressure: name = "systemPressure"
+        default: name = "unknown"
+        }
+        AppLogger.shared.warn("session interrupted reason=\(raw) (\(name))", category: .capture)
+        let callback = onInterrupted
+        if let callback { DispatchQueue.main.async { callback() } }
+    }
+
+    /// Re-arm the first-frame reveal so resumed frames cross-fade the preview back
+    /// in — the session auto-resumes without another `startLocked()`, so nothing
+    /// else would re-arm it.
+    @objc private func sessionInterruptionEnded(_ note: Notification) {
+        AppLogger.shared.info("session interruption ended", category: .capture)
+        lock.lock()
+        firstFrameArmed = true
+        lock.unlock()
+    }
+
+    @objc private func sessionRuntimeError(_ note: Notification) {
+        let error = note.userInfo?[AVCaptureSessionErrorKey] as? AVError
+        AppLogger.shared.error("session runtime error=\(String(describing: error))", category: .capture)
     }
 
     static func authorizationStatus() -> AVAuthorizationStatus {
@@ -96,6 +160,7 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate, @unchecke
         if session.canAddOutput(photoOutput) {
             session.addOutput(photoOutput)
         }
+        attachVideoDataOutputLocked()
         if let device = videoDevice {
             applyPhotoDimensionCap(for: device)
         }
@@ -105,6 +170,18 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate, @unchecke
             hasTorch = device.hasTorch
         }
         isConfigured = hasVideoInput
+        AppLogger.shared.info("camera configured hardwareCost=\(session.hardwareCost)", category: .capture)
+    }
+
+    /// Adds the single permitted video-data output. Its first delivered buffer is
+    /// the app's "preview is live" trigger; the same output is the seam the future
+    /// on-device Core ML pipeline consumes (a session allows only one, so it is
+    /// created once here rather than as a throwaway probe).
+    private func attachVideoDataOutputLocked() {
+        guard session.canAddOutput(videoDataOutput) else { return }
+        videoDataOutput.alwaysDiscardsLateVideoFrames = true
+        videoDataOutput.setSampleBufferDelegate(self, queue: videoDataQueue)
+        session.addOutput(videoDataOutput)
     }
 
     private func attachVideoInputLocked() {
@@ -181,6 +258,9 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate, @unchecke
 
     private func startLocked() {
         guard hasVideoInput, !session.isRunning else { return }
+        lock.lock()
+        firstFrameArmed = true
+        lock.unlock()
         session.startRunning()
     }
 
@@ -190,6 +270,9 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate, @unchecke
         sessionQueue.async { [weak self] in
             guard let self else { return }
             self.resolveContinuation(with: nil)
+            self.lock.lock()
+            self.firstFrameArmed = false
+            self.lock.unlock()
             if self.session.isRunning { self.session.stopRunning() }
         }
     }
@@ -303,5 +386,23 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate, @unchecke
             AppLogger.shared.error("photo capture failed: \(error.localizedDescription)", category: .capture)
         }
         resolveContinuation(with: photo.fileDataRepresentation())
+    }
+
+    /// The first buffer after a start means live pixels have reached the graph —
+    /// hand the reveal signal to the host exactly once, then go quiet (subsequent
+    /// frames are the on-device pipeline's to consume). Runs on `videoDataQueue`;
+    /// the armed flag and callback are read under the shared lock.
+    func captureOutput(
+        _ output: AVCaptureOutput,
+        didOutput sampleBuffer: CMSampleBuffer,
+        from connection: AVCaptureConnection
+    ) {
+        lock.lock()
+        let shouldEmit = firstFrameArmed
+        if shouldEmit { firstFrameArmed = false }
+        let callback = onFirstFrame
+        lock.unlock()
+        guard shouldEmit, let callback else { return }
+        DispatchQueue.main.async { callback() }
     }
 }
