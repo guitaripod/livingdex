@@ -44,6 +44,9 @@ final class DexCell: UICollectionViewCell {
     private let imageView = UIImageView()
     private let lockedIcon = UIImageView()
     private let scrim = CAGradientLayer()
+    /// Rarity-tinted backdrop behind the locked silhouette — turns the empty slot
+    /// into a "who's that?" mystery rather than a flat question mark.
+    private let mysteryGradient = CAGradientLayer()
     private let nameLabel = UILabel()
     private let numberLabel = UILabel()
     private let rarityPip = UIView()
@@ -60,6 +63,11 @@ final class DexCell: UICollectionViewCell {
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
         contentView.addSubview(imageView)
+
+        mysteryGradient.isHidden = true
+        mysteryGradient.startPoint = CGPoint(x: 0.5, y: 0)
+        mysteryGradient.endPoint = CGPoint(x: 0.5, y: 1)
+        contentView.layer.addSublayer(mysteryGradient)
 
         lockedIcon.translatesAutoresizingMaskIntoConstraints = false
         lockedIcon.contentMode = .scaleAspectFit
@@ -97,7 +105,7 @@ final class DexCell: UICollectionViewCell {
 
             lockedIcon.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             lockedIcon.centerYAnchor.constraint(equalTo: contentView.centerYAnchor, constant: -6),
-            lockedIcon.widthAnchor.constraint(equalTo: contentView.widthAnchor, multiplier: 0.34),
+            lockedIcon.widthAnchor.constraint(equalTo: contentView.widthAnchor, multiplier: 0.48),
             lockedIcon.heightAnchor.constraint(equalTo: lockedIcon.widthAnchor),
 
             rarityPip.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 8),
@@ -117,6 +125,22 @@ final class DexCell: UICollectionViewCell {
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError() }
 
+    /// Renders the "who's that?" state: a rarity-tinted gradient wash with the
+    /// realm's glyph as a tonal silhouette. Without a reference photo for an
+    /// uncaught species, the realm shape is the honest hint at what's hiding —
+    /// the tile flips to the real catch photo once collected.
+    private func configureMystery(realm: Realm, rarity: Rarity) {
+        mysteryGradient.isHidden = false
+        let tint = rarity.color
+        mysteryGradient.colors = [
+            tint.withAlphaComponent(0.42).cgColor,
+            tint.withAlphaComponent(0.10).cgColor,
+        ]
+        lockedIcon.image = UIImage(systemName: DexTile.realmSymbol(realm))
+        lockedIcon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(weight: .semibold)
+        lockedIcon.tintColor = UIColor.label.withAlphaComponent(0.38)
+    }
+
     private func applyShadow(_ label: UILabel) {
         label.layer.shadowColor = UIColor.black.cgColor
         label.layer.shadowOpacity = 0.6
@@ -133,6 +157,7 @@ final class DexCell: UICollectionViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         scrim.frame = contentView.bounds
+        mysteryGradient.frame = contentView.bounds
     }
 
     override func prepareForReuse() {
@@ -157,21 +182,21 @@ final class DexCell: UICollectionViewCell {
             imageView.isHidden = true
             scrim.isHidden = true
             lockedIcon.isHidden = false
-            lockedIcon.image = UIImage(systemName: "questionmark")
-            lockedIcon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(weight: .bold)
+            configureMystery(realm: tile.realm, rarity: tile.rarity)
             nameLabel.text = "???"
             nameLabel.textColor = .secondaryLabel
             numberLabel.textColor = .tertiaryLabel
             setLabelShadows(false)
             rarityPip.alpha = 0.55
             isAccessibilityElement = true
-            accessibilityLabel = "Slot \(tile.number), \(tile.rarity.title), not yet caught"
+            accessibilityLabel = "Slot \(tile.number), \(tile.rarity.title) \(tile.realm.rawValue.capitalized), not yet caught"
             return
         }
 
         imageView.isHidden = false
         scrim.isHidden = false
         lockedIcon.isHidden = true
+        mysteryGradient.isHidden = true
         nameLabel.text = tile.name
         nameLabel.textColor = .white
         numberLabel.textColor = UIColor(white: 1, alpha: 0.85)
