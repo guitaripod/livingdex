@@ -69,11 +69,19 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate, @unchecked Se
     /// that fix is stale so subsequent captures aren't geo-tagged with an old one.
     func currentContext() -> CaptureContext {
         if isFixStale { warmUp() }
-        let loc = lastLocation ?? manager.location
+        // Fall back to CoreLocation's cached fix only if it's fresh: `manager.location`
+        // can be hours old and from another city on a cold launch, which would
+        // geo-tag the sighting — and its GBIF rarity — to the wrong place.
+        let loc = lastLocation ?? freshCachedFix()
         return CaptureContext(
             latitude: loc?.coordinate.latitude,
             longitude: loc?.coordinate.longitude,
             elevationMeters: lastElevation ?? loc?.altitude)
+    }
+
+    private func freshCachedFix() -> CLLocation? {
+        guard let cached = manager.location else { return nil }
+        return Date().timeIntervalSince(cached.timestamp) <= fixValidity ? cached : nil
     }
 
     private var isFixStale: Bool {

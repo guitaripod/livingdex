@@ -160,6 +160,13 @@ final class SubscriptionService {
         do {
             try await backend.purchaseSubscription(Self.asSubscription(plan))
             await refreshEntitlement()
+            // A completed purchase is authoritative: RevenueCat verified the
+            // transaction or `purchaseSubscription` would have thrown. If the
+            // follow-up verdict was inconclusive (a network blip right after
+            // paying), optimistically commit Pro so the user isn't left staring
+            // at an unchanged paywall having been charged — the per-request
+            // backend check re-verifies regardless.
+            if !isPro { commitEntitlement(true) }
             AppLogger.shared.info("purchase ok \(plan.productID)", category: .credits)
             return .purchased
         } catch AICreditsError.purchaseCancelled {

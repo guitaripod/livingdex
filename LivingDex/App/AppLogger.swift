@@ -83,9 +83,13 @@ final class AppLogger: Sendable {
         try? FileManager.default.moveItem(at: fileURL, to: previous)
     }
 
-    private static func timestamp() -> String {
+    nonisolated(unsafe) private static let timestampFormatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return formatter.string(from: Date())
+        return formatter
+    }()
+
+    private static func timestamp() -> String {
+        timestampFormatter.string(from: Date())
     }
 }

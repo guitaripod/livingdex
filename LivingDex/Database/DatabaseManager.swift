@@ -31,13 +31,25 @@ final class DatabaseManager: @unchecked Sendable {
         try Self.runMigrations(dbQueue)
     }
 
-    /// Wipe all on-device collection data — used by account deletion. Schema kept.
+    /// Wipe all on-device collection data — used by account deletion. Clears
+    /// sightings and dex entries, resets player progression to its initial state
+    /// (so XP/streaks don't survive a deletion), and removes stored capture
+    /// photos from disk. Schema kept.
     func eraseAllData() throws {
         try dbQueue.write { db in
             for table in ["sightings", "dex_entries"] {
                 try db.execute(sql: "DELETE FROM \(table)")
             }
+            try db.execute(
+                sql: """
+                UPDATE player_progress
+                SET totalXP = 0, currentStreak = 0, longestStreak = 0,
+                    lastCatchDay = NULL, freezes = ?
+                WHERE id = ?
+                """,
+                arguments: [PlayerProgress.initialFreezes, PlayerProgress.singletonID])
         }
+        ImageStore.deleteAll()
     }
 
     private static func runMigrations(_ db: DatabaseQueue) throws {

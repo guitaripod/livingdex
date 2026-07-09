@@ -31,9 +31,17 @@ enum MakoChat {
     private static func stripCodeFences(_ text: String) -> Substring {
         guard let fenceStart = text.range(of: "```") else { return text[...] }
         let afterOpen = text[fenceStart.upperBound...]
-        let body = afterOpen.first == "\n"
-            ? afterOpen.dropFirst()
-            : afterOpen.drop(while: { $0 != "\n" }).dropFirst()
+        // Drop an optional language tag ("```json\n") only when a newline follows
+        // the opener. A single-line fence ("```{...}```") has no newline, so the
+        // body must be kept as-is rather than dropped wholesale.
+        let body: Substring
+        if afterOpen.first == "\n" {
+            body = afterOpen.dropFirst()
+        } else if let newline = afterOpen.firstIndex(of: "\n") {
+            body = afterOpen[afterOpen.index(after: newline)...]
+        } else {
+            body = afterOpen
+        }
         guard let fenceEnd = body.range(of: "```") else { return body }
         return body[..<fenceEnd.lowerBound]
     }

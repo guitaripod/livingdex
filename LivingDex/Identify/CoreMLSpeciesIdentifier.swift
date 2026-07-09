@@ -43,9 +43,12 @@ final class CoreMLSpeciesIdentifier: SpeciesIdentifier, @unchecked Sendable {
     private func classify(_ image: UIImage) async -> [(identifier: String, confidence: Float)] {
         guard let cgImage = image.cgImage else { return [] }
         return await withCheckedContinuation { continuation in
+            // Vision invokes the request's completion handler on failure AND
+            // `perform` rethrows; resume exactly once or the continuation traps.
+            let resumeOnce = ResumeGuard(continuation)
             let request = VNCoreMLRequest(model: model) { request, _ in
                 let results = (request.results as? [VNClassificationObservation]) ?? []
-                continuation.resume(returning: results.map { ($0.identifier, $0.confidence) })
+                resumeOnce.resume(with: results.map { ($0.identifier, $0.confidence) })
             }
             request.imageCropAndScaleOption = .centerCrop
             let handler = VNImageRequestHandler(cgImage: cgImage, orientation: image.cgImageOrientation)
@@ -53,7 +56,7 @@ final class CoreMLSpeciesIdentifier: SpeciesIdentifier, @unchecked Sendable {
                 try handler.perform([request])
             } catch {
                 AppLogger.shared.error("vision perform failed: \(error.localizedDescription)", category: .identify)
-                continuation.resume(returning: [])
+                resumeOnce.resume(with: [])
             }
         }
     }
@@ -73,6 +76,26 @@ enum SpeciesIdentifierFactory {
         // never a random minted species.
         AppLogger.shared.info("using cloud-vision identifier", category: .identify)
         return CloudVisionIdentifier()
+    }
+}
+
+/// Ensures a `CheckedContinuation` is resumed at most once across Vision's dual
+/// failure signalling (completion callback + thrown error from `perform`).
+private final class ResumeGuard: @unchecked Sendable {
+    private let continuation: CheckedContinuation<[(identifier: String, confidence: Float)], Never>
+    private let lock = NSLock()
+    private var done = false
+
+    init(_ continuation: CheckedContinuation<[(identifier: String, confidence: Float)], Never>) {
+        self.continuation = continuation
+    }
+
+    func resume(with value: [(identifier: String, confidence: Float)]) {
+        lock.lock()
+        defer { lock.unlock() }
+        guard !done else { return }
+        done = true
+        continuation.resume(returning: value)
     }
 }
 

@@ -274,6 +274,9 @@ final class PaywallViewController: UIViewController {
     }
 
     private func renderLoaded(_ plans: [PaywallPlan]) {
+        // A re-emission of the same plans (e.g. a foreground-triggered reload)
+        // must not wipe the user's current selection back to annual.
+        guard plans != self.plans else { return }
         self.plans = plans
         selectedIndex = plans.firstIndex { $0.billing == .annual } ?? 0
         cards = plans.enumerated().map { index, plan in

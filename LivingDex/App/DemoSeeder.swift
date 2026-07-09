@@ -53,7 +53,7 @@ enum DemoSeeder {
                 elevationMeters: Double.random(in: 2...40), imagePath: path,
                 pokedexEntry: i % 2 == 0 ? "A familiar sight across gardens and cities, this hardy species thrives alongside people, filling the air with life.\n\n• Highly adaptable to urban and wild habitats\n• Feeds opportunistically on seeds and insects\n• Often seen in small, chattering groups" : nil,
                 category: s.category, typicalSize: s.size)
-            let isNew = (try? store.save(sighting)) ?? true
+            let isNew = (try? store.save(sighting)) ?? false
             _ = try? progress.record(rarity: s.rarity, isNew: isNew, now: now)
         }
         AppLogger.shared.info("demo data seeded (\(samples.count) species)", category: .persistence)

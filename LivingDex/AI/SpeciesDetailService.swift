@@ -66,7 +66,11 @@ final class SpeciesDetailService: NSObject, @unchecked Sendable {
         player?.pause()
         player = nil
         removeEndObservers()
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        let session = AVAudioSession.sharedInstance()
+        // Restore the app's default ambient behaviour so the process-wide category
+        // doesn't stay `.playback` (silent-switch-ignoring) after the clip ends.
+        try? session.setActive(false, options: .notifyOthersOnDeactivation)
+        try? session.setCategory(.ambient)
         AppLogger.shared.info("call finished, audio session released", category: .ai)
     }
 

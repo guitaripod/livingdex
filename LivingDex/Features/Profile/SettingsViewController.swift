@@ -167,7 +167,11 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
             return
         }
         let share = UIActivityViewController(activityItems: [logs], applicationActivities: nil)
-        share.popoverPresentationController?.sourceView = view
+        if let popover = share.popoverPresentationController {
+            let cell = tableView.indexPathForSelectedRow.flatMap { tableView.cellForRow(at: $0) }
+            popover.sourceView = cell ?? view
+            popover.sourceRect = (cell ?? view).bounds
+        }
         present(share, animated: true)
     }
 }

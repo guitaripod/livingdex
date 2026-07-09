@@ -121,7 +121,7 @@ final class ProfileHeaderView: UIView {
         levelLabel.text = "\(lp.level)"
         speciesTile.configure(value: "\(speciesCount)", label: "SPECIES", symbol: "square.grid.2x2.fill", tint: DesignSystem.Color.accent)
         let streak = progress.currentStreak
-        streakTile.configure(value: "\(streak)", label: streak == 1 ? "DAY STREAK" : "DAY STREAK", symbol: "flame.fill", tint: .systemOrange)
+        streakTile.configure(value: "\(streak)", label: "DAY STREAK", symbol: "flame.fill", tint: .systemOrange)
         xpLabel.text = "\(lp.into) / \(lp.span) XP to level \(lp.level + 1)"
         layoutIfNeeded()
         let ratio = CGFloat(lp.into) / CGFloat(max(1, lp.span))

@@ -68,7 +68,13 @@ struct CaptureFlow: Sendable {
             return abortOnSaveFailure(path: path, error: error)
         }
 
-        let event = try? progress.record(rarity: top.rarity, isNew: isNew, now: now)
+        var event: ProgressEvent?
+        do {
+            event = try progress.record(rarity: top.rarity, isNew: isNew, now: now)
+        } catch {
+            AppLogger.shared.error(
+                "progression write failed after mint: \(error)", category: .persistence)
+        }
         await reportAchievements()
 
         return .minted(MintedCapture(

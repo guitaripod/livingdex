@@ -161,9 +161,14 @@ final class FieldViewController: UIViewController {
     private func setupHUD() {
         statusChip.translatesAutoresizingMaskIntoConstraints = false
         statusChip.setText("Point at anything alive")
+        // Hidden until a live session reveals the preview: on a cold, not-yet-
+        // authorized launch these must not sit tappable above the loading cover /
+        // permission dialog (a tap would run capture against a dead camera).
+        statusChip.isHidden = true
         view.addSubview(statusChip)
 
         captureButton.translatesAutoresizingMaskIntoConstraints = false
+        captureButton.isHidden = true
         captureButton.addTarget(self, action: #selector(didTapCapture), for: .touchUpInside)
         view.addSubview(captureButton)
 

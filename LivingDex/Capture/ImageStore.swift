@@ -27,17 +27,25 @@ enum ImageStore {
     }
 
     static func delete(_ relativePath: String) {
-        guard let support = try? FileManager.default.url(
-            for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
-        else { return }
-        try? FileManager.default.removeItem(at: support.appendingPathComponent(relativePath))
+        guard let url = resolve(relativePath) else { return }
+        try? FileManager.default.removeItem(at: url)
+    }
+
+    /// Removes every stored capture photo — used by account deletion.
+    static func deleteAll() {
+        guard let dir = try? directory() else { return }
+        try? FileManager.default.removeItem(at: dir)
     }
 
     static func load(_ relativePath: String) -> UIImage? {
+        guard let url = resolve(relativePath) else { return nil }
+        return UIImage(contentsOfFile: url.path)
+    }
+
+    private static func resolve(_ relativePath: String) -> URL? {
         guard let support = try? FileManager.default.url(
             for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
         else { return nil }
-        let url = support.appendingPathComponent(relativePath)
-        return UIImage(contentsOfFile: url.path)
+        return support.appendingPathComponent(relativePath)
     }
 }

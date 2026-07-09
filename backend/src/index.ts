@@ -62,17 +62,14 @@ export default {
       return json({ service: "livingdex-worker", ok: true });
     }
 
-    const limited = await rateLimited(request, env).catch(() => null);
-    if (limited) return limited;
-
     if (request.method === "GET" && url.pathname === "/v1/enrich") {
-      return withCache(request, ctx, LOCATION_GRID_DECIMALS, () => enrich(url)).catch(errorResponse);
+      return withCache(request, env, ctx, LOCATION_GRID_DECIMALS, () => enrich(url)).catch(errorResponse);
     }
     if (request.method === "GET" && url.pathname === "/v1/region") {
-      return withCache(request, ctx, REGION_GRID_DECIMALS, () => region(url)).catch(errorResponse);
+      return withCache(request, env, ctx, REGION_GRID_DECIMALS, () => region(url)).catch(errorResponse);
     }
     if (request.method === "GET" && url.pathname === "/v1/detail") {
-      return withCache(request, ctx, LOCATION_GRID_DECIMALS, () => detail(url)).catch(errorResponse);
+      return withCache(request, env, ctx, LOCATION_GRID_DECIMALS, () => detail(url)).catch(errorResponse);
     }
     return json({ error: "not found" }, 404);
   },
@@ -100,9 +97,14 @@ async function rateLimited(request: Request, env: Env): Promise<Response | null>
  * URL (lat/lng snapped to a grid, name lowercased) so first-hit/cross-device
  * requests reuse the aggregation instead of re-fanning every upstream. The edge
  * cache honors the response's own Cache-Control max-age for TTL.
+ *
+ * The per-IP rate limit is charged only on a cache MISS: cached serves touch no
+ * upstream, so they must not consume the budget that exists to protect the GBIF
+ * fan-out.
  */
 async function withCache(
   request: Request,
+  env: Env,
   ctx: ExecutionContext,
   gridDecimals: number,
   producer: () => Promise<Response>
@@ -111,6 +113,8 @@ async function withCache(
   const key = cacheKeyFor(request.url, gridDecimals);
   const hit = await cache.match(key);
   if (hit) return hit;
+  const limited = await rateLimited(request, env).catch(() => null);
+  if (limited) return limited;
   const resp = await producer();
   if (resp.status === 200 && resp.headers.has("Cache-Control")) {
     ctx.waitUntil(cache.put(key, resp.clone()));
@@ -207,9 +211,12 @@ async function enrich(url: URL): Promise<Response> {
 
 /** GBIF occurrence count within a radius of a point, or globally if no point. */
 async function occurrenceCount(taxonKey: number, lat: number | null, lng: number | null): Promise<number | null> {
-  let q = `${GBIF}/occurrence/search?taxonKey=${taxonKey}&limit=0`;
+  // Local and global counts must share a basis to be comparable in computeRarity:
+  // both filter to HUMAN_OBSERVATION so global density isn't inflated by fossils,
+  // preserved specimens, or machine/literature records that the local count omits.
+  let q = `${GBIF}/occurrence/search?taxonKey=${taxonKey}&limit=0&basisOfRecord=HUMAN_OBSERVATION`;
   if (lat != null && lng != null) {
-    q += `&hasCoordinate=true&geoDistance=${lat},${lng},${LOCAL_RADIUS_KM}km&basisOfRecord=HUMAN_OBSERVATION`;
+    q += `&hasCoordinate=true&geoDistance=${lat},${lng},${LOCAL_RADIUS_KM}km`;
   }
   const data = await fetchJSON(q);
   return typeof data?.count === "number" ? data.count : null;

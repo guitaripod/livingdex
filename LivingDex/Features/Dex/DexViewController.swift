@@ -30,6 +30,7 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
     private var query: String = ""
     private var searchWork: DispatchWorkItem?
     private lazy var locationManager = CLLocationManager()
+    private var awaitingRegionFix = false
 
     private enum Sort: String, CaseIterable { case recent = "Recent", name = "A–Z", rarity = "Rarity" }
     private enum CaughtFilter: CaseIterable {
@@ -63,6 +64,7 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         configureSearch()
         updateBarButtons()
         startObserving()
+        locationManager.delegate = self
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -258,6 +260,11 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
     }
 
     private func applySnapshot(_ tiles: [DexTile], animated: Bool) {
+        // DexTile identity is speciesId; a duplicate id (e.g. a server-sourced
+        // Regional payload repeating a species) would trip the diffable data
+        // source's "identical items" assertion, so dedupe defensively.
+        var seen = Set<String>()
+        let tiles = tiles.filter { seen.insert($0.speciesId).inserted }
         let previous = dataSource.snapshot()
         let previousById = Dictionary(
             previous.itemIdentifiers.map { ($0.speciesId, $0) }, uniquingKeysWith: { a, _ in a })
@@ -411,10 +418,12 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
     private func handleLocationAccess() {
         switch locationManager.authorizationStatus {
         case .notDetermined:
+            // Event-driven: the retry is fired by the delegate the moment
+            // authorization is granted and a fix lands, not on a fixed timer
+            // that usually elapses before the user has answered the dialog.
+            awaitingRegionFix = true
             LocationProvider.shared.requestAuthorization()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
-                MainActor.assumeIsolated { self?.fetchRegion(force: true) }
-            }
+            locationManager.startUpdatingLocation()
         default:
             if let url = URL(string: UIApplication.openSettingsURLString) {
                 UIApplication.shared.open(url)
@@ -511,5 +520,37 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         case .protists: return "protist"
         case .other: return "organism"
         }
+    }
+}
+
+extension DexViewController: CLLocationManagerDelegate {
+    nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
+        MainActor.assumeIsolated {
+            guard awaitingRegionFix else { return }
+            switch locationManager.authorizationStatus {
+            case .authorizedWhenInUse, .authorizedAlways:
+                locationManager.startUpdatingLocation()
+            case .denied, .restricted:
+                awaitingRegionFix = false
+                locationManager.stopUpdatingLocation()
+                reload()
+            default:
+                break
+            }
+        }
+    }
+
+    nonisolated func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        let hasFix = !locations.isEmpty
+        MainActor.assumeIsolated {
+            guard awaitingRegionFix, hasFix else { return }
+            awaitingRegionFix = false
+            locationManager.stopUpdatingLocation()
+            if mode == .nearby { fetchRegion(force: true) }
+        }
+    }
+
+    nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        AppLogger.shared.error("dex location failed: \(error.localizedDescription)", category: .location)
     }
 }

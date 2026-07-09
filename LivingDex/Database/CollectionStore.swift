@@ -33,6 +33,10 @@ final class CollectionStore: Sendable {
                     entry.rarity = sighting.rarity
                     entry.commonName = sighting.commonName
                     entry.scientificName = sighting.scientificName
+                    // Adopt the confirmed realm too, else a first catch minted
+                    // offline with the vision model's realm guess stays filed in
+                    // the wrong Dex section forever.
+                    entry.realm = sighting.realm
                     entry.enriched = true
                 }
                 try entry.update(db)

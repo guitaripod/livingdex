@@ -71,7 +71,7 @@ final class DexHeaderView: UICollectionReusableView {
 
     func showSummary(species: Int, detail: String) {
         countLabel.text = "\(species)"
-        captionLabel.text = species == 1 ? "species · \(detail)" : "species · \(detail)"
+        captionLabel.text = "species · \(detail)"
         track.isHidden = true
         setFill(0)
     }

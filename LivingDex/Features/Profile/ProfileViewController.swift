@@ -49,6 +49,18 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
                 self.tableView.reloadData()
             }
             .store(in: &cancellables)
+
+        // The credit balance changes when a pack is bought from the sheet, which
+        // doesn't fire viewWillAppear — observe the store so the "credits
+        // remaining" row refreshes live instead of only on tab switch.
+        AICreditsManager.store.objectWillChange
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self, self.isViewLoaded, self.view.window != nil else { return }
+                self.rebuild()
+                self.tableView.reloadData()
+            }
+            .store(in: &cancellables)
     }
 
     override func viewDidLayoutSubviews() {
