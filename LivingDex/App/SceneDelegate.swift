@@ -43,7 +43,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             let root = RootViewController()
             switch DemoSeeder.route {
             case "profile": root.selectedIndex = 2
-            case "dex", "card", "caught", "nearby": root.selectedIndex = 1
+            case "dex", "card", "caught", "nearby", "reveal": root.selectedIndex = 1
             default: root.selectedIndex = 0
             }
             return root

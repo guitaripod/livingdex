@@ -56,7 +56,7 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         segmented.addTarget(self, action: #selector(modeChanged), for: .valueChanged)
         navigationItem.titleView = segmented
         #if DEBUG
-        if DemoSeeder.route == "caught" { segmented.selectedSegmentIndex = 1; mode = .caught }
+        if DemoSeeder.route == "caught" || DemoSeeder.route == "reveal" { segmented.selectedSegmentIndex = 1; mode = .caught }
         #endif
 
         configureCollectionView()
@@ -74,6 +74,10 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         if DemoSeeder.route == "card", !didDemoPush, let entry = caught.first {
             didDemoPush = true
             navigationController?.pushViewController(CardDetailViewController(entry: entry), animated: false)
+        }
+        if DemoSeeder.route == "reveal", !didDemoPush {
+            didDemoPush = true
+            DemoSeeder.presentReveal(from: self)
         }
         #endif
     }
