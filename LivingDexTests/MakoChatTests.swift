@@ -7,6 +7,17 @@ final class MakoChatTests: XCTestCase {
         XCTAssertEqual(MakoChat.messageContent(Data(body.utf8)), "hello dex")
     }
 
+    func testExtractsContentFromTheFlatGeminiEnvelope() {
+        let body = #"{"content":"{\n  \"commonName\": \"Wood Anemone\",\n  \"confidence\": 0.95\n}","model":"gemini-2.5-flash","credits_charged":1,"usage":{"prompt_tokens":406,"output_tokens":47,"total_tokens":453}}"#
+        let content = MakoChat.messageContent(Data(body.utf8))
+        XCTAssertTrue(content?.contains("Wood Anemone") ?? false)
+    }
+
+    func testFlatEnvelopeWrappedInProseStillParses() {
+        let body = "```json\n{\"content\":\"hi\",\"credits_charged\":1}\n```"
+        XCTAssertEqual(MakoChat.messageContent(Data(body.utf8)), "hi")
+    }
+
     func testExtractsBalancedObjectFromFencedProse() {
         let content = "Sure!\n```json\n{\"entry\":\"A bird.\",\"funFacts\":[\"flies\"]}\n```"
         let json = MakoChat.firstBalancedObject(in: content)

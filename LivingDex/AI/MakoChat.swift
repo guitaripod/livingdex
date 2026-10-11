@@ -1,8 +1,9 @@
 import Foundation
 
-/// Parsing helpers for mako's `chat.completion` responses, which proxy an
-/// OpenAI-shaped body (`choices[].message.content`). Models occasionally wrap
-/// JSON in prose or code fences, so we isolate the first balanced object.
+/// Parsing helpers for mako's `chat.completion` responses. The body comes in two shapes: the
+/// OpenAI-style `choices[].message.content`, and the flat `{"content": …, "credits_charged": …}`
+/// envelope the Gemini route returns. Models occasionally wrap JSON in prose or code fences,
+/// so we isolate the first balanced object.
 enum MakoChat {
     private struct ChatCompletion: Decodable {
         struct Choice: Decodable { let message: Message }
@@ -10,15 +11,23 @@ enum MakoChat {
         let choices: [Choice]
     }
 
+    private struct FlatCompletion: Decodable {
+        let content: String
+    }
+
     /// Extracts the assistant message text from a raw completion body.
     static func messageContent(_ data: Data) -> String? {
-        if let decoded = try? JSONDecoder().decode(ChatCompletion.self, from: data) {
-            return decoded.choices.first?.message.content
+        if let content = decodeContent(data) { return content }
+        guard let envelope = firstBalancedObject(in: String(decoding: data, as: UTF8.self)) else { return nil }
+        return decodeContent(Data(envelope.utf8))
+    }
+
+    private static func decodeContent(_ data: Data) -> String? {
+        if let decoded = try? JSONDecoder().decode(ChatCompletion.self, from: data),
+           let content = decoded.choices.first?.message.content {
+            return content
         }
-        guard let envelope = firstBalancedObject(in: String(decoding: data, as: UTF8.self)),
-              let decoded = try? JSONDecoder().decode(ChatCompletion.self, from: Data(envelope.utf8))
-        else { return nil }
-        return decoded.choices.first?.message.content
+        return (try? JSONDecoder().decode(FlatCompletion.self, from: data))?.content
     }
 
     /// Isolates the first balanced top-level `{...}`, tolerating markdown fences

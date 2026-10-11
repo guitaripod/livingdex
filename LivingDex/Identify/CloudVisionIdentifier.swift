@@ -32,9 +32,12 @@ final class CloudVisionIdentifier: SpeciesIdentifier {
             model: model)
         do {
             let result = try await client.run(request)
-            guard let content = MakoChat.messageContent(result.raw),
-                  let candidate = Self.parse(content, minConfidence: minConfidence) else {
-                AppLogger.shared.info("cloud vision: no clear organism", category: .identify)
+            guard let content = MakoChat.messageContent(result.raw) else {
+                AppLogger.shared.warn("cloud vision: reply had no message content: \(String(decoding: result.raw, as: UTF8.self).prefix(200))", category: .identify)
+                return IdentificationResult(candidates: [], error: .noSpecies)
+            }
+            guard let candidate = Self.parse(content, minConfidence: minConfidence) else {
+                AppLogger.shared.info("cloud vision: no clear organism: \(content.prefix(200))", category: .identify)
                 return IdentificationResult(candidates: [], error: .noSpecies)
             }
             AppLogger.shared.info("cloud vision -> \(candidate.scientificName) \(String(format: "%.2f", candidate.confidence))", category: .identify)
