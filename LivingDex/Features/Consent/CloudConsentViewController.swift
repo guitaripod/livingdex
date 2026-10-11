@@ -125,8 +125,8 @@ final class CloudConsentViewController: UIViewController {
 
         NSLayoutConstraint.activate([
             scroll.topAnchor.constraint(equalTo: view.topAnchor),
-            scroll.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            scroll.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scroll.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+            scroll.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
             scroll.bottomAnchor.constraint(equalTo: buttons.topAnchor, constant: -DesignSystem.Spacing.s),
 
             content.topAnchor.constraint(equalTo: scroll.contentLayoutGuide.topAnchor, constant: DesignSystem.Spacing.l + 4),
@@ -134,8 +134,8 @@ final class CloudConsentViewController: UIViewController {
             content.trailingAnchor.constraint(equalTo: scroll.frameLayoutGuide.trailingAnchor, constant: -DesignSystem.Spacing.l),
             content.bottomAnchor.constraint(equalTo: scroll.contentLayoutGuide.bottomAnchor, constant: -DesignSystem.Spacing.m),
 
-            buttons.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: DesignSystem.Spacing.l),
-            buttons.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -DesignSystem.Spacing.l),
+            buttons.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: DesignSystem.Spacing.l),
+            buttons.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -DesignSystem.Spacing.l),
             buttons.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -DesignSystem.Spacing.s),
         ])
     }
@@ -216,10 +216,12 @@ enum CloudConsent {
         }
         sheet.modalPresentationStyle = .pageSheet
         if let presentation = sheet.sheetPresentationController {
-            let width = presenter.view.bounds.width
+            let presenterWidth = presenter.view.bounds.width
             presentation.detents = [
                 .custom { [weak sheet] context in
-                    min(context.maximumDetentValue, sheet?.preferredHeight(forWidth: width) ?? context.maximumDetentValue)
+                    let sheetWidth = sheet?.view.bounds.width ?? 0
+                    let width = sheetWidth > 0 ? sheetWidth : presenterWidth
+                    return min(context.maximumDetentValue, sheet?.preferredHeight(forWidth: width) ?? context.maximumDetentValue)
                 },
                 .large(),
             ]
