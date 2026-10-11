@@ -95,7 +95,7 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
 
         sections = [
             Section(header: "Collection", rows: collection),
-            Section(header: "Cloud AI", rows: [.pro(balance: balance, isPro: subscriptions.isPro)]),
+            Section(header: "Identify", rows: [.pro(balance: balance, isPro: subscriptions.isPro)]),
             Section(header: "Compete", rows: [
                 .action(title: "Leaderboards & achievements", symbol: "trophy.fill") { [weak self] in
                     guard let self else { return }
@@ -147,7 +147,7 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
             badge.sizeToFit()
             cell.accessoryView = badge
         case let .pro(balance, isPro):
-            content.text = "Cloud IDs"
+            content.text = "Identifications"
             content.image = UIImage(systemName: isPro ? "sparkles.rectangle.stack.fill" : "sparkles")
             content.imageProperties.tintColor = DesignSystem.Color.accent
             if isPro {
@@ -159,7 +159,7 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
                 content.secondaryTextProperties.color = DesignSystem.Color.accent
                 content.secondaryTextProperties.font = Self.boldSubheadline
             } else {
-                content.secondaryText = balance == 1 ? "1 credit remaining" : "\(balance) credits remaining"
+                content.secondaryText = balance == 1 ? "1 left" : "\(balance) left"
             }
             cell.contentConfiguration = content
             cell.selectionStyle = .default

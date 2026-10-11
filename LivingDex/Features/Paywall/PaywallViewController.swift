@@ -4,13 +4,13 @@ import SwiftUI
 import AICreditsUI
 
 /// Living Dex Pro's paywall — the naturalist's field companion tier. Shown from the
-/// Profile "Cloud IDs" row and from the credits-exhausted capture path. Selectable plan
+/// Profile "Identifications" row and from the credits-exhausted capture path. Selectable plan
 /// cards where the billed price dominates, the annual default-selected, a single dynamic
 /// CTA, honest live pricing with a loading/unavailable state, and Restore / Terms /
 /// Privacy in the first screenful.
 ///
-/// EDITORIAL INVARIANT: this sells the *upside* — unlimited Claude cloud identifications
-/// and the future "ask the creature" Q&A. On-device identification and narration stay free
+/// EDITORIAL INVARIANT: this sells exactly what Pro does — unlimited identifications.
+/// Browsing the Dex, field entries and Nearby stay free
 /// and are named as such here, and a non-subscriber can always buy consumable credit packs
 /// instead (the secondary link) rather than subscribe.
 final class PaywallViewController: UIViewController {
@@ -140,14 +140,14 @@ final class PaywallViewController: UIViewController {
         title.adjustsFontForContentSizeCategory = true
         title.textColor = .label
         title.numberOfLines = 0
-        title.text = "Unlimited cloud identifications."
+        title.text = "Identify without limits."
 
         let subtitle = UILabel()
         subtitle.font = .preferredFont(forTextStyle: .body)
         subtitle.adjustsFontForContentSizeCategory = true
         subtitle.textColor = .secondaryLabel
         subtitle.numberOfLines = 0
-        subtitle.text = "\(reason) Pro lifts the cloud-ID cap so every tricky find gets Claude's best guess — no credits to count, no meter to watch."
+        subtitle.text = "\(reason) Pro makes every identification unlimited — no credits to count, no meter to watch."
 
         let stack = UIStackView(arrangedSubviews: [eyebrow, title, subtitle])
         stack.axis = .vertical
@@ -158,12 +158,10 @@ final class PaywallViewController: UIViewController {
 
     private func makeBenefits() -> UIView {
         let rows: [(String, String, String)] = [
-            ("sparkles", "Unlimited Claude cloud IDs",
-             "Point at anything alive and get a confident cloud identification, as often as you like — no credit balance to top up."),
-            ("bubble.left.and.text.bubble.right.fill", "Ask the creature (coming soon)",
-             "Follow up on any catch — habitat, diet, how to tell it apart from look-alikes — answered from a grounded field library."),
-            ("bolt.badge.clock.fill", "Priority cloud lookups",
-             "Your identifications skip the metered queue non-subscribers share, so hard finds resolve fast."),
+            ("sparkles", "Unlimited identifications",
+             "Point at anything alive and identify it as often as you like — no credit balance to top up."),
+            ("square.grid.2x2.fill", "Your Dex is always free",
+             "Browsing your collection, the Nearby list, field entries and Game Center never need Pro."),
         ]
         let stack = UIStackView(arrangedSubviews: rows.map(benefitRow))
         stack.axis = .vertical
@@ -220,7 +218,7 @@ final class PaywallViewController: UIViewController {
         label.adjustsFontForContentSizeCategory = true
         label.textColor = .secondaryLabel
         label.numberOfLines = 0
-        label.text = "On-device identification and every Pokédex narration stay free, forever. Pro is the cloud upside — not a gate on catching."
+        label.text = "Every device starts with 30 free identifications. Pro is for people who identify a lot — everything you collect stays yours either way."
 
         let row = UIStackView(arrangedSubviews: [glyph, label])
         row.axis = .horizontal
@@ -364,7 +362,7 @@ final class PaywallViewController: UIViewController {
     /// cloud-ID credit packs instead of subscribing.
     private func makeCreditsLink() -> UIView {
         let button = UIButton(type: .system)
-        button.setTitle("Prefer to pay per use? Buy cloud-ID credits", for: .normal)
+        button.setTitle("Prefer to pay per use? Buy identification credits", for: .normal)
         button.titleLabel?.font = .preferredFont(forTextStyle: .footnote)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.titleLabel?.numberOfLines = 0

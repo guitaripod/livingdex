@@ -1,8 +1,8 @@
 import UIKit
 
-/// Presents the Living Dex Pro paywall. The paywall never blocks the free core (on-device
-/// identification and narration), so it is always a dismissible sheet — surfaced from the
-/// Profile "Cloud IDs" row and from the credits-exhausted capture path.
+/// Presents the Living Dex Pro paywall. The paywall never blocks the free Dex, so it is
+/// always a dismissible sheet — surfaced from the Profile "Identifications" row, the Field
+/// credits meter, and the credits-exhausted capture path.
 @MainActor
 enum PaywallPresenter {
     /// Presents the paywall as a page sheet. No-op when the user is already Pro (the

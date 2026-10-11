@@ -21,8 +21,8 @@ struct PokedexEntry: Codable, Sendable {
 /// Generates grounded Pokédex-entry narration for a caught species by calling
 /// mako's `chat.completion` (Claude). Kept cheap (Haiku) for the per-sighting
 /// live fill; the richer Sonnet-batch narration is precomputed server-side and
-/// cached per species+locale. All identification stays on-device; this is only
-/// prose, so a failure degrades to a nil entry (the card still shows fine).
+/// cached per species+locale. This is only prose, so a failure degrades to a nil
+/// entry (the card still shows fine).
 final class SpeciesNarrator: Narrator {
     private let client: AICreditsClient
     private let model = "claude-haiku-4-5"

@@ -5,10 +5,8 @@ import AICreditsCore
 /// Living Dex's single source of truth for Pro access and the paywall's plan list. Talks
 /// to the store through ``SubscriptionBacking`` (production: ``AICreditsSubscriptionBackend``
 /// over the shared ``AICreditsManager`` client, which owns RevenueCat) — never hand-rolls
-/// the store layer. Exactly the `pro` entitlement unlocks unlimited Claude cloud
-/// identifications; on-device identification and narration are always free and never
-/// routed through here, and non-subscribers keep metering cloud calls with consumable
-/// credits.
+/// the store layer. Exactly the `pro` entitlement unlocks unlimited cloud
+/// identifications; non-subscribers meter them with free and consumable credits.
 ///
 /// The last authoritative verdict is persisted (``ProEntitlementStore``) and seeds
 /// ``isPro`` at init, so a paying subscriber launching offline keeps Pro until the live

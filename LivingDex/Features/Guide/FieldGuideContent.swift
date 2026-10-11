@@ -36,13 +36,13 @@ enum FieldGuide {
     static let steps: [Step] = [
         .init(
             symbol: "camera.viewfinder", title: "Point & catch",
-            body: "Aim your camera at any living thing — a bird, a wildflower, a mushroom, a bug — and tap to catch. That's the whole action."),
+            body: "Aim your camera at any living thing — a bird, a wildflower, a mushroom, a bug — and tap to catch. No creature in reach? Identify a photo from your library instead."),
         .init(
-            symbol: "iphone", title: "Identified on your device",
-            body: "An on-device AI names the species instantly, for free, and works offline. Nothing leaves your phone."),
+            symbol: "sparkle.magnifyingglass", title: "Named by cloud AI",
+            body: "Your photo is sent over an encrypted connection to a vision AI that names the species and says how sure it is. You start with 30 free identifications; each one uses a credit."),
         .init(
-            symbol: "cloud", title: "Cloud ID for tricky ones",
-            body: "If the on-device model isn't sure, Living Dex can ask a more powerful cloud AI for a confident answer. That uses one credit — and Pro members get unlimited cloud IDs."),
+            symbol: "checkmark.seal", title: "Checked against real science",
+            body: "The name is verified against GBIF, the world's biodiversity database. A misspelled or invented species never reaches your Dex — and Pro members identify without limits."),
         .init(
             symbol: "square.grid.2x2", title: "Build your Dex",
             body: "Every confirmed catch is saved to your collection, sorted by realm — animals, plants, fungi, protists, and more — each with a rarity tier drawn from real ecological data."),
@@ -124,19 +124,19 @@ enum FieldGuide {
 
     static let concepts: [Concept] = [
         .init(
-            title: "On-device ID vs Cloud ID",
-            body: "On-device ID runs a compact AI model right on your phone: free, private, offline, instant. Cloud ID is a heavier vision model (Claude, via our backend) we fall back to only when the on-device model isn't confident — more accurate on hard cases, but it needs a connection and costs one credit."),
+            title: "How identification works",
+            body: "A vision AI looks at your photo and proposes a species with a confidence score. Living Dex then verifies that name against GBIF and rejects anything that isn't a real, accepted species. The photo is sent only when you identify, over an encrypted connection, and is used only for that — it needs a connection."),
         .init(
             title: "Credits & Pro",
-            body: "A cloud ID costs one credit. Free users get a metered allowance and can buy consumable credit packs; a Pro subscription removes the meter entirely — unlimited cloud IDs. On-device IDs are always free and never touch your credits."),
+            body: "Each identification costs one credit, even when the AI finds nothing clear. Every device starts with 30 free; after that you can buy a credit pack or go Pro for unlimited identifications. Browsing your Dex, Nearby and field entries is always free."),
         .init(
             title: "Regional (Nearby) Dex",
             body: "Your personal checklist of species that realistically occur near your location, built from real occurrence records. Uncaught species appear as locked silhouettes; catching one in the wild reveals its full entry. It's a map of what you could find, not just what you have."),
         .init(
             title: "Confidence",
-            body: "Every identification carries a confidence level — how sure the model is about the match. High-confidence catches straight away; low confidence is what triggers the optional cloud-ID fallback, so you get a reliable answer instead of a guess."),
+            body: "Every identification carries a confidence level — how sure the model is about the match. A low-confidence result isn't added to your Dex: you'll be asked for a clearer, closer shot, so your collection holds answers rather than guesses."),
         .init(
             title: "Where the data comes from",
-            body: "Living Dex is built on real science, not invented facts. Species lists, ranges, and fact-sheets come from GBIF. Animal calls and photos come from Wikimedia Commons and Xeno-canto. The entry text is AI-written but grounded in those real fact-sheets — the AI phrases the story; the facts underneath are sourced."),
+            body: "Living Dex is built on real science, not invented facts. Species lists, ranges, and fact-sheets come from GBIF. Animal calls and photos come from Wikimedia Commons and Xeno-canto. Field entries are written by on-device AI where your phone supports it, otherwise they quote the sourced Wikipedia summary — the facts underneath are always sourced."),
     ]
 }

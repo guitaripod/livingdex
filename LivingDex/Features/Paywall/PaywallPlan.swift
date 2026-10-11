@@ -55,7 +55,7 @@ nonisolated enum PaywallPlansState: Sendable, Equatable {
     case unavailable
 }
 
-/// The RevenueCat entitlement that unlocks Living Dex Pro (unlimited Claude cloud
+/// The RevenueCat entitlement that unlocks Living Dex Pro (unlimited cloud
 /// identifications + the future "ask the creature" Q&A). The backend re-verifies it on
 /// every metered request; the client value only drives UI gating.
 enum LivingDexPro {
