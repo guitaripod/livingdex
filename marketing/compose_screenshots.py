@@ -2,7 +2,7 @@
 """Composes the App Store screenshots: raw simulator captures -> `frames` bezel ->
 brand gradient, headline and shadow. Usage: compose_screenshots.py RAW_DIR OUT_DIR
 
-RAW_DIR holds field/reveal/caught/nearby/card/profile .png captured at 1320x2868
+RAW_DIR holds field/starter/reveal/caught/nearby/card/profile .png captured at 1320x2868
 (scripts/capture-demo-screens.sh). The bezel always comes from the `frames` CLI;
 this script only adds background, caption and shadow around the framed result.
 """
@@ -18,6 +18,7 @@ CANVAS = (1320, 2868)
 FONT = ("/System/Library/Fonts/Avenir Next.ttc", 8)
 SHOTS = [
     ("field", ["Point at", "anything alive"]),
+    ("starter", ["Choose your", "starter"]),
     ("reveal", ["Every catch", "is a card"]),
     ("caught", ["Build your", "Dex"]),
     ("nearby", ["Find what lives", "near you"]),
