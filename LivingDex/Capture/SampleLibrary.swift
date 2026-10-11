@@ -7,7 +7,11 @@ enum SampleLibrary {
 
     /// The sample at `index`, wrapping around the rotation.
     static func image(at index: Int, bundle: Bundle = .main) -> UIImage? {
-        let name = names[((index % names.count) + names.count) % names.count]
+        image(named: names[((index % names.count) + names.count) % names.count], bundle: bundle)
+    }
+
+    /// A bundled photo by resource name.
+    static func image(named name: String, bundle: Bundle = .main) -> UIImage? {
         guard let url = bundle.url(forResource: name, withExtension: "jpg") else { return nil }
         return UIImage(contentsOfFile: url.path)
     }

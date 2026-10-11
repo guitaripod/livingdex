@@ -22,6 +22,7 @@ final class FieldViewController: UIViewController {
     private let loadingView = CameraLoadingView()
     private var cancellables = Set<AnyCancellable>()
     private var creditsKnown = false
+    private var photoHint: FieldHintView?
     private lazy var photoImporter = PhotoImporter(
         onImage: { [weak self] image in self?.identifyImported(image) },
         onBegin: { [weak self] in self?.statusChip.setText("Opening photo…") },
@@ -368,6 +369,30 @@ final class FieldViewController: UIViewController {
             UIAccessibility.post(notification: .announcement, argument: "Camera ready")
         }
         Haptics.tap()
+        scheduleFirstRunHint()
+    }
+
+    /// The first time the HUD appears after onboarding, points out the photo button — for the player
+    /// with nothing in reach — once, a moment after the camera settles.
+    private func scheduleFirstRunHint() {
+        guard AppSettings.hasOnboarded, !AppSettings.hasSeenFieldHint, photoHint == nil else { return }
+        AppSettings.hasSeenFieldHint = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) { [weak self] in
+            guard let self, !self.photosButton.isHidden, self.presentedViewController == nil else { return }
+            let hint = FieldHintView(text: "Nothing to point at? Pick a photo or try a sample.") { [weak self] in
+                self?.photoHint = nil
+            }
+            hint.translatesAutoresizingMaskIntoConstraints = false
+            self.view.addSubview(hint)
+            NSLayoutConstraint.activate([
+                hint.leadingAnchor.constraint(equalTo: self.photosButton.leadingAnchor, constant: -4),
+                hint.bottomAnchor.constraint(equalTo: self.photosButton.topAnchor, constant: -4),
+                hint.widthAnchor.constraint(lessThanOrEqualToConstant: 270),
+                hint.trailingAnchor.constraint(lessThanOrEqualTo: self.view.safeAreaLayoutGuide.trailingAnchor, constant: -DesignSystem.Spacing.m),
+            ])
+            self.photoHint = hint
+            hint.show()
+        }
     }
 
     private func armRevealTimeout() {
@@ -524,6 +549,7 @@ final class FieldViewController: UIViewController {
     // MARK: Capture
 
     @objc private func didTapCapture() {
+        photoHint?.dismiss()
         guard !isBusy else { return }
         CloudConsent.ensure(from: self) { [weak self] in self?.captureFromCamera() }
     }
@@ -545,11 +571,13 @@ final class FieldViewController: UIViewController {
     }
 
     private func chooseFromLibrary() {
+        photoHint?.dismiss()
         guard !isBusy else { return }
         photoImporter.present(from: self)
     }
 
     private func trySample() {
+        photoHint?.dismiss()
         guard !isBusy else { return }
         guard let image = SampleLibrary.next() else {
             report("Couldn't load the sample — try again")
@@ -772,6 +800,10 @@ extension FieldViewController {
         creditsKnown = true
         creditsButton.configure(balance: 27, isPro: false)
         creditsButton.isHidden = false
+        if ProcessInfo.processInfo.environment["LIVINGDEX_DEMO_HINT"] != nil {
+            AppSettings.hasSeenFieldHint = false
+            scheduleFirstRunHint()
+        }
     }
 }
 #endif

@@ -18,3 +18,6 @@ LivingDex/Secrets.swift
 marketing/source-photos/*.jpg
 marketing/appstore/raw/
 marketing/appstore/screenshots/
+
+## Agent worktrees and scratch
+.claude/

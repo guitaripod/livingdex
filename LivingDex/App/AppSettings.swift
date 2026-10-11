@@ -9,7 +9,9 @@ enum AppSettings {
         static let appearance = "appearance"
         static let hasAcceptedCloudAI = "hasAcceptedCloudAI"
         static let sampleCursor = "sampleCursor"
-        static let all = [hasOnboarded, appearance, hasAcceptedCloudAI, sampleCursor]
+        static let hasChosenStarter = "hasChosenStarter"
+        static let hasSeenFieldHint = "hasSeenFieldHint"
+        static let all = [hasOnboarded, appearance, hasAcceptedCloudAI, sampleCursor, hasChosenStarter, hasSeenFieldHint]
     }
 
     static var hasOnboarded: Bool {
@@ -22,6 +24,18 @@ enum AppSettings {
     static var hasAcceptedCloudAI: Bool {
         get { defaults.bool(forKey: Key.hasAcceptedCloudAI) }
         set { defaults.set(newValue, forKey: Key.hasAcceptedCloudAI) }
+    }
+
+    /// Whether the player already took their starter, so a restarted first run never gifts a second.
+    static var hasChosenStarter: Bool {
+        get { defaults.bool(forKey: Key.hasChosenStarter) }
+        set { defaults.set(newValue, forKey: Key.hasChosenStarter) }
+    }
+
+    /// Whether the one-time "nothing to point at?" hint over the Field photo button has been shown.
+    static var hasSeenFieldHint: Bool {
+        get { defaults.bool(forKey: Key.hasSeenFieldHint) }
+        set { defaults.set(newValue, forKey: Key.hasSeenFieldHint) }
     }
 
     /// Position in the bundled sample-photo rotation, so each "Try a sample photo"

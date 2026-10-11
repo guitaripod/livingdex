@@ -12,6 +12,8 @@ final class CardRevealViewController: UIViewController {
     private let progress: ProgressEvent?
     private let caption: String?
 
+    var onDismiss: (() -> Void)?
+
     private let card = GlassPanel(cornerRadius: DesignSystem.Radius.card)
     private var sparkleLayer: CAEmitterLayer?
     private var dismissAnimator: UIViewPropertyAnimator?
@@ -47,6 +49,13 @@ final class CardRevealViewController: UIViewController {
         super.viewDidLayoutSubviews()
         card.layer.shadowPath = UIBezierPath(
             roundedRect: card.bounds, cornerRadius: DesignSystem.Radius.card).cgPath
+    }
+
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        guard isBeingDismissed || presentingViewController == nil else { return }
+        onDismiss?()
+        onDismiss = nil
     }
 
     override func viewDidAppear(_ animated: Bool) {

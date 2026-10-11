@@ -69,7 +69,7 @@ enum DemoSeeder {
     }
 
     static func seedIfNeeded() {
-        guard isEnabled else { return }
+        guard isEnabled, route != "onboarding" else { return }
         AppSettings.hasOnboarded = true
         seedRegionalCache()
         let store = CollectionStore.shared
