@@ -73,12 +73,12 @@ final class ProfileHeaderView: UIView {
             levelStack.centerYAnchor.constraint(equalTo: ringContainer.centerYAnchor),
 
             top.topAnchor.constraint(equalTo: topAnchor, constant: 8),
-            top.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
-            top.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            top.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 20),
+            top.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -20),
 
             xpLabel.topAnchor.constraint(equalTo: top.bottomAnchor, constant: 14),
-            xpLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
-            xpLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
+            xpLabel.leadingAnchor.constraint(equalTo: safeAreaLayoutGuide.leadingAnchor, constant: 20),
+            xpLabel.trailingAnchor.constraint(equalTo: safeAreaLayoutGuide.trailingAnchor, constant: -20),
             xpLabel.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -16),
         ])
         self.ringContainer = ringContainer

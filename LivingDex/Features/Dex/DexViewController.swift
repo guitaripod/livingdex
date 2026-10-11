@@ -56,7 +56,7 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         segmented.addTarget(self, action: #selector(modeChanged), for: .valueChanged)
         navigationItem.titleView = segmented
         #if DEBUG
-        if DemoSeeder.route == "caught" || DemoSeeder.route == "reveal" { segmented.selectedSegmentIndex = 1; mode = .caught }
+        if ["caught", "reveal", "search"].contains(DemoSeeder.route) { segmented.selectedSegmentIndex = 1; mode = .caught }
         #endif
 
         configureCollectionView()
@@ -71,9 +71,14 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         super.viewDidAppear(animated)
         if regionState != .loading { fetchRegion(force: false) }
         #if DEBUG
-        if DemoSeeder.route == "card", !didDemoPush, let entry = caught.first {
+        if DemoSeeder.route == "card", !didDemoPush, let entry = DemoSeeder.cardEntry(in: caught) {
             didDemoPush = true
             navigationController?.pushViewController(CardDetailViewController(entry: entry), animated: false)
+        }
+        if let query = DemoSeeder.searchQuery, !didDemoPush {
+            didDemoPush = true
+            navigationItem.searchController?.searchBar.text = query
+            scheduleSearch(query)
         }
         if DemoSeeder.route == "reveal", !didDemoPush {
             didDemoPush = true
@@ -89,20 +94,8 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
     // MARK: Layout
 
     private func configureCollectionView() {
-        let layout = UICollectionViewCompositionalLayout { _, _ in
-            let item = NSCollectionLayoutItem(layoutSize: .init(
-                widthDimension: .fractionalWidth(1.0 / 3.0), heightDimension: .fractionalHeight(1)))
-            item.contentInsets = .init(top: 5, leading: 5, bottom: 5, trailing: 5)
-            let group = NSCollectionLayoutGroup.horizontal(
-                layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .fractionalWidth(0.36)),
-                subitems: [item])
-            let section = NSCollectionLayoutSection(group: group)
-            section.contentInsets = .init(top: 6, leading: 8, bottom: 24, trailing: 8)
-            let header = NSCollectionLayoutBoundarySupplementaryItem(
-                layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(96)),
-                elementKind: DexHeaderView.elementKind, alignment: .top)
-            section.boundarySupplementaryItems = [header]
-            return section
+        let layout = UICollectionViewCompositionalLayout { [weak self] _, environment in
+            self?.gridSection(in: environment)
         }
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
@@ -119,6 +112,45 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
+    }
+
+    private static let gridItemInset: CGFloat = 5
+    private static let gridSectionMargin: CGFloat = 8
+    private static let cellAspect: CGFloat = 1.09
+
+    override func viewSafeAreaInsetsDidChange() {
+        super.viewSafeAreaInsetsDidChange()
+        collectionView?.collectionViewLayout.invalidateLayout()
+    }
+
+    /// The grid for the width the layout is given. A phone-width space keeps three columns
+    /// inside the safe area. Anything wider takes an even count, inset equally on both sides
+    /// by the larger safe-area edge so the middle of the grid sits at the middle of the window
+    /// and a vertical fold falls between two columns, never through a tile.
+    private func gridSection(in environment: any NSCollectionLayoutEnvironment) -> NSCollectionLayoutSection {
+        let insets = collectionView.safeAreaInsets
+        let width = environment.container.contentSize.width
+        let columns = AdaptiveLayout.gridColumnCount(forWidth: width - insets.left - insets.right)
+        let wide = columns > AdaptiveLayout.phoneGridColumns
+        let sideInset = wide ? max(insets.left, insets.right) + Self.gridSectionMargin : Self.gridSectionMargin  // duo-audit:ignore symmetric about the window centre so the fold falls between columns
+        let spanWidth = wide ? width - 2 * sideInset : width - insets.left - insets.right - 2 * Self.gridSectionMargin
+        let rowHeight = spanWidth / CGFloat(columns) * Self.cellAspect
+
+        let item = NSCollectionLayoutItem(layoutSize: .init(
+            widthDimension: .fractionalWidth(1.0 / CGFloat(columns)), heightDimension: .fractionalHeight(1)))
+        item.contentInsets = .init(
+            top: Self.gridItemInset, leading: Self.gridItemInset, bottom: Self.gridItemInset, trailing: Self.gridItemInset)
+        let group = NSCollectionLayoutGroup.horizontal(
+            layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .absolute(rowHeight)),
+            subitems: [item])
+        let section = NSCollectionLayoutSection(group: group)
+        section.contentInsetsReference = wide ? .none : .safeArea
+        section.contentInsets = .init(top: 6, leading: sideInset, bottom: 24, trailing: sideInset)
+        let header = NSCollectionLayoutBoundarySupplementaryItem(
+            layoutSize: .init(widthDimension: .fractionalWidth(1), heightDimension: .estimated(96)),
+            elementKind: DexHeaderView.elementKind, alignment: .top)
+        section.boundarySupplementaryItems = [header]
+        return section
     }
 
     private func configureDataSource() {
@@ -153,6 +185,7 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         let item = UIBarButtonItem(
             image: UIImage(systemName: "line.3.horizontal.decrease.circle"),
             menu: buildFilterMenu())
+        item.title = "Filter"
         navigationItem.rightBarButtonItems = [item]
     }
 

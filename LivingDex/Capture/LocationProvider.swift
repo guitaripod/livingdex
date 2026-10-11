@@ -68,6 +68,9 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate, @unchecked Se
     /// warmed fix so capture stays instant, and opportunistically re-warms when
     /// that fix is stale so subsequent captures aren't geo-tagged with an old one.
     func currentContext() -> CaptureContext {
+        #if DEBUG
+        if let demo = DemoSeeder.demoContext { return demo }
+        #endif
         if isFixStale { warmUp() }
         // Fall back to CoreLocation's cached fix only if it's fresh: `manager.location`
         // can be hours old and from another city on a cold launch, which would

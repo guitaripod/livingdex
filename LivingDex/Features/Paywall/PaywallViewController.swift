@@ -22,6 +22,7 @@ final class PaywallViewController: UIViewController {
     private var cancellables = Set<AnyCancellable>()
 
     private let scrollView = UIScrollView()
+    private static let columnWidth: CGFloat = 560
     private let cardsStack = UIStackView()
     private let ctaButton = UIButton(configuration: {
         var config = UIButton.Configuration.borderedProminent()
@@ -39,8 +40,9 @@ final class PaywallViewController: UIViewController {
     private var isPurchasing = false
     private var isRestoring = false
     private lazy var restoreBarItem = UIBarButtonItem(
-        title: "Restore",
-        primaryAction: UIAction { [weak self] _ in self?.restore() })
+        primaryAction: UIAction(title: "Restore", image: UIImage(systemName: "arrow.clockwise")) { [weak self] _ in
+            self?.restore()
+        })
 
     init(
         service: SubscriptionService = .shared,
@@ -71,7 +73,6 @@ final class PaywallViewController: UIViewController {
     }
 
     private func layoutContent() {
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.alwaysBounceVertical = true
         view.addSubview(scrollView)
 
@@ -105,22 +106,14 @@ final class PaywallViewController: UIViewController {
         column.setCustomSpacing(DesignSystem.Spacing.m, after: cardsStack)
         column.setCustomSpacing(DesignSystem.Spacing.m, after: ctaButton)
         column.setCustomSpacing(DesignSystem.Spacing.s, after: trialNoteLabel)
-        column.translatesAutoresizingMaskIntoConstraints = false
         scrollView.addSubview(column)
 
-        let content = scrollView.contentLayoutGuide
-        let frame = scrollView.frameLayoutGuide
+        _ = ScrollColumn(
+            content: column, in: scrollView, of: view, margin: DesignSystem.Spacing.l,
+            maxWidth: Self.columnWidth, top: DesignSystem.Spacing.l, bottom: DesignSystem.Spacing.l)
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-
-            column.topAnchor.constraint(equalTo: content.topAnchor, constant: DesignSystem.Spacing.l),
-            column.bottomAnchor.constraint(equalTo: content.bottomAnchor, constant: -DesignSystem.Spacing.l),
-            column.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: DesignSystem.Spacing.l),
-            column.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -DesignSystem.Spacing.l),
-            column.widthAnchor.constraint(equalTo: frame.widthAnchor, constant: -2 * DesignSystem.Spacing.l),
         ])
     }
 
