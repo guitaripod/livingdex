@@ -42,7 +42,7 @@ Backend is [`guitaripod/mako`](https://github.com/guitaripod/mako) (shared AI-cr
 
 ## Demo and store assets
 
-DEBUG builds read `LIVINGDEX_DEMO=<route>` (`field`, `reveal`, `caught`, `nearby`, `card`, `profile`, `onboarding`, `sample`) and `LIVINGDEX_DEMO_PHOTOS=<folder>` to seed a populated collection. `scripts/capture-demo-screens.sh` captures the routes from a simulator and `marketing/compose_screenshots.py` frames them with the `frames` CLI into the App Store set; `marketing/appstore/metadata.json` is the en-US listing.
+DEBUG builds read `LIVINGDEX_DEMO=<route>` (`field`, `reveal`, `caught`, `nearby`, `card`, `profile`, `guide`, `guide-realms`, `onboarding` with `LIVINGDEX_DEMO_STEP`, `sample`, `sharecards`) and `LIVINGDEX_DEMO_PHOTOS=<folder>` to seed a populated collection. `scripts/capture-demo-screens.sh` captures the routes from a simulator (`route[@step][=name]`; the photos folder is `marketing/demo-photos`, not committed) and `marketing/compose_screenshots.py` frames them with the `frames` CLI into the App Store set; `marketing/appstore/metadata.json` is the en-US listing.
 
 ## Roadmap
 
