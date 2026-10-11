@@ -65,8 +65,8 @@ final class SpeciesEnricher: Sendable {
             items.append(URLQueryItem(name: "taxonKey", value: key))
         }
         if let lat = context.latitude, let lng = context.longitude {
-            items.append(URLQueryItem(name: "lat", value: String(lat)))
-            items.append(URLQueryItem(name: "lng", value: String(lng)))
+            items.append(URLQueryItem(name: "lat", value: String(Self.coarsened(lat))))
+            items.append(URLQueryItem(name: "lng", value: String(Self.coarsened(lng))))
         }
         components.queryItems = items
         guard let url = components.url else { return .unavailable }
@@ -93,6 +93,12 @@ final class SpeciesEnricher: Sendable {
             AppLogger.shared.warn("enrich failed: \(error.localizedDescription)", category: .identify)
             return .unavailable
         }
+    }
+
+    /// Rounds a coordinate to 0.1° (about 11 km). Rarity is judged over a 150 km radius, so
+    /// anything finer would only reveal more about where the player stands.
+    static func coarsened(_ degrees: Double) -> Double {
+        (degrees * 10).rounded() / 10
     }
 
     static func gbifKey(from speciesId: String) -> String? {

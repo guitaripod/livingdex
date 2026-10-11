@@ -148,6 +148,15 @@ final class RegionStore: @unchecked Sendable {
         try? data.write(to: url, options: .atomic)
     }
 
+    /// Forgets every cached cell, in memory and on disk — used by account deletion.
+    func clear() {
+        lock.withLock {
+            cache = [:]
+            loadedFromDisk = true
+            if let url = cacheFileURL() { try? FileManager.default.removeItem(at: url) }
+        }
+    }
+
     private struct RegionResponse: Decodable {
         var species: [Item]
         struct Item: Decodable {

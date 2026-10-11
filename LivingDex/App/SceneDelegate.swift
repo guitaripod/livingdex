@@ -37,9 +37,19 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         LocationProvider.shared.stopUpdates()
     }
 
+    /// Returns the app to its first-launch screen — used after account deletion so the
+    /// player lands on a clean onboarding with nothing left behind.
+    func presentFirstRun() {
+        guard let window else { return }
+        UIView.transition(with: window, duration: 0.4, options: .transitionCrossDissolve) {
+            window.rootViewController = Self.makeRoot()
+        }
+    }
+
     private static func makeRoot() -> UIViewController {
         #if DEBUG
         if DemoSeeder.isEnabled {
+            if DemoSeeder.route == "onboarding" { return OnboardingViewController() }
             let root = RootViewController()
             switch DemoSeeder.route {
             case "profile": root.selectedIndex = 2
