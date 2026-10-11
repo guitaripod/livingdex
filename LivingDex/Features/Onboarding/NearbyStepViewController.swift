@@ -79,19 +79,29 @@ final class NearbyStepViewController: OnboardingStepViewController {
             scroll.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             content.topAnchor.constraint(equalTo: scroll.contentLayoutGuide.topAnchor, constant: DesignSystem.Spacing.s),
             content.bottomAnchor.constraint(equalTo: scroll.contentLayoutGuide.bottomAnchor, constant: -DesignSystem.Spacing.m),
-            content.leadingAnchor.constraint(equalTo: scroll.frameLayoutGuide.leadingAnchor, constant: margin),
-            content.trailingAnchor.constraint(equalTo: scroll.frameLayoutGuide.trailingAnchor, constant: -margin),
             grid.heightAnchor.constraint(equalTo: grid.widthAnchor, multiplier: 0.9).withPriority(.defaultHigh),
         ])
+        let fillWidth = content.widthAnchor.constraint(equalTo: guide.widthAnchor, constant: -margin * 2)
+        fillWidth.priority = .defaultHigh
+        let fillActions = actions.widthAnchor.constraint(equalTo: guide.widthAnchor, constant: -margin * 2)
+        fillActions.priority = .defaultHigh
         compactConstraints = [
+            fillActions,
+            content.centerXAnchor.constraint(equalTo: guide.centerXAnchor),
+            content.widthAnchor.constraint(lessThanOrEqualToConstant: OnboardingStyle.maxContentWidth),
+            fillWidth,
+            actions.widthAnchor.constraint(lessThanOrEqualToConstant: OnboardingStyle.maxContentWidth),
+            actions.centerXAnchor.constraint(equalTo: guide.centerXAnchor),
             scroll.bottomAnchor.constraint(equalTo: actions.topAnchor, constant: -DesignSystem.Spacing.s),
-            actions.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: margin),
-            actions.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -margin),
+            actions.leadingAnchor.constraint(greaterThanOrEqualTo: guide.leadingAnchor, constant: margin),
+            actions.trailingAnchor.constraint(lessThanOrEqualTo: guide.trailingAnchor, constant: -margin),
             actions.bottomAnchor.constraint(equalTo: guide.bottomAnchor, constant: -margin),
         ]
         wideConstraints = [
+            content.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: margin),
+            content.trailingAnchor.constraint(equalTo: guide.trailingAnchor, constant: -margin),
             scroll.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            header.widthAnchor.constraint(equalTo: scroll.frameLayoutGuide.widthAnchor, multiplier: 0.38),
+            header.widthAnchor.constraint(equalTo: guide.widthAnchor, multiplier: 0.38),
             actions.leadingAnchor.constraint(equalTo: guide.leadingAnchor, constant: margin * 1.5),
             actions.widthAnchor.constraint(equalTo: guide.widthAnchor, multiplier: 0.38),
             actions.bottomAnchor.constraint(equalTo: guide.bottomAnchor, constant: -margin),

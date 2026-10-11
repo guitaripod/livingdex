@@ -43,8 +43,8 @@ final class WelcomeStepViewController: OnboardingStepViewController {
         width.priority = .defaultHigh
         NSLayoutConstraint.activate([
             content.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            content.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: DesignSystem.Spacing.l),
-            content.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -DesignSystem.Spacing.l),
+            content.leadingAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leadingAnchor, constant: DesignSystem.Spacing.l),
+            content.trailingAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -DesignSystem.Spacing.l),
             width,
             content.topAnchor.constraint(greaterThanOrEqualTo: view.topAnchor),
             content.bottomAnchor.constraint(equalTo: beginButton.topAnchor, constant: -DesignSystem.Spacing.l),
@@ -52,11 +52,11 @@ final class WelcomeStepViewController: OnboardingStepViewController {
 
             beginButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             beginButton.widthAnchor.constraint(lessThanOrEqualToConstant: OnboardingStyle.maxContentWidth),
-            beginButton.leadingAnchor.constraint(greaterThanOrEqualTo: view.leadingAnchor, constant: DesignSystem.Spacing.l),
-            beginButton.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor, constant: -DesignSystem.Spacing.l),
+            beginButton.leadingAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.leadingAnchor, constant: DesignSystem.Spacing.l),
+            beginButton.trailingAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -DesignSystem.Spacing.l),
             beginButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -DesignSystem.Spacing.l),
         ])
-        let fill = beginButton.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -DesignSystem.Spacing.l * 2)
+        let fill = beginButton.widthAnchor.constraint(equalTo: view.safeAreaLayoutGuide.widthAnchor, constant: -DesignSystem.Spacing.l * 2)
         fill.priority = .defaultHigh
         fill.isActive = true
 

@@ -73,18 +73,18 @@ final class ReadyStepViewController: OnboardingStepViewController {
 
             list.topAnchor.constraint(equalTo: scroll.contentLayoutGuide.topAnchor, constant: DesignSystem.Spacing.s),
             list.bottomAnchor.constraint(equalTo: scroll.contentLayoutGuide.bottomAnchor, constant: -DesignSystem.Spacing.s),
-            list.centerXAnchor.constraint(equalTo: scroll.frameLayoutGuide.centerXAnchor),
+            list.centerXAnchor.constraint(equalTo: guide.centerXAnchor),
             list.leadingAnchor.constraint(greaterThanOrEqualTo: guide.leadingAnchor, constant: margin),
             list.trailingAnchor.constraint(lessThanOrEqualTo: guide.trailingAnchor, constant: -margin),
             width,
 
-            openButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            openButton.centerXAnchor.constraint(equalTo: guide.centerXAnchor),
             openButton.leadingAnchor.constraint(greaterThanOrEqualTo: guide.leadingAnchor, constant: margin),
             openButton.trailingAnchor.constraint(lessThanOrEqualTo: guide.trailingAnchor, constant: -margin),
             openButton.widthAnchor.constraint(lessThanOrEqualToConstant: OnboardingStyle.maxContentWidth),
             openButton.bottomAnchor.constraint(equalTo: guide.bottomAnchor, constant: -margin),
         ])
-        let fill = openButton.widthAnchor.constraint(equalTo: view.widthAnchor, constant: -margin * 2)
+        let fill = openButton.widthAnchor.constraint(equalTo: guide.widthAnchor, constant: -margin * 2)
         fill.priority = .defaultHigh
         fill.isActive = true
 
