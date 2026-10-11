@@ -3,6 +3,9 @@ import UIKit
 /// A row of the realms of life, each an illustrated medallion with its count. In the Dex it is both
 /// a progress read-out and the realm filter: tap a realm to see only it, tap again to clear.
 final class RealmStripView: UIView {
+    /// The strip's height at the current text size: the medallion plus both caption lines.
+    static var preferredHeight: CGFloat { RealmChip.preferredHeight }
+
     struct Entry {
         let realm: Realm
         let detail: String
@@ -77,20 +80,22 @@ private final class RealmChip: UIControl {
         medallion.image = RealmArt.tile(for: realm, seed: 4)
         medallion.contentMode = .scaleAspectFill
         medallion.clipsToBounds = true
-        medallion.layer.cornerRadius = 30
+        medallion.layer.cornerRadius = Self.medallionDiameter / 2
         medallion.layer.borderWidth = 2.5
         medallion.layer.borderColor = UIColor.separator.cgColor
         medallion.isUserInteractionEnabled = false
         medallion.translatesAutoresizingMaskIntoConstraints = false
 
         nameLabel.text = RealmArt.displayName(realm)
-        nameLabel.font = .systemFont(ofSize: 12, weight: .bold)
+        nameLabel.font = Self.nameFont
+        nameLabel.adjustsFontForContentSizeCategory = true
         nameLabel.textColor = .label
         nameLabel.textAlignment = .center
         nameLabel.adjustsFontSizeToFitWidth = true
         nameLabel.minimumScaleFactor = 0.8
 
-        detailLabel.font = .systemFont(ofSize: 11, weight: .medium)
+        detailLabel.font = Self.detailFont
+        detailLabel.adjustsFontForContentSizeCategory = true
         detailLabel.textColor = .secondaryLabel
         detailLabel.textAlignment = .center
 
@@ -107,14 +112,28 @@ private final class RealmChip: UIControl {
         addSubview(column)
         column.pinEdges(to: self)
         NSLayoutConstraint.activate([
-            medallion.widthAnchor.constraint(equalToConstant: 60),
-            medallion.heightAnchor.constraint(equalToConstant: 60),
+            medallion.widthAnchor.constraint(equalToConstant: Self.medallionDiameter),
+            medallion.heightAnchor.constraint(equalToConstant: Self.medallionDiameter),
             widthAnchor.constraint(greaterThanOrEqualToConstant: 64),
         ])
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError() }
+
+    static var nameFont: UIFont {
+        UIFontMetrics(forTextStyle: .caption1).scaledFont(for: .systemFont(ofSize: 12, weight: .bold), maximumPointSize: 20)
+    }
+
+    static var detailFont: UIFont {
+        UIFontMetrics(forTextStyle: .caption1).scaledFont(for: .systemFont(ofSize: 11, weight: .medium), maximumPointSize: 18)
+    }
+
+    static var preferredHeight: CGFloat {
+        ceil(medallionDiameter + 5 + nameFont.lineHeight + detailFont.lineHeight) + 12
+    }
+
+    static let medallionDiameter: CGFloat = 60
 
     func update(detail: String, chosen: Bool, filtering: Bool) {
         isChosen = chosen

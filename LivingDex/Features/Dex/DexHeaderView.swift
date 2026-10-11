@@ -26,6 +26,7 @@ final class DexHeaderView: UICollectionReusableView {
 
         captionLabel.font = .preferredFont(forTextStyle: .subheadline)
         captionLabel.adjustsFontForContentSizeCategory = true
+        captionLabel.numberOfLines = 0
         captionLabel.textColor = .secondaryLabel
 
         track.backgroundColor = .tertiarySystemFill
@@ -40,7 +41,7 @@ final class DexHeaderView: UICollectionReusableView {
 
         fillWidth = fill.widthAnchor.constraint(equalTo: track.widthAnchor, multiplier: 0)
         stripTop = realmStrip.topAnchor.constraint(equalTo: track.bottomAnchor, constant: 16)
-        stripHeight = realmStrip.heightAnchor.constraint(equalToConstant: 104)
+        stripHeight = realmStrip.heightAnchor.constraint(equalToConstant: RealmStripView.preferredHeight)
         NSLayoutConstraint.activate([
             countLabel.topAnchor.constraint(equalTo: topAnchor, constant: 10),
             countLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
@@ -66,6 +67,11 @@ final class DexHeaderView: UICollectionReusableView {
             fill.bottomAnchor.constraint(equalTo: track.bottomAnchor),
             fillWidth,
         ])
+
+        registerForTraitChanges([UITraitPreferredContentSizeCategory.self]) { (header: Self, _) in
+            guard !header.realmStrip.isHidden else { return }
+            header.stripHeight.constant = RealmStripView.preferredHeight
+        }
     }
 
     @available(*, unavailable)
@@ -90,7 +96,7 @@ final class DexHeaderView: UICollectionReusableView {
     func showRealms(_ entries: [RealmStripView.Entry], selected: Realm?) {
         realmStrip.isHidden = entries.isEmpty
         stripTop.constant = entries.isEmpty ? 0 : 16
-        stripHeight.constant = entries.isEmpty ? 0 : 104
+        stripHeight.constant = entries.isEmpty ? 0 : RealmStripView.preferredHeight
         realmStrip.configure(entries, selected: selected)
     }
 
