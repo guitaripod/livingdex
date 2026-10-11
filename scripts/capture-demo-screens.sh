@@ -21,7 +21,7 @@ for route in "$@"; do
   "$SIMCTL" privacy "$SIM" grant location "$BUNDLE"
   "$SIMCTL" privacy "$SIM" grant camera "$BUNDLE"
   SIMCTL_CHILD_LIVINGDEX_DEMO="$route" SIMCTL_CHILD_LIVINGDEX_DEMO_PHOTOS="$PHOTOS" \
-    "$SIMCTL" launch "$SIM" "$BUNDLE" >/dev/null
+    "$SIMCTL" launch "$SIM" "$BUNDLE" -AppleLanguages "(en)" -AppleLocale en_US >/dev/null
   sleep "$SETTLE"
   "$SIMCTL" io "$SIM" screenshot "$OUT/$route.png" >/dev/null
   echo "captured $route"

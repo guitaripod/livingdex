@@ -29,12 +29,12 @@ APP = "6787688416"
 PREFIX = "com.guitaripod.livingdex"
 
 # (pack_id, App Store reference name, display name, description, USD price)
-# Credits/prices mirror mako's credit_packs seed; a Sonnet cloud ID ~= 3 credits.
+# Credits/prices mirror mako's credit_packs seed; a credit is one identification.
 PACKS = [
-    ("starter", "Credits Starter 100", "Starter · 100 Credits", "About 30 cloud identifications.", 2.99),
-    ("regular", "Credits Regular 400", "Regular · 400 Credits", "A season of discovery — about 130 IDs.", 9.99),
-    ("propack", "Credits Explorer 1200", "Explorer · 1200 Credits", "For the relentless collector — ~400 IDs.", 24.99),
-    ("science", "Credits Naturalist 2600", "Naturalist · 2600 Credits", "Identify everything — about 860 IDs.", 49.99),
+    ("starter", "Credits Starter 100", "Starter · 100 Credits", "100 identifications.", 2.99),
+    ("regular", "Credits Regular 400", "Regular · 400 Credits", "400 identifications, a season of discovery.", 9.99),
+    ("propack", "Credits Explorer 1200", "Explorer · 1200 Credits", "1,200 identifications for the relentless collector.", 24.99),
+    ("science", "Credits Naturalist 2600", "Naturalist · 2600 Credits", "2,600 identifications: identify everything.", 49.99),
 ]
 
 

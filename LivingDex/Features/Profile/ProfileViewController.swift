@@ -77,6 +77,17 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
         tableView.reloadData()
     }
 
+    #if DEBUG
+    private var didPresentDemoPaywall = false
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        guard DemoSeeder.route == "paywall", !didPresentDemoPaywall else { return }
+        didPresentDemoPaywall = true
+        DemoSeeder.presentPaywall(from: self)
+    }
+    #endif
+
     private func rebuild() {
         let stats = (try? CollectionStore.shared.stats()) ?? .init(speciesCount: 0, totalCatches: 0, byRarity: [:], realms: [], maxRarity: nil)
         let progress = (try? ProgressStore.shared.current()) ?? .initial()

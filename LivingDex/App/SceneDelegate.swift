@@ -53,7 +53,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             if DemoSeeder.route == "onboarding" { return OnboardingViewController() }
             let root = RootViewController()
             switch DemoSeeder.route {
-            case "profile": root.selectedIndex = 2
+            case "profile", "paywall": root.selectedIndex = 2
             case "dex", "card", "caught", "nearby", "reveal": root.selectedIndex = 1
             default: root.selectedIndex = 0
             }
