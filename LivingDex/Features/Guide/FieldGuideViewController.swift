@@ -8,6 +8,8 @@ import UIKit
 final class FieldGuideViewController: UIViewController {
     private let scrollView = UIScrollView()
     private let stack = UIStackView()
+    private var column: ScrollColumn?
+    private var realmFlow: ColumnFlow?
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -18,29 +20,46 @@ final class FieldGuideViewController: UIViewController {
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.alwaysBounceVertical = true
         scrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: DesignSystem.Spacing.l, right: 0)
-        view.addSubview(scrollView)
 
-        stack.translatesAutoresizingMaskIntoConstraints = false
         stack.axis = .vertical
         stack.alignment = .fill
         stack.spacing = DesignSystem.Spacing.m
         scrollView.addSubview(stack)
 
-        let pad = DesignSystem.Spacing.m
+        view.addSubview(scrollView)
+        column = ScrollColumn(
+            content: stack, in: scrollView, of: view, margin: DesignSystem.Spacing.m,
+            maxWidth: AdaptiveLayout.readableColumnWidth + 80, top: DesignSystem.Spacing.m, bottom: 0)
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-
-            stack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: pad),
-            stack.leadingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.leadingAnchor, constant: pad),
-            stack.trailingAnchor.constraint(equalTo: scrollView.frameLayoutGuide.trailingAnchor, constant: -pad),
-            stack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor),
         ])
 
         buildContent()
     }
+
+    override func viewSafeAreaInsetsDidChange() {
+        super.viewSafeAreaInsetsDidChange()
+        column?.centerOnWindow(safeAreaInsets: view.safeAreaInsets)
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        let twoColumns = scrollView.bounds.width >= Self.twoColumnMinimumWidth
+        realmFlow?.setColumnCount(twoColumns ? 2 : 1)
+    }
+
+    private static let twoColumnMinimumWidth: CGFloat = 640
+
+    #if DEBUG
+    /// DEBUG-only: scrolls to the realm cards so the demo can show how they flow into columns.
+    func scrollToRealms() {
+        view.layoutIfNeeded()
+        guard let flow = realmFlow else { return }
+        let top = scrollView.convert(flow.bounds, from: flow).minY
+        scrollView.setContentOffset(CGPoint(x: 0, y: max(0, top - DesignSystem.Spacing.l)), animated: false)
+    }
+    #endif
 
     private func buildContent() {
         stack.addArrangedSubview(heroHeader())
@@ -52,9 +71,11 @@ final class FieldGuideViewController: UIViewController {
 
         stack.addArrangedSubview(sectionHeader("The realms of life"))
         stack.addArrangedSubview(captionLabel("Every living thing belongs to one of these great branches. Here's what makes each one what it is."))
-        for realm in FieldGuide.realms {
-            stack.addArrangedSubview(realmCard(realm))
-        }
+        let flow = ColumnFlow(
+            items: FieldGuide.realms.map(realmCard),
+            spacing: DesignSystem.Spacing.m, columnGap: AdaptiveLayout.foldGap)
+        realmFlow = flow
+        stack.addArrangedSubview(flow)
 
         stack.addArrangedSubview(sectionHeader("Rarity"))
         stack.addArrangedSubview(bodyLabel(FieldGuide.rarityIntro))
@@ -405,11 +426,7 @@ final class FieldGuideViewController: UIViewController {
     }
 
     private func divider() -> UIView {
-        let line = UIView()
-        line.backgroundColor = .separator
-        line.translatesAutoresizingMaskIntoConstraints = false
-        line.heightAnchor.constraint(equalToConstant: 1 / UIScreen.main.scale).isActive = true
-        return line
+        HairlineView()
     }
 
     private func boldFont(_ style: UIFont.TextStyle) -> UIFont {
