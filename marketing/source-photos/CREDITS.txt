@@ -1,0 +1,3 @@
+field-1.jpg | Erinaceus europaeus (European hedgehog) | observer: regexj | https://www.inaturalist.org/observations/311036130 | CC0 1.0 (photo and observation cc0)
+field-2.jpg | Capreolus capreolus (European roe deer) | observer: reosarevok | https://www.inaturalist.org/observations/46824542 | CC0 1.0 (photo and observation cc0)
+field-3.jpg | Vulpes vulpes (red fox) | observer: schylerbrown | https://www.inaturalist.org/observations/78627268 | CC0 1.0 (photo and observation cc0)
