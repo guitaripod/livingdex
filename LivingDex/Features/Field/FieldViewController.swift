@@ -1,4 +1,5 @@
 import AVFoundation
+import Combine
 import UIKit
 
 /// The camera-first "Field" — the app's home. Live preview fills the screen; a
@@ -15,8 +16,15 @@ final class FieldViewController: UIViewController {
     private let captureButton = CaptureButton()
     private let permissionView = CameraPermissionView()
     private let torchButton = GlassIconButton()
+    private let photosButton = GlassIconButton()
+    private let creditsButton = GlassCreditsButton()
     private let zoomChip = GlassChipView()
     private let loadingView = CameraLoadingView()
+    private var cancellables = Set<AnyCancellable>()
+    private var creditsKnown = false
+    private lazy var photoImporter = PhotoImporter(
+        onImage: { [weak self] image in self?.identifyImported(image) },
+        onFailure: { [weak self] in self?.report("Couldn't open that photo — try another") })
 
     private var pinchGesture: UIPinchGestureRecognizer!
     private var focusTapGesture: UITapGestureRecognizer!
@@ -54,6 +62,7 @@ final class FieldViewController: UIViewController {
 
         setupHUD()
         setupGestures()
+        observeCredits()
 
         camera.onFirstFrame = { [weak self] in self?.revealPreview() }
         camera.onInterrupted = { [weak self] in self?.handleInterruption() }
@@ -89,6 +98,12 @@ final class FieldViewController: UIViewController {
     /// tab-away/return keeps the live preview.
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        #if DEBUG
+        if DemoSeeder.route == "field" {
+            presentDemoField()
+            return
+        }
+        #endif
         Haptics.prepare()
         pendingStop?.cancel()
         pendingStop = nil
@@ -106,6 +121,10 @@ final class FieldViewController: UIViewController {
     /// first-run user isn't prompted behind onboarding.
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        #if DEBUG
+        if DemoSeeder.route == "field" { return }
+        if DemoSeeder.route == "sample" { runDemoSample() }
+        #endif
         guard !didRequestPermission else { return }
         didRequestPermission = true
         switch CameraController.authorizationStatus() {
@@ -129,6 +148,9 @@ final class FieldViewController: UIViewController {
     /// moment to (re)start on a cold launch and to recover after the app returns
     /// from the background — but only while the Field is actually on screen.
     @objc private func appDidBecomeActive() {
+        #if DEBUG
+        if DemoSeeder.route == "field" { return }
+        #endif
         guard isViewLoaded, view.window != nil,
               CameraController.authorizationStatus() == .authorized else { return }
         pendingStop?.cancel()
@@ -179,6 +201,21 @@ final class FieldViewController: UIViewController {
         torchButton.addTarget(self, action: #selector(didTapTorch), for: .touchUpInside)
         view.addSubview(torchButton)
 
+        photosButton.translatesAutoresizingMaskIntoConstraints = false
+        photosButton.isHidden = true
+        photosButton.setSymbol("photo.on.rectangle")
+        photosButton.accessibilityLabel = "Identify a photo"
+        photosButton.accessibilityHint = "Choose a photo from your library or try a sample"
+        photosButton.menu = PhotoSourceMenu.make(
+            onLibrary: { [weak self] in self?.chooseFromLibrary() },
+            onSample: { [weak self] in self?.trySample() })
+        view.addSubview(photosButton)
+
+        creditsButton.translatesAutoresizingMaskIntoConstraints = false
+        creditsButton.isHidden = true
+        creditsButton.addTarget(self, action: #selector(didTapCredits), for: .touchUpInside)
+        view.addSubview(creditsButton)
+
         zoomChip.translatesAutoresizingMaskIntoConstraints = false
         zoomChip.isHidden = true
         view.addSubview(zoomChip)
@@ -189,11 +226,24 @@ final class FieldViewController: UIViewController {
             guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
             UIApplication.shared.open(url)
         }
+        permissionView.setPhotoActions(
+            onLibrary: { [weak self] in self?.chooseFromLibrary() },
+            onSample: { [weak self] in self?.trySample() })
         view.addSubview(permissionView)
 
         NSLayoutConstraint.activate([
             statusChip.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             statusChip.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: DesignSystem.Spacing.m),
+            statusChip.leadingAnchor.constraint(greaterThanOrEqualTo: creditsButton.trailingAnchor, constant: DesignSystem.Spacing.s),
+            statusChip.trailingAnchor.constraint(lessThanOrEqualTo: torchButton.leadingAnchor, constant: -DesignSystem.Spacing.s),
+
+            creditsButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: DesignSystem.Spacing.m),
+            creditsButton.centerYAnchor.constraint(equalTo: statusChip.centerYAnchor),
+
+            photosButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: DesignSystem.Spacing.l),
+            photosButton.centerYAnchor.constraint(equalTo: captureButton.centerYAnchor),
+            photosButton.widthAnchor.constraint(equalToConstant: 52),
+            photosButton.heightAnchor.constraint(equalToConstant: 52),
 
             torchButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -DesignSystem.Spacing.m),
             torchButton.centerYAnchor.constraint(equalTo: statusChip.centerYAnchor),
@@ -283,6 +333,8 @@ final class FieldViewController: UIViewController {
         captureButton.isHidden = true
         statusChip.isHidden = true
         torchButton.isHidden = true
+        photosButton.isHidden = true
+        creditsButton.isHidden = true
         zoomChip.isHidden = true
         UIAccessibility.post(notification: .announcement, argument: "Camera loading")
     }
@@ -345,6 +397,8 @@ final class FieldViewController: UIViewController {
         permissionView.isHidden = true
         captureButton.isHidden = false
         statusChip.isHidden = false
+        photosButton.isHidden = false
+        creditsButton.isHidden = !creditsKnown
     }
 
     /// Enables the live controls once a device is confirmed attached — driven by
@@ -378,6 +432,8 @@ final class FieldViewController: UIViewController {
         captureButton.isHidden = true
         statusChip.isHidden = true
         torchButton.isHidden = true
+        photosButton.isHidden = true
+        creditsButton.isHidden = true
         zoomChip.isHidden = true
         pinchGesture.isEnabled = false
         focusTapGesture.isEnabled = false
@@ -466,10 +522,13 @@ final class FieldViewController: UIViewController {
 
     @objc private func didTapCapture() {
         guard !isBusy else { return }
-        isBusy = true
+        CloudConsent.ensure(from: self) { [weak self] in self?.captureFromCamera() }
+    }
+
+    private func captureFromCamera() {
+        guard !isBusy else { return }
+        beginIdentifying()
         Haptics.shutter()
-        captureButton.setCapturing(true)
-        statusChip.setText("Identifying…")
 
         Task { @MainActor in
             let data = await camera.capture()
@@ -478,14 +537,44 @@ final class FieldViewController: UIViewController {
                 finishCapture(reset: "Couldn't capture — try again")
                 return
             }
-            await process(image)
+            await process(image, context: LocationProvider.shared.currentContext())
         }
+    }
+
+    private func chooseFromLibrary() {
+        guard !isBusy else { return }
+        photoImporter.present(from: self)
+    }
+
+    private func trySample() {
+        guard !isBusy else { return }
+        guard let image = SampleLibrary.next() else {
+            report("Couldn't load the sample — try again")
+            return
+        }
+        identifyImported(image)
+    }
+
+    /// Runs a library or sample photo through the same pipeline as a live capture. It
+    /// carries no location, so its rarity is judged against worldwide sightings.
+    private func identifyImported(_ image: UIImage) {
+        guard !isBusy else { return }
+        CloudConsent.ensure(from: self) { [weak self] in
+            guard let self, !self.isBusy else { return }
+            self.beginIdentifying()
+            Task { @MainActor in await self.process(image, context: CaptureContext()) }
+        }
+    }
+
+    private func beginIdentifying() {
+        isBusy = true
+        captureButton.setCapturing(true)
+        statusChip.setText("Identifying…")
     }
 
     /// Renders the outcome of the capture pipeline. All decisions and side effects
     /// happen inside `CaptureFlow.run`; the view controller only surfaces state.
-    private func process(_ image: UIImage) async {
-        let context = LocationProvider.shared.currentContext()
+    private func process(_ image: UIImage, context: CaptureContext) async {
         switch await captureFlow.run(image: image, context: context) {
         case let .identifyFailed(error):
             Haptics.failure()
@@ -508,18 +597,19 @@ final class FieldViewController: UIViewController {
         }
     }
 
-    /// Offers the way out of the metered cap the instant a cloud ID is refused for want of
-    /// credits: go Pro for unlimited cloud IDs, or top up consumable credits. Silent for a
-    /// user who already holds Pro (they should never hit this) — the alert would be noise.
+    /// Offers the way out of the metered cap the instant an identification is refused for
+    /// want of credits: go Pro for unlimited identifications, or top up consumable credits.
+    /// Silent for a user who already holds Pro (they should never hit this) — the alert
+    /// would be noise.
     private func promptGoProForCredits() {
         guard !SubscriptionService.shared.isPro else { return }
         let alert = UIAlertController(
-            title: "Out of cloud IDs",
-            message: "You've used your cloud identifications. Go Pro for unlimited cloud IDs, or add credits to keep identifying.",
+            title: "Out of identifications",
+            message: "You've used your free identifications. Go Pro for unlimited identifications, or add credits to keep identifying.",
             preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Go Pro", style: .default) { [weak self] _ in
             guard let self else { return }
-            PaywallPresenter.present(from: self, reason: "You've hit the cloud-ID cap.")
+            PaywallPresenter.present(from: self, reason: "You've used your free identifications.")
         })
         alert.addAction(UIAlertAction(title: "Not now", style: .cancel))
         present(alert, animated: true)
@@ -532,7 +622,7 @@ final class FieldViewController: UIViewController {
     private static func message(for error: IdentifyError) -> String {
         switch error {
         case .offline: return "You're offline — reconnect and try again"
-        case .creditsExhausted: return "Out of cloud IDs — add credits to keep identifying"
+        case .creditsExhausted: return "Out of identifications — add credits or go Pro"
         case .serverError: return "Identification hiccup — try again in a moment"
         case .noSpecies: return lowConfidenceMessage
         }
@@ -561,7 +651,46 @@ final class FieldViewController: UIViewController {
     private func finishCapture(reset text: String) {
         isBusy = false
         captureButton.setCapturing(false)
-        statusChip.setText(text)
+        report(text)
+    }
+
+    /// Says something to the player: in the status chip while the live HUD is up, or in an
+    /// alert when the camera gate hides it (a photo can be identified without the camera).
+    private func report(_ text: String) {
+        guard statusChip.isHidden else {
+            statusChip.setText(text)
+            return
+        }
+        let alert = UIAlertController(title: nil, message: text, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+
+    // MARK: Credits
+
+    /// Keeps the HUD meter in step with the wallet and the Pro entitlement; it stays
+    /// hidden until an identity exists so it never flashes a misleading zero.
+    private func observeCredits() {
+        let store = AICreditsManager.store
+        Publishers.CombineLatest3(
+            store.$identity, store.$balance, SubscriptionService.shared.entitlementPublisher
+        )
+        .receive(on: DispatchQueue.main)
+        .sink { [weak self] identity, balance, isPro in
+            guard let self else { return }
+            #if DEBUG
+            if DemoSeeder.route == "field" { return }
+            #endif
+            self.creditsKnown = identity != nil
+            self.creditsButton.configure(balance: balance, isPro: isPro)
+            if !self.captureButton.isHidden { self.creditsButton.isHidden = !self.creditsKnown }
+        }
+        .store(in: &cancellables)
+    }
+
+    @objc private func didTapCredits() {
+        Haptics.tap()
+        PaywallPresenter.present(from: self, reason: "Every identification uses a credit.")
     }
 }
 
@@ -575,3 +704,40 @@ extension FieldViewController: UIGestureRecognizerDelegate {
             && !touched.isDescendant(of: permissionView)
     }
 }
+
+#if DEBUG
+extension FieldViewController {
+    /// DEBUG-only: stands a photograph in for the live camera feed so the Field HUD can be
+    /// recorded and screenshotted on a simulator, which has no camera.
+    fileprivate func presentDemoField() {
+        guard let backdrop = DemoSeeder.fieldBackdrop() else { return }
+        let imageView = UIImageView(image: backdrop)
+        imageView.contentMode = .scaleAspectFill
+        imageView.frame = view.bounds
+        imageView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.insertSubview(imageView, at: 0)
+        revealDemoHUD()
+    }
+
+    /// DEBUG-only: runs one bundled sample through the real pipeline shortly after launch,
+    /// so identification can be verified end to end on a device without touching the screen.
+    fileprivate func runDemoSample() {
+        AppSettings.hasAcceptedCloudAI = true
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            trySample()
+        }
+    }
+
+    private func revealDemoHUD() {
+        loadingView.isHidden = true
+        permissionView.isHidden = true
+        dismissGates()
+        torchButton.setSymbol("flashlight.off.fill")
+        torchButton.isHidden = false
+        creditsKnown = true
+        creditsButton.configure(balance: 27, isPro: false)
+        creditsButton.isHidden = false
+    }
+}
+#endif

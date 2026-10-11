@@ -11,6 +11,7 @@ final class GlassPanel: UIView {
     ///   on passive HUD chrome is both wrong and a needless GPU cost.
     init(cornerRadius: CGFloat = DesignSystem.Radius.control, interactive: Bool = false) {
         super.init(frame: .zero)
+        overrideUserInterfaceStyle = .dark
         let effectView: UIVisualEffectView
         if #available(iOS 26.0, *) {
             let glass = UIGlassEffect()
@@ -94,6 +95,89 @@ final class GlassChipView: UIView {
     }
 }
 
+/// A glass pill showing how many identifications are left (or "Pro") — a plain
+/// meter that doubles as the way to get more.
+final class GlassCreditsButton: UIControl {
+    private let panel = GlassPanel(cornerRadius: 18, interactive: true)
+    private let iconView = UIImageView()
+    private let label = UILabel()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        isAccessibilityElement = true
+        accessibilityTraits = .button
+
+        panel.translatesAutoresizingMaskIntoConstraints = false
+        panel.isUserInteractionEnabled = false
+        addSubview(panel)
+
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+        iconView.contentMode = .center
+        iconView.setContentHuggingPriority(.required, for: .horizontal)
+
+        label.font = .preferredFont(forTextStyle: .subheadline)
+        label.adjustsFontForContentSizeCategory = true
+        label.textColor = .white
+        label.layer.shadowColor = UIColor.black.cgColor
+        label.layer.shadowOpacity = 0.5
+        label.layer.shadowRadius = 3
+        label.layer.shadowOffset = .zero
+
+        let stack = UIStackView(arrangedSubviews: [iconView, label])
+        stack.axis = .horizontal
+        stack.spacing = 6
+        stack.alignment = .center
+        stack.isUserInteractionEnabled = false
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        panel.contentView.addSubview(stack)
+
+        NSLayoutConstraint.activate([
+            panel.leadingAnchor.constraint(equalTo: leadingAnchor),
+            panel.trailingAnchor.constraint(equalTo: trailingAnchor),
+            panel.topAnchor.constraint(equalTo: topAnchor),
+            panel.bottomAnchor.constraint(equalTo: bottomAnchor),
+            stack.leadingAnchor.constraint(equalTo: panel.contentView.leadingAnchor, constant: 12),
+            stack.trailingAnchor.constraint(equalTo: panel.contentView.trailingAnchor, constant: -14),
+            stack.topAnchor.constraint(equalTo: panel.contentView.topAnchor, constant: 9),
+            stack.bottomAnchor.constraint(equalTo: panel.contentView.bottomAnchor, constant: -9),
+        ])
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError() }
+
+    /// Shows the balance, warming from white to orange to red as it runs out.
+    func configure(balance: Int, isPro: Bool) {
+        let tint: UIColor
+        let text: String
+        let spoken: String
+        if isPro {
+            tint = DesignSystem.Color.accent
+            text = "Pro"
+            spoken = "Living Dex Pro, unlimited identifications"
+            accessibilityHint = nil
+        } else {
+            tint = balance <= 0 ? .systemRed : (balance <= 3 ? .systemOrange : .white)
+            text = balance <= 0 ? "Get more" : "\(balance) left"
+            spoken = balance <= 0 ? "No identifications left" : (balance == 1 ? "1 identification left" : "\(balance) identifications left")
+            accessibilityHint = "Shows ways to get more identifications"
+        }
+        let config = UIImage.SymbolConfiguration(pointSize: 13, weight: .bold)
+        iconView.image = UIImage(systemName: isPro ? "infinity" : "sparkles", withConfiguration: config)
+        iconView.tintColor = tint
+        label.text = text
+        accessibilityLabel = spoken
+    }
+
+    override var isHighlighted: Bool {
+        didSet {
+            UIView.animate(withDuration: 0.1) {
+                self.transform = self.isHighlighted ? CGAffineTransform(scaleX: 0.95, y: 0.95) : .identity
+            }
+        }
+    }
+}
+
 /// A circular glass button hosting a single SF Symbol — HUD toggles like the
 /// torch. Mirrors the capture control's interactive-glass idiom at button size.
 final class GlassIconButton: UIControl {
@@ -132,6 +216,32 @@ final class GlassIconButton: UIControl {
         let config = UIImage.SymbolConfiguration(pointSize: 18, weight: .semibold)
         imageView.image = UIImage(systemName: name, withConfiguration: config)
     }
+
+    /// Turns the button into a menu trigger: a tap opens `menu` instead of sending
+    /// `.touchUpInside`. UIControl has no menu of its own, so a clear UIButton overlay
+    /// hosts it.
+    var menu: UIMenu? {
+        didSet {
+            menuOverlay.menu = menu
+            menuOverlay.isHidden = menu == nil
+        }
+    }
+
+    private lazy var menuOverlay: UIButton = {
+        let overlay = UIButton(type: .custom)
+        overlay.translatesAutoresizingMaskIntoConstraints = false
+        overlay.showsMenuAsPrimaryAction = true
+        overlay.isHidden = true
+        overlay.accessibilityElementsHidden = true
+        addSubview(overlay)
+        NSLayoutConstraint.activate([
+            overlay.leadingAnchor.constraint(equalTo: leadingAnchor),
+            overlay.trailingAnchor.constraint(equalTo: trailingAnchor),
+            overlay.topAnchor.constraint(equalTo: topAnchor),
+            overlay.bottomAnchor.constraint(equalTo: bottomAnchor),
+        ])
+        return overlay
+    }()
 
     /// Tints the glyph to signal an active/on state (e.g. torch lit).
     func setActive(_ active: Bool) {
