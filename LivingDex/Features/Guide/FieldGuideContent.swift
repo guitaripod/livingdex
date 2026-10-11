@@ -137,6 +137,6 @@ enum FieldGuide {
             body: "Every identification carries a confidence level — how sure the model is about the match. A low-confidence result isn't added to your Dex: you'll be asked for a clearer, closer shot, so your collection holds answers rather than guesses."),
         .init(
             title: "Where the data comes from",
-            body: "Living Dex is built on real science, not invented facts. Species lists, ranges, and fact-sheets come from GBIF. Animal calls and photos come from Wikimedia Commons and Xeno-canto. Field entries are written by on-device AI where your phone supports it, otherwise they quote the sourced Wikipedia summary — the facts underneath are always sourced."),
+            body: "Living Dex is built on real science, not invented facts. Species lists, ranges, and fact-sheets come from GBIF. Animal calls and photos come from Wikimedia Commons and Xeno-canto. Field entries are written by on-device AI where your phone supports it (by cloud AI for Pro members), otherwise they quote the sourced Wikipedia summary — the facts underneath are always sourced."),
     ]
 }

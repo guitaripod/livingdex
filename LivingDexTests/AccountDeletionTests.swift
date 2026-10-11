@@ -46,6 +46,18 @@ final class AccountDeletionTests: XCTestCase {
         XCTAssertEqual(events, ["remote"])
     }
 
+    func testALocalFailureAfterTheRemoteDeletionIsReportedAsLeftovers() async {
+        let recorder = Recorder()
+        do {
+            try await service(recorder, eraseFails: true).deleteEverything()
+            XCTFail("expected a throw")
+        } catch {
+            XCTAssertEqual(error as? AccountDeletionError, .localCleanup)
+        }
+        let events = await recorder.events
+        XCTAssertEqual(events, ["remote", "signOut"])
+    }
+
     func testServerFailureLeavesTheDeviceUntouched() async {
         let recorder = Recorder()
         do {
@@ -115,6 +127,16 @@ final class MakoAccountDeleterTests: XCTestCase {
     func testUnknownKeyCountsAsAlreadyDeleted() async throws {
         StubProtocol.handler = { _ in (401, Data()) }
         try await deleter().deleteRemoteAccount()
+    }
+
+    func testAMissingEndpointIsNotTreatedAsDeleted() async {
+        StubProtocol.handler = { _ in (404, Data()) }
+        do {
+            try await deleter().deleteRemoteAccount()
+            XCTFail("expected a throw")
+        } catch {
+            XCTAssertEqual(error as? AccountDeletionError, .server)
+        }
     }
 
     func testServerErrorThrows() async {

@@ -109,8 +109,9 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
             let toggle = UISwitch()
             toggle.onTintColor = DesignSystem.Color.accent
             toggle.isOn = AppSettings.hasAcceptedCloudAI
-            toggle.addAction(UIAction { action in
-                AppSettings.hasAcceptedCloudAI = (action.sender as? UISwitch)?.isOn ?? false
+            toggle.addAction(UIAction { [weak self] action in
+                guard let toggle = action.sender as? UISwitch else { return }
+                self?.setCloudConsent(toggle.isOn, switch: toggle)
             }, for: .valueChanged)
             toggle.accessibilityLabel = "Cloud identification"
             cell.accessoryView = toggle
@@ -188,9 +189,9 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
         }
     }
 
-    private func presentAlert(title: String, message: String) {
+    private func presentAlert(title: String, message: String, then handler: (() -> Void)? = nil) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in handler?() })
         present(alert, animated: true)
     }
 
@@ -211,6 +212,18 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
         present(share, animated: true)
     }
 
+    /// Turning identification off is immediate; turning it on shows the same disclosure as the
+    /// first identification, and the switch snaps back if the player declines.
+    private func setCloudConsent(_ allowed: Bool, switch toggle: UISwitch) {
+        guard allowed else {
+            AppSettings.hasAcceptedCloudAI = false
+            return
+        }
+        CloudConsent.request(from: self) { granted in
+            toggle.setOn(granted, animated: true)
+        }
+    }
+
     /// Asks before the irreversible step, and says plainly what goes and what stays.
     private func confirmDeletion() {
         let alert = UIAlertController(
@@ -228,15 +241,11 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
         let overlay = BusyOverlay(message: "Deleting…")
         overlay.show(in: view.window ?? view)
         Task { @MainActor in
+            var leftovers = false
             do {
                 try await AccountDeletionService.live().deleteEverything()
-                AppSettings.reset()
-                CreditsMeter.shared.reset()
-                AppLogger.shared.info("account deleted", category: .app)
-                Haptics.tap()
-                overlay.hide()
-                await AICreditsManager.store.bootstrap()
-                (view.window?.windowScene?.delegate as? SceneDelegate)?.presentFirstRun()
+            } catch AccountDeletionError.localCleanup {
+                leftovers = true
             } catch {
                 overlay.hide()
                 Haptics.failure()
@@ -247,6 +256,22 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
                     message: offline
                         ? "You appear to be offline. Nothing was deleted — reconnect and try again."
                         : "Something went wrong on our side. Nothing was deleted — try again in a moment.")
+                return
+            }
+            AppSettings.reset()
+            CreditsMeter.shared.reset()
+            AppLogger.shared.info("account deleted leftovers=\(leftovers)", category: .app)
+            Haptics.tap()
+            await AICreditsManager.store.bootstrap()
+            overlay.hide()
+            if leftovers {
+                presentAlert(
+                    title: "Account deleted",
+                    message: "Your account was deleted from our servers, but some data couldn't be removed from this device. Deleting the app removes the rest.") { [weak self] in
+                    (self?.view.window?.windowScene?.delegate as? SceneDelegate)?.presentFirstRun()
+                }
+            } else {
+                (view.window?.windowScene?.delegate as? SceneDelegate)?.presentFirstRun()
             }
         }
     }

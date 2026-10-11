@@ -68,6 +68,37 @@ final class CaptureFlowTests: XCTestCase {
         XCTAssertEqual(reporter.reportCount.value, 1)
     }
 
+    func testASampleIsIdentifiedButNeverSavedOrRewarded() async throws {
+        let sightingStore = MockSightingStore(isNew: true)
+        let progress = MockProgress()
+        let reporter = MockReporter()
+        let imageStore = MockImageStore()
+        let flow = makeFlow(
+            identify: IdentificationResult(candidates: [candidate()]),
+            enrich: .resolved(enrichment()),
+            imageStore: imageStore, sightingStore: sightingStore, progress: progress, reporter: reporter)
+
+        let outcome = await flow.run(image: image(), context: CaptureContext(), persist: false)
+
+        guard case let .minted(minted) = outcome else { return XCTFail("expected a reveal, got \(outcome)") }
+        XCTAssertFalse(minted.saved)
+        XCTAssertFalse(minted.isNew)
+        XCTAssertNil(minted.progress)
+        XCTAssertEqual(minted.sighting.commonName, "Red Fox")
+        XCTAssertEqual(minted.sighting.rarity, .rare)
+        XCTAssertEqual(sightingStore.saved.value.count, 0)
+        XCTAssertEqual(progress.recordCount.value, 0)
+        XCTAssertEqual(reporter.reportCount.value, 0)
+    }
+
+    func testASampleStillStopsAtTheConfidenceGate() async {
+        let flow = makeFlow(
+            identify: IdentificationResult(candidates: [candidate(confidence: 0.1)]),
+            enrich: .resolved(enrichment()))
+        let outcome = await flow.run(image: image(), context: CaptureContext(), persist: false)
+        guard case .lowConfidence = outcome else { return XCTFail("expected lowConfidence, got \(outcome)") }
+    }
+
     func testSaveFailureAbortsRewardsAndDeletesOrphanImage() async throws {
         let sightingStore = MockSightingStore(error: SaveFailure())
         let progress = MockProgress()

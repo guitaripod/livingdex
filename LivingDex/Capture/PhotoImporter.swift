@@ -9,11 +9,17 @@ import UniformTypeIdentifiers
 final class PhotoImporter: NSObject, PHPickerViewControllerDelegate {
     private static let maxPixel: CGFloat = 2048
 
-    private let onImage: (UIImage) -> Void
-    private let onFailure: () -> Void
+    private let onImage: @MainActor @Sendable (UIImage) -> Void
+    private let onBegin: @MainActor @Sendable () -> Void
+    private let onFailure: @MainActor @Sendable () -> Void
 
-    init(onImage: @escaping (UIImage) -> Void, onFailure: @escaping () -> Void) {
+    init(
+        onImage: @escaping @MainActor @Sendable (UIImage) -> Void,
+        onBegin: @escaping @MainActor @Sendable () -> Void,
+        onFailure: @escaping @MainActor @Sendable () -> Void
+    ) {
         self.onImage = onImage
+        self.onBegin = onBegin
         self.onFailure = onFailure
     }
 
@@ -27,17 +33,26 @@ final class PhotoImporter: NSObject, PHPickerViewControllerDelegate {
         presenter.present(picker, animated: true)
     }
 
+    /// Dismisses the picker at once (so a slow iCloud original can't be picked twice), then
+    /// loads the one chosen photo and hands it over only after the picker is gone.
     nonisolated func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
-        guard let provider = results.first?.itemProvider else {
-            Task { @MainActor in picker.dismiss(animated: true) }
-            return
+        nonisolated(unsafe) let provider = results.first?.itemProvider
+        MainActor.assumeIsolated {
+            picker.dismiss(animated: true) { [self] in
+                guard let provider else { return }
+                onBegin()
+                load(provider)
+            }
         }
+    }
+
+    private func load(_ provider: NSItemProvider) {
+        let onImage = onImage
+        let onFailure = onFailure
         provider.loadFileRepresentation(forTypeIdentifier: UTType.image.identifier) { url, _ in
             let image = url.flatMap { ImageDownsampler.image(at: $0, maxPixel: Self.maxPixel) }
             Task { @MainActor in
-                picker.dismiss(animated: true) {
-                    if let image { self.onImage(image) } else { self.onFailure() }
-                }
+                if let image { onImage(image) } else { onFailure() }
             }
         }
     }

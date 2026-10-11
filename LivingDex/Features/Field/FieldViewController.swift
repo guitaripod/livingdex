@@ -24,6 +24,7 @@ final class FieldViewController: UIViewController {
     private var creditsKnown = false
     private lazy var photoImporter = PhotoImporter(
         onImage: { [weak self] image in self?.identifyImported(image) },
+        onBegin: { [weak self] in self?.statusChip.setText("Opening photo…") },
         onFailure: { [weak self] in self?.report("Couldn't open that photo — try another") })
 
     private var pinchGesture: UIPinchGestureRecognizer!
@@ -231,8 +232,10 @@ final class FieldViewController: UIViewController {
             onSample: { [weak self] in self?.trySample() })
         view.addSubview(permissionView)
 
+        let statusCentering = statusChip.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        statusCentering.priority = .defaultHigh
         NSLayoutConstraint.activate([
-            statusChip.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            statusCentering,
             statusChip.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: DesignSystem.Spacing.m),
             statusChip.leadingAnchor.constraint(greaterThanOrEqualTo: creditsButton.trailingAnchor, constant: DesignSystem.Spacing.s),
             statusChip.trailingAnchor.constraint(lessThanOrEqualTo: torchButton.leadingAnchor, constant: -DesignSystem.Spacing.s),
@@ -537,7 +540,7 @@ final class FieldViewController: UIViewController {
                 finishCapture(reset: "Couldn't capture — try again")
                 return
             }
-            await process(image, context: LocationProvider.shared.currentContext())
+            await process(image, context: LocationProvider.shared.currentContext(), persist: true)
         }
     }
 
@@ -552,17 +555,18 @@ final class FieldViewController: UIViewController {
             report("Couldn't load the sample — try again")
             return
         }
-        identifyImported(image)
+        identifyImported(image, persist: false)
     }
 
     /// Runs a library or sample photo through the same pipeline as a live capture. It
-    /// carries no location, so its rarity is judged against worldwide sightings.
-    private func identifyImported(_ image: UIImage) {
+    /// carries no location, so its rarity is judged against worldwide sightings. A sample
+    /// is shown but never saved, so it can't count as a catch.
+    private func identifyImported(_ image: UIImage, persist: Bool = true) {
         guard !isBusy else { return }
         CloudConsent.ensure(from: self) { [weak self] in
             guard let self, !self.isBusy else { return }
             self.beginIdentifying()
-            Task { @MainActor in await self.process(image, context: CaptureContext()) }
+            Task { @MainActor in await self.process(image, context: CaptureContext(), persist: persist) }
         }
     }
 
@@ -574,27 +578,42 @@ final class FieldViewController: UIViewController {
 
     /// Renders the outcome of the capture pipeline. All decisions and side effects
     /// happen inside `CaptureFlow.run`; the view controller only surfaces state.
-    private func process(_ image: UIImage, context: CaptureContext) async {
-        switch await captureFlow.run(image: image, context: context) {
+    private func process(_ image: UIImage, context: CaptureContext, persist: Bool) async {
+        let outcome = await captureFlow.run(image: image, context: context, persist: persist)
+        await refreshCredits(after: outcome)
+        switch outcome {
         case let .identifyFailed(error):
             Haptics.failure()
-            finishCapture(reset: Self.message(for: error))
-            if case .creditsExhausted = error { promptGoProForCredits() }
+            let exhausted = error == .creditsExhausted
+            finishCapture(reset: Self.message(for: error), isFailure: !exhausted)
+            if exhausted { promptGoProForCredits() }
         case .lowConfidence:
             Haptics.failure()
             finishCapture(reset: Self.lowConfidenceMessage)
         case .unresolvedSpecies:
             Haptics.failure()
-            finishCapture(reset: "Couldn't confirm that species — try a clearer, closer shot")
+            finishCapture(reset: "Couldn't confirm that species — try a clearer shot")
         case .saveFailed:
             Haptics.failure()
             finishCapture(reset: "Couldn't save that catch — try again")
         case let .minted(capture):
-            AppLogger.shared.info("captured \(capture.sighting.commonName) new=\(capture.isNew)", category: .capture)
-            presentCard(for: capture.sighting, image: capture.image, isNew: capture.isNew, progress: capture.progress)
-            finishCapture(reset: "Point at anything alive")
-            narrate(capture.candidate, sightingId: capture.sighting.id, grounding: capture.grounding)
+            AppLogger.shared.info(
+                "captured \(capture.sighting.commonName) new=\(capture.isNew) saved=\(capture.saved)", category: .capture)
+            presentCard(
+                for: capture.sighting, image: capture.image, isNew: capture.isNew, progress: capture.progress,
+                caption: capture.saved ? nil : "Sample photo — not added to your Dex")
+            finishCapture(reset: "Point at anything alive", isFailure: false)
+            if capture.saved {
+                narrate(capture.candidate, sightingId: capture.sighting.id, grounding: capture.grounding)
+            }
         }
+    }
+
+    /// An identification spends a credit on the server whatever it finds, so the meter is
+    /// re-read after every attempt that reached the backend; an offline attempt cost nothing.
+    private func refreshCredits(after outcome: CaptureOutcome) async {
+        if case .identifyFailed(.offline) = outcome { return }
+        await AICreditsManager.store.refresh()
     }
 
     /// Offers the way out of the metered cap the instant an identification is refused for
@@ -615,7 +634,7 @@ final class FieldViewController: UIViewController {
         present(alert, animated: true)
     }
 
-    private static let lowConfidenceMessage = "No clear living thing — get closer to a plant, animal, or bug"
+    private static let lowConfidenceMessage = "No clear living thing — get closer"
 
     /// Distinct, honest recovery copy per identification failure — an offline user
     /// or one out of credits is never told their photo was simply bad.
@@ -641,26 +660,35 @@ final class FieldViewController: UIViewController {
         }
     }
 
-    private func presentCard(for sighting: Sighting, image: UIImage, isNew: Bool, progress: ProgressEvent?) {
-        let card = CardRevealViewController(sighting: sighting, image: image, isNewDexEntry: isNew, progress: progress)
+    private func presentCard(
+        for sighting: Sighting, image: UIImage, isNew: Bool, progress: ProgressEvent?, caption: String? = nil
+    ) {
+        let card = CardRevealViewController(
+            sighting: sighting, image: image, isNewDexEntry: isNew, progress: progress, caption: caption)
         card.modalPresentationStyle = .overFullScreen
         card.modalTransitionStyle = .crossDissolve
         present(card, animated: true)
     }
 
-    private func finishCapture(reset text: String) {
+    private func finishCapture(reset text: String, isFailure: Bool = true) {
         isBusy = false
         captureButton.setCapturing(false)
-        report(text)
+        if isFailure {
+            report(text)
+        } else {
+            statusChip.setText(text)
+        }
     }
 
     /// Says something to the player: in the status chip while the live HUD is up, or in an
     /// alert when the camera gate hides it (a photo can be identified without the camera).
+    /// Never stacks on another presentation.
     private func report(_ text: String) {
         guard statusChip.isHidden else {
             statusChip.setText(text)
             return
         }
+        guard presentedViewController == nil else { return }
         let alert = UIAlertController(title: nil, message: text, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
@@ -689,17 +717,24 @@ final class FieldViewController: UIViewController {
 
     @objc private func didTapCredits() {
         Haptics.tap()
-        PaywallPresenter.present(from: self, reason: "Every identification uses a credit.")
+        if SubscriptionService.shared.isPro {
+            UIApplication.shared.open(SubscriptionService.shared.manageSubscriptionsURL)
+        } else {
+            PaywallPresenter.present(from: self, reason: "Every identification uses a credit.")
+        }
     }
 }
 
 extension FieldViewController: UIGestureRecognizerDelegate {
-    /// Keeps focus taps off the HUD controls (capture ring, torch, permission gate)
+    /// Keeps focus taps off the HUD controls (capture ring, torch, photos, credits, permission gate)
     /// so tapping a button never also drops a focus reticle behind it.
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
         guard gestureRecognizer === focusTapGesture, let touched = touch.view else { return true }
         return !touched.isDescendant(of: captureButton)
             && !touched.isDescendant(of: torchButton)
+            && !touched.isDescendant(of: photosButton)
+            && !touched.isDescendant(of: creditsButton)
+            && !touched.isDescendant(of: zoomChip)
             && !touched.isDescendant(of: permissionView)
     }
 }

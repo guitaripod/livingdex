@@ -364,10 +364,10 @@ interface RegionItem {
 }
 
 /**
- * Normalizes a GBIF vernacular: keeps the first entry of a comma-joined list
- * ("Scrambled egg slime, Flowers of tan" -> "Scrambled egg slime"), trims, drops
- * empty or banding-code names (all-caps, no space — "GRTI"), and title-cases an
- * all-lowercase name, leaving proper names ("Steller's Jay") untouched.
+ * Normalizes a GBIF vernacular: keeps the first entry of a comma-joined list ("Scrambled egg
+ * slime, Flowers of tan" -> "Scrambled egg slime"), trims, drops empty or banding-code names
+ * (all-caps, no space — "GRTI"), and title-cases an all-lowercase name, leaving proper names
+ * ("Steller's Jay") untouched.
  */
 function cleanVernacular(raw: unknown): string | null {
   if (typeof raw !== "string") return null;

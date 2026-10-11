@@ -37,11 +37,14 @@ struct CaptureFlow: Sendable {
     }
 
     /// Runs the full loop for a captured frame and returns exactly what happened.
+    /// With `persist` false (the bundled sample photos) the species is still identified and
+    /// grounded for a real reveal, but nothing is saved and no XP, streak or Game Center
+    /// credit is awarded — a sample never counts as a catch.
     /// Never touches UIKit or presents anything; the caller renders the outcome.
     /// Intentionally not `@MainActor`: the JPEG encode, disk write, and GRDB calls
     /// run off the caller's actor so the reveal animation and status chip never
     /// stall on the main thread.
-    func run(image: UIImage, context: CaptureContext) async -> CaptureOutcome {
+    func run(image: UIImage, context: CaptureContext, persist: Bool = true) async -> CaptureOutcome {
         let result = await identifier.identify(image, context: context)
         guard var top = result.top else {
             return .identifyFailed(result.error ?? .noSpecies)
@@ -52,6 +55,14 @@ struct CaptureFlow: Sendable {
 
         guard let grounded = await ground(&top, context: context) else {
             return .unresolvedSpecies
+        }
+
+        guard persist else {
+            let preview = makeSighting(
+                id: "sample", path: "", at: clock(), from: top, context: context, enriched: grounded.confirmed)
+            return .minted(MintedCapture(
+                sighting: preview, image: image, isNew: false, provisional: !grounded.confirmed,
+                progress: nil, grounding: grounded.summary, candidate: top, saved: false))
         }
 
         let id = UUID().uuidString
@@ -182,6 +193,8 @@ struct MintedCapture: Sendable {
     let progress: ProgressEvent?
     let grounding: String?
     let candidate: SpeciesCandidate
+    /// False for a sample photo: shown as a reveal but never added to the Dex.
+    var saved = true
 }
 
 // MARK: - Injected seams

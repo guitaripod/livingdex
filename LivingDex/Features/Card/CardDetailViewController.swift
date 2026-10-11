@@ -58,7 +58,7 @@ final class CardDetailViewController: UIViewController {
         guard let photo = ImageStore.load(entry.bestImagePath) ?? hero.image else { return }
         let model = ShareCardModel(
             commonName: entry.commonName, scientificName: entry.scientificName,
-            realm: entry.realm, rarity: entry.rarity, caughtAt: entry.lastCaughtAt, photo: photo)
+            realm: entry.realm, rarity: entry.rarity, caughtAt: entry.firstCaughtAt, photo: photo)
         let share = UIActivityViewController(
             activityItems: ShareCardRenderer.shareItems(for: model), applicationActivities: nil)
         share.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItems?.first
@@ -208,12 +208,31 @@ final class CardDetailViewController: UIViewController {
             } else {
                 narrationLabel.text = "No field entry is available for this species yet."
                 narrationLabel.textColor = .secondaryLabel
+                if let sighting { fillMissingEntry(for: sighting) }
             }
             if let category = sighting?.category, !category.isEmpty {
                 categoryLabel.text = "The \(category)"
                 categoryLabel.isHidden = false
             }
             setMeta(size: sighting?.typicalSize)
+        }
+    }
+
+    /// A catch made offline, or on a phone without on-device AI, can reach its card with no
+    /// entry written. Once the Worker answers, the sourced summary fills the gap — free,
+    /// and only when there is nothing there yet.
+    private func fillMissingEntry(for sighting: Sighting) {
+        let candidate = SpeciesCandidate(
+            speciesId: entry.speciesId, commonName: entry.commonName,
+            scientificName: entry.scientificName, realm: entry.realm,
+            rarity: entry.rarity, confidence: 1)
+        Task { @MainActor in
+            guard case let .resolved(enrichment) = await enricher.enrich(candidate: candidate, context: CaptureContext()),
+                  let filled = NarratorService.groundedEntry(enrichment.summary),
+                  (try? CollectionStore.shared.setNarration(sightingId: sighting.id, entry: filled)) != nil
+            else { return }
+            narrationLabel.text = filled.displayText
+            narrationLabel.textColor = .label
         }
     }
 

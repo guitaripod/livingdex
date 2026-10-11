@@ -197,12 +197,22 @@ enum CloudConsent {
             proceed()
             return
         }
+        request(from: presenter) { granted in
+            if granted { proceed() }
+        }
+    }
+
+    /// Always shows the consent sheet; on "Allow" records consent. Reports the decision once
+    /// the sheet is gone, so a follow-up presentation never collides with it.
+    @MainActor
+    static func request(from presenter: UIViewController, completion: @escaping (Bool) -> Void) {
         let sheet = CloudConsentViewController()
         sheet.onDecision = { allowed in
-            guard allowed else { return }
-            AppSettings.hasAcceptedCloudAI = true
-            AppLogger.shared.info("cloud AI consent granted", category: .app)
-            proceed()
+            if allowed {
+                AppSettings.hasAcceptedCloudAI = true
+                AppLogger.shared.info("cloud AI consent granted", category: .app)
+            }
+            completion(allowed)
         }
         sheet.modalPresentationStyle = .pageSheet
         if let presentation = sheet.sheetPresentationController {

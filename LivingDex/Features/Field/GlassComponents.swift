@@ -176,6 +176,12 @@ final class GlassCreditsButton: UIControl {
             }
         }
     }
+
+    /// The pill is compact by design; the touch target still reaches the 44 pt minimum.
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        let inset = max(0, (44 - bounds.height) / 2)
+        return bounds.insetBy(dx: -4, dy: -inset).contains(point)
+    }
 }
 
 /// A circular glass button hosting a single SF Symbol — HUD toggles like the
@@ -224,6 +230,10 @@ final class GlassIconButton: UIControl {
         didSet {
             menuOverlay.menu = menu
             menuOverlay.isHidden = menu == nil
+            isAccessibilityElement = menu == nil
+            menuOverlay.isAccessibilityElement = menu != nil
+            menuOverlay.accessibilityLabel = accessibilityLabel
+            menuOverlay.accessibilityHint = accessibilityHint
         }
     }
 
@@ -232,7 +242,7 @@ final class GlassIconButton: UIControl {
         overlay.translatesAutoresizingMaskIntoConstraints = false
         overlay.showsMenuAsPrimaryAction = true
         overlay.isHidden = true
-        overlay.accessibilityElementsHidden = true
+        overlay.isAccessibilityElement = false
         addSubview(overlay)
         NSLayoutConstraint.activate([
             overlay.leadingAnchor.constraint(equalTo: leadingAnchor),

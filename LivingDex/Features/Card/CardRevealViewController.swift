@@ -10,17 +10,19 @@ final class CardRevealViewController: UIViewController {
     private let image: UIImage
     private let isNewDexEntry: Bool
     private let progress: ProgressEvent?
+    private let caption: String?
 
     private let card = GlassPanel(cornerRadius: DesignSystem.Radius.card)
     private var sparkleLayer: CAEmitterLayer?
     private var dismissAnimator: UIViewPropertyAnimator?
     private weak var shareButton: UIButton?
 
-    init(sighting: Sighting, image: UIImage, isNewDexEntry: Bool, progress: ProgressEvent? = nil) {
+    init(sighting: Sighting, image: UIImage, isNewDexEntry: Bool, progress: ProgressEvent? = nil, caption: String? = nil) {
         self.sighting = sighting
         self.image = image
         self.isNewDexEntry = isNewDexEntry
         self.progress = progress
+        self.caption = caption
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -179,6 +181,12 @@ final class CardRevealViewController: UIViewController {
 
         if let progressView = progressRow() {
             stack.addArrangedSubview(progressView)
+            stack.setCustomSpacing(DesignSystem.Spacing.s, after: meta)
+        }
+        if let caption {
+            let note = scalingLabel(caption, style: .footnote, weight: .semibold, color: DesignSystem.Color.accent)
+            note.numberOfLines = 0
+            stack.addArrangedSubview(note)
             stack.setCustomSpacing(DesignSystem.Spacing.s, after: meta)
         }
 
