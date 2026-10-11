@@ -23,12 +23,25 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
         super.viewDidLoad()
         title = "Settings"
         view.backgroundColor = .systemGroupedBackground
-        tableView.frame = view.bounds
-        tableView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         view.addSubview(tableView)
+        let safe = view.safeAreaLayoutGuide
+        let centering = tableView.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        centering.priority = UILayoutPriority(rawValue: 999)
+        let fill = tableView.widthAnchor.constraint(equalTo: safe.widthAnchor)
+        fill.priority = .defaultHigh
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: view.topAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            centering,
+            tableView.leadingAnchor.constraint(greaterThanOrEqualTo: safe.leadingAnchor),
+            tableView.trailingAnchor.constraint(lessThanOrEqualTo: safe.trailingAnchor),
+            tableView.widthAnchor.constraint(lessThanOrEqualToConstant: AdaptiveLayout.readableTableWidth),
+            fill,
+        ])
         build()
     }
 

@@ -30,15 +30,21 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
             primaryAction: UIAction { [weak self] _ in
                 self?.navigationController?.pushViewController(SettingsViewController(), animated: true)
             })
+        navigationItem.rightBarButtonItem?.title = "Settings"
         view.backgroundColor = .systemGroupedBackground
-        tableView.frame = view.bounds
-        tableView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
-        headerView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: 210)
+        headerView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: Self.headerHeight)
         tableView.tableHeaderView = headerView
         view.addSubview(tableView)
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: view.topAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            stackedLeading,
+        ])
 
         subscriptions.entitlementPublisher
             .dropFirst()
@@ -63,11 +69,50 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
             .store(in: &cancellables)
     }
 
+    private static let headerHeight: CGFloat = 210
+
+    private lazy var stackedLeading = tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor)
+    private lazy var splitLeading = tableView.leadingAnchor.constraint(
+        equalTo: view.centerXAnchor, constant: AdaptiveLayout.foldGap / 2)
+    private lazy var paneConstraints = [
+        headerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: DesignSystem.Spacing.s),
+        headerView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+        headerView.trailingAnchor.constraint(equalTo: view.centerXAnchor, constant: -AdaptiveLayout.foldGap / 2),
+    ]
+    private var arrangement = AdaptiveLayout.Arrangement.stacked
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        if headerView.frame.width != tableView.bounds.width {
+        let safe = view.safeAreaLayoutGuide.layoutFrame
+        let resolved = AdaptiveLayout.Arrangement.resolve(
+            width: safe.width, height: safe.height, minimumWidth: AdaptiveLayout.paneSplitMinimumWidth)
+        if resolved != arrangement { applyArrangement(resolved) }
+        if arrangement == .stacked, headerView.frame.width != tableView.bounds.width {
             headerView.frame.size.width = tableView.bounds.width
             tableView.tableHeaderView = headerView
+        }
+    }
+
+    /// On a wide landscape window the progress header takes the left half and the list the
+    /// right half, divided at the middle of the window where a fold falls; otherwise the
+    /// header scrolls above the list as before.
+    private func applyArrangement(_ resolved: AdaptiveLayout.Arrangement) {
+        arrangement = resolved
+        if resolved == .sideBySide {
+            tableView.tableHeaderView = nil
+            headerView.translatesAutoresizingMaskIntoConstraints = false
+            view.addSubview(headerView)
+            stackedLeading.isActive = false
+            splitLeading.isActive = true
+            NSLayoutConstraint.activate(paneConstraints)
+        } else {
+            NSLayoutConstraint.deactivate(paneConstraints)
+            headerView.removeFromSuperview()
+            headerView.translatesAutoresizingMaskIntoConstraints = true
+            headerView.frame = CGRect(x: 0, y: 0, width: tableView.bounds.width, height: Self.headerHeight)
+            tableView.tableHeaderView = headerView
+            splitLeading.isActive = false
+            stackedLeading.isActive = true
         }
     }
 
