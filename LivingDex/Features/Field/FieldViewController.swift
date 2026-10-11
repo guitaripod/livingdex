@@ -669,20 +669,19 @@ final class FieldViewController: UIViewController {
     // MARK: Credits
 
     /// Keeps the HUD meter in step with the wallet and the Pro entitlement; it stays
-    /// hidden until an identity exists so it never flashes a misleading zero.
+    /// hidden until the balance is genuinely known so it never shows a made-up zero.
     private func observeCredits() {
-        let store = AICreditsManager.store
-        Publishers.CombineLatest3(
-            store.$identity, store.$balance, SubscriptionService.shared.entitlementPublisher
+        Publishers.CombineLatest(
+            CreditsMeter.shared.knownBalancePublisher, SubscriptionService.shared.entitlementPublisher
         )
         .receive(on: DispatchQueue.main)
-        .sink { [weak self] identity, balance, isPro in
+        .sink { [weak self] balance, isPro in
             guard let self else { return }
             #if DEBUG
             if DemoSeeder.route == "field" { return }
             #endif
-            self.creditsKnown = identity != nil
-            self.creditsButton.configure(balance: balance, isPro: isPro)
+            self.creditsKnown = isPro || balance != nil
+            self.creditsButton.configure(balance: balance ?? 0, isPro: isPro)
             if !self.captureButton.isHidden { self.creditsButton.isHidden = !self.creditsKnown }
         }
         .store(in: &cancellables)

@@ -231,6 +231,7 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
             do {
                 try await AccountDeletionService.live().deleteEverything()
                 AppSettings.reset()
+                CreditsMeter.shared.reset()
                 AppLogger.shared.info("account deleted", category: .app)
                 Haptics.tap()
                 overlay.hide()

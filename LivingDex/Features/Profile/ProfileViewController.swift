@@ -14,7 +14,7 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
     private enum Row {
         case stat(title: String, value: String)
         case rarity(Rarity, count: Int)
-        case pro(balance: Int, isPro: Bool)
+        case pro(balance: Int?, isPro: Bool)
         case action(title: String, symbol: String, handler: () -> Void)
         case info(title: String, value: String)
     }
@@ -80,7 +80,7 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
     private func rebuild() {
         let stats = (try? CollectionStore.shared.stats()) ?? .init(speciesCount: 0, totalCatches: 0, byRarity: [:], realms: [], maxRarity: nil)
         let progress = (try? ProgressStore.shared.current()) ?? .initial()
-        let balance = AICreditsManager.store.balance
+        let balance = CreditsMeter.shared.knownBalance
 
         headerView.configure(with: progress, speciesCount: stats.speciesCount)
 
@@ -154,12 +154,14 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
                 content.secondaryText = "Pro — unlimited"
                 content.secondaryTextProperties.color = DesignSystem.Color.accent
                 content.secondaryTextProperties.font = Self.boldSubheadline
-            } else if balance <= 0 {
+            } else if balance == nil {
+                content.secondaryText = "Connect to see your balance"
+            } else if let balance, balance <= 0 {
                 content.secondaryText = "Go Pro or get credits"
                 content.secondaryTextProperties.color = DesignSystem.Color.accent
                 content.secondaryTextProperties.font = Self.boldSubheadline
             } else {
-                content.secondaryText = balance == 1 ? "1 left" : "\(balance) left"
+                content.secondaryText = balance == 1 ? "1 left" : "\(balance ?? 0) left"
             }
             cell.contentConfiguration = content
             cell.selectionStyle = .default

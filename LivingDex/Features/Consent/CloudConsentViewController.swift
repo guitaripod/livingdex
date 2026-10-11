@@ -7,6 +7,7 @@ final class CloudConsentViewController: UIViewController {
     var onDecision: ((Bool) -> Void)?
 
     private var didDecide = false
+    private var allowed = false
     private let contentStack = UIStackView()
     private let buttonStack = UIStackView()
 
@@ -29,7 +30,7 @@ final class CloudConsentViewController: UIViewController {
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        decide(false)
+        decide(allowed)
     }
 
     private func buildLayout() {
@@ -90,7 +91,7 @@ final class CloudConsentViewController: UIViewController {
         allow.buttonSize = .large
         let allowButton = UIButton(configuration: allow, primaryAction: UIAction { [weak self] _ in
             Haptics.tap()
-            self?.decide(true)
+            self?.allowed = true
             self?.dismiss(animated: true)
         })
 
@@ -98,7 +99,6 @@ final class CloudConsentViewController: UIViewController {
         decline.title = "Not now"
         decline.baseForegroundColor = .secondaryLabel
         let declineButton = UIButton(configuration: decline, primaryAction: UIAction { [weak self] _ in
-            self?.decide(false)
             self?.dismiss(animated: true)
         })
 

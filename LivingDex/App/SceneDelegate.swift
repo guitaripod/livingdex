@@ -13,6 +13,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         observeCreditsEvents()
+        CreditsMeter.shared.start()
 
         let window = UIWindow(windowScene: windowScene)
         window.overrideUserInterfaceStyle = AppSettings.appearance
