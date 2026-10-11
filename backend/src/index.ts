@@ -176,13 +176,13 @@ async function enrich(url: URL): Promise<Response> {
   // Every upstream is independently best-effort: a single GBIF hiccup (e.g. a
   // 429 on the occurrence search) must not sink the whole fact-sheet, so each
   // failure degrades to null and the response is still useful.
-  const [species, iucn, localCount, globalCount, commonName] = await Promise.all([
+  const [species, iucn, localCount, globalCount] = await Promise.all([
     fetchJSON(`${GBIF}/species/${taxonKey}`).catch(() => null),
     fetchJSON(`${GBIF}/species/${taxonKey}/iucnRedListCategory`).catch(() => null),
     lat != null && lng != null ? occurrenceCount(taxonKey, lat, lng).catch(() => null) : Promise.resolve(null),
     occurrenceCount(taxonKey, null, null).catch(() => null),
-    vernacularName(taxonKey),
   ]);
+  const commonName = cleanVernacular(species?.vernacularName) ?? (await vernacularName(taxonKey));
 
   const scientificName = species?.canonicalName ?? matched?.canonicalName ?? name;
   const summary = scientificName ? await wikiSummary(scientificName) : null;
@@ -224,16 +224,15 @@ async function occurrenceCount(taxonKey: number, lat: number | null, lng: number
 
 async function vernacularName(taxonKey: number): Promise<string | null> {
   const data = await fetchJSONRetry(`${GBIF}/species/${taxonKey}/vernacularNames?limit=40`).catch(() => null);
-  const eng: string[] = (data?.results ?? [])
-    .filter((n: any) => n.language === "eng" && typeof n.vernacularName === "string")
-    .map((n: any) => n.vernacularName.trim());
-  // Skip banding codes ("GRTI") and acronyms — an all-caps token with no space.
-  const proper = eng.find((n) => /\s/.test(n) || n !== n.toUpperCase());
-  const name = proper ?? null;
-  if (!name) return null;
-  // Title-case an all-lowercase vernacular ("common buzzard" -> "Common Buzzard");
-  // leave already-capitalized names alone so "Steller's Jay" isn't corrupted.
-  return /[A-Z]/.test(name) ? name : name.replace(/\b\w/g, (c) => c.toUpperCase());
+  const english: any[] = (data?.results ?? []).filter(
+    (n: any) => n.language === "eng" && typeof n.vernacularName === "string",
+  );
+  const preferred = english.filter((n) => n.preferred === true);
+  for (const entry of [...preferred, ...english]) {
+    const name = cleanVernacular(entry.vernacularName);
+    if (name) return name;
+  }
+  return null;
 }
 
 async function wikiSummary(title: string): Promise<string | null> {
@@ -365,16 +364,17 @@ interface RegionItem {
 }
 
 /**
- * Normalizes the inline vernacular from `species/{key}`: trims, drops empty or
- * banding-code names (all-caps, no space — "GRTI"), and title-cases an
+ * Normalizes a GBIF vernacular: keeps the first entry of a comma-joined list
+ * ("Scrambled egg slime, Flowers of tan" -> "Scrambled egg slime"), trims, drops
+ * empty or banding-code names (all-caps, no space — "GRTI"), and title-cases an
  * all-lowercase name, leaving proper names ("Steller's Jay") untouched.
  */
 function cleanVernacular(raw: unknown): string | null {
   if (typeof raw !== "string") return null;
-  const name = raw.trim();
+  const name = raw.split(",")[0].trim();
   if (!name) return null;
   if (name === name.toUpperCase() && !/\s/.test(name)) return null;
-  return /[A-Z]/.test(name) ? name : name.replace(/\b\w/g, (ch) => ch.toUpperCase());
+  return /[A-Z]/.test(name) ? name : name.replace(/(^|[\s-])([a-z])/g, (_, lead, ch) => lead + ch.toUpperCase());
 }
 
 /** Top `budget` most-locally-observed species keys of one kingdom (count-only). */
