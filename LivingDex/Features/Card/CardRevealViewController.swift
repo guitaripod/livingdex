@@ -13,6 +13,13 @@ final class CardRevealViewController: UIViewController {
     private let caption: String?
 
     private let card = GlassPanel(cornerRadius: DesignSystem.Radius.card)
+    private let contentRow = UIStackView()
+    private var cardMaxWidth: NSLayoutConstraint!
+    private var arrangement = AdaptiveLayout.Arrangement.stacked
+    private static let stackedCardWidth: CGFloat = 520
+    private static let sideBySideCardWidth: CGFloat = 800
+    private static let bannerClearance: CGFloat = 36
+    private let textStack = UIStackView()
     private var sparkleLayer: CAEmitterLayer?
     private var dismissAnimator: UIViewPropertyAnimator?
     private weak var shareButton: UIButton?
@@ -45,6 +52,8 @@ final class CardRevealViewController: UIViewController {
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
+        let resolved = AdaptiveLayout.Arrangement.resolve(width: view.bounds.width, height: view.bounds.height)
+        if resolved != arrangement { applyArrangement(resolved) }
         card.layer.shadowPath = UIBezierPath(
             roundedRect: card.bounds, cornerRadius: DesignSystem.Radius.card).cgPath
     }
@@ -57,6 +66,21 @@ final class CardRevealViewController: UIViewController {
         if sighting.rarity == .epic || sighting.rarity == .legendary, !Motion.reduced {
             addSparkle()
         }
+    }
+
+    /// Photo beside the text in a wide landscape window, stacked otherwise, so the card
+    /// keeps its proportions on any display instead of growing to fill it.
+    private func applyArrangement(_ resolved: AdaptiveLayout.Arrangement) {
+        arrangement = resolved
+        let sideBySide = resolved == .sideBySide
+        contentRow.axis = sideBySide ? .horizontal : .vertical
+        contentRow.alignment = sideBySide ? .top : .fill
+        contentRow.distribution = sideBySide ? .fillEqually : .fill
+        contentRow.spacing = sideBySide ? AdaptiveLayout.foldGap : DesignSystem.Spacing.m
+        cardMaxWidth.constant = sideBySide ? Self.sideBySideCardWidth : Self.stackedCardWidth
+        textStack.isLayoutMarginsRelativeArrangement = true
+        textStack.layoutMargins = UIEdgeInsets(
+            top: sideBySide && isNewDexEntry ? Self.bannerClearance : 0, left: 0, bottom: 0, right: 0)
     }
 
     // MARK: Reveal
@@ -172,7 +196,8 @@ final class CardRevealViewController: UIViewController {
             "\(sighting.realm.rawValue.capitalized) · \(ConfidenceLevel(sighting.confidence).label) (\(Int(sighting.confidence * 100))%)",
             style: .footnote, weight: .medium, color: .tertiaryLabel)
 
-        let stack = UIStackView(arrangedSubviews: [badges, common, scientific, meta])
+        let stack = textStack
+        [badges, common, scientific, meta].forEach(stack.addArrangedSubview)
         stack.axis = .vertical
         stack.alignment = .leading
         stack.spacing = 6
@@ -190,32 +215,44 @@ final class CardRevealViewController: UIViewController {
             stack.setCustomSpacing(DesignSystem.Spacing.s, after: meta)
         }
 
+        contentRow.addArrangedSubview(photo)
+        contentRow.addArrangedSubview(stack)
+        contentRow.translatesAutoresizingMaskIntoConstraints = false
         card.contentView.addSubview(grabber)
-        card.contentView.addSubview(photo)
-        card.contentView.addSubview(stack)
+        card.contentView.addSubview(contentRow)
+
+        let safe = view.safeAreaLayoutGuide
+        let margin = DesignSystem.Spacing.l
+        cardMaxWidth = card.widthAnchor.constraint(lessThanOrEqualToConstant: Self.stackedCardWidth)
+        let cardFill = card.widthAnchor.constraint(equalTo: safe.widthAnchor, constant: -2 * margin)
+        cardFill.priority = .defaultHigh
+        let cardCentering = card.centerXAnchor.constraint(equalTo: view.centerXAnchor)
+        cardCentering.priority = UILayoutPriority(rawValue: 999)
 
         NSLayoutConstraint.activate([
-            card.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            cardCentering,
             card.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            card.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: DesignSystem.Spacing.l),
-            card.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -DesignSystem.Spacing.l),
+            card.leadingAnchor.constraint(greaterThanOrEqualTo: safe.leadingAnchor, constant: margin),
+            card.trailingAnchor.constraint(lessThanOrEqualTo: safe.trailingAnchor, constant: -margin),
+            card.topAnchor.constraint(greaterThanOrEqualTo: safe.topAnchor, constant: DesignSystem.Spacing.m),
+            card.bottomAnchor.constraint(lessThanOrEqualTo: safe.bottomAnchor, constant: -DesignSystem.Spacing.m),
+            cardMaxWidth,
+            cardFill,
 
             grabber.topAnchor.constraint(equalTo: card.contentView.topAnchor, constant: DesignSystem.Spacing.s),
             grabber.centerXAnchor.constraint(equalTo: card.contentView.centerXAnchor),
             grabber.widthAnchor.constraint(equalToConstant: 36),
             grabber.heightAnchor.constraint(equalToConstant: 5),
 
-            photo.topAnchor.constraint(equalTo: grabber.bottomAnchor, constant: DesignSystem.Spacing.s),
-            photo.leadingAnchor.constraint(equalTo: card.contentView.leadingAnchor, constant: DesignSystem.Spacing.m),
-            photo.trailingAnchor.constraint(equalTo: card.contentView.trailingAnchor, constant: -DesignSystem.Spacing.m),
-            photo.heightAnchor.constraint(equalTo: photo.widthAnchor, multiplier: 0.85),
+            contentRow.topAnchor.constraint(equalTo: grabber.bottomAnchor, constant: DesignSystem.Spacing.s),
+            contentRow.leadingAnchor.constraint(equalTo: card.contentView.leadingAnchor, constant: DesignSystem.Spacing.m),
+            contentRow.trailingAnchor.constraint(equalTo: card.contentView.trailingAnchor, constant: -DesignSystem.Spacing.m),
+            contentRow.bottomAnchor.constraint(equalTo: card.contentView.bottomAnchor, constant: -DesignSystem.Spacing.l),
 
-            stack.topAnchor.constraint(equalTo: photo.bottomAnchor, constant: DesignSystem.Spacing.m),
-            stack.leadingAnchor.constraint(equalTo: card.contentView.leadingAnchor, constant: DesignSystem.Spacing.m),
-            stack.trailingAnchor.constraint(equalTo: card.contentView.trailingAnchor, constant: -DesignSystem.Spacing.m),
-            stack.bottomAnchor.constraint(equalTo: card.contentView.bottomAnchor, constant: -DesignSystem.Spacing.l),
+            photo.heightAnchor.constraint(equalTo: photo.widthAnchor, multiplier: 0.85),
         ])
 
+        applyArrangement(.stacked)
         addShareButton()
         if isNewDexEntry { addNewBanner() }
     }

@@ -13,6 +13,12 @@ final class CardDetailViewController: UIViewController {
 
     private let scrollView = UIScrollView()
     private let stack = UIStackView()
+    private let layoutStack = UIStackView()
+    private let heroHolder = UIView()
+    private var column: ScrollColumn?
+    private var arrangement = AdaptiveLayout.Arrangement.stacked
+    private var capsHeroHeight = false
+    private lazy var heroHeightCap = hero.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: Self.heroHeightShare)
     private let hero = UIImageView()
     private let categoryLabel = UILabel()
     private let sizeLabel = UILabel()
@@ -42,6 +48,7 @@ final class CardDetailViewController: UIViewController {
         let shareItem = UIBarButtonItem(
             image: UIImage(systemName: "square.and.arrow.up"),
             primaryAction: UIAction { [weak self] _ in self?.shareCatch() })
+        shareItem.title = "Share"
         shareItem.accessibilityLabel = "Share"
         let releaseAction = UIAction(
             title: "Release",
@@ -50,6 +57,7 @@ final class CardDetailViewController: UIViewController {
         let overflowItem = UIBarButtonItem(
             image: UIImage(systemName: "ellipsis.circle"),
             menu: UIMenu(children: [releaseAction]))
+        overflowItem.title = "More"
         overflowItem.accessibilityLabel = "More"
         navigationItem.rightBarButtonItems = [shareItem, overflowItem]
     }
@@ -63,6 +71,37 @@ final class CardDetailViewController: UIViewController {
             activityItems: ShareCardRenderer.shareItems(for: model), applicationActivities: nil)
         share.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItems?.first
         present(share, animated: true)
+    }
+
+    private static let heroHeightShare: CGFloat = 0.42
+
+    override func viewSafeAreaInsetsDidChange() {
+        super.viewSafeAreaInsetsDidChange()
+        column?.centerOnWindow(safeAreaInsets: view.safeAreaInsets)
+    }
+
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+        let size = scrollView.bounds.size
+        let resolved = AdaptiveLayout.Arrangement.resolve(width: size.width, height: size.height)
+        let caps = resolved == .stacked && size.width >= AdaptiveLayout.sideBySideMinimumWidth
+        guard resolved != arrangement || caps != capsHeroHeight else { return }
+        applyArrangement(resolved, capsHeroHeight: caps)
+    }
+
+    /// Hero beside the text across a wide landscape window, split evenly so the halves meet
+    /// at the fold; stacked otherwise. A tall regular window caps the hero to the region above
+    /// a horizontal fold so the text starts below it.
+    private func applyArrangement(_ resolved: AdaptiveLayout.Arrangement, capsHeroHeight caps: Bool) {
+        arrangement = resolved
+        capsHeroHeight = caps
+        let sideBySide = resolved == .sideBySide
+        layoutStack.axis = sideBySide ? .horizontal : .vertical
+        layoutStack.alignment = sideBySide ? .top : .fill
+        layoutStack.distribution = sideBySide ? .fillEqually : .fill
+        layoutStack.spacing = sideBySide ? AdaptiveLayout.foldGap : DesignSystem.Spacing.m
+        column?.maxWidth.constant = sideBySide ? AdaptiveLayout.wideColumnWidth : AdaptiveLayout.readableColumnWidth
+        heroHeightCap.isActive = caps
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -93,22 +132,19 @@ final class CardDetailViewController: UIViewController {
     }
 
     private func buildLayout() {
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(scrollView)
         stack.axis = .vertical
         stack.spacing = DesignSystem.Spacing.m
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        scrollView.addSubview(stack)
 
+        layoutStack.addArrangedSubview(heroHolder)
+        layoutStack.addArrangedSubview(stack)
+        scrollView.addSubview(layoutStack)
+        column = ScrollColumn(
+            content: layoutStack, in: scrollView, of: view, margin: DesignSystem.Spacing.m,
+            maxWidth: AdaptiveLayout.readableColumnWidth, top: DesignSystem.Spacing.m, bottom: DesignSystem.Spacing.l)
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
-            stack.topAnchor.constraint(equalTo: scrollView.contentLayoutGuide.topAnchor, constant: DesignSystem.Spacing.m),
-            stack.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: DesignSystem.Spacing.m),
-            stack.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -DesignSystem.Spacing.m),
-            stack.bottomAnchor.constraint(equalTo: scrollView.contentLayoutGuide.bottomAnchor, constant: -DesignSystem.Spacing.l),
         ])
 
         hero.image = ImageLoader.shared.cached(entry.bestImagePath)
@@ -117,11 +153,20 @@ final class CardDetailViewController: UIViewController {
         hero.layer.cornerRadius = DesignSystem.Radius.card
         hero.layer.cornerCurve = .continuous
         hero.translatesAutoresizingMaskIntoConstraints = false
-        hero.heightAnchor.constraint(equalTo: hero.widthAnchor, multiplier: 0.9).isActive = true
-        stack.addArrangedSubview(hero)
+        heroHolder.addSubview(hero)
+        let aspect = hero.heightAnchor.constraint(equalTo: hero.widthAnchor, multiplier: 0.9)
+        aspect.priority = UILayoutPriority(rawValue: 999)
+        NSLayoutConstraint.activate([
+            hero.topAnchor.constraint(equalTo: heroHolder.topAnchor),
+            hero.leadingAnchor.constraint(equalTo: heroHolder.leadingAnchor),
+            hero.trailingAnchor.constraint(equalTo: heroHolder.trailingAnchor),
+            hero.bottomAnchor.constraint(equalTo: heroHolder.bottomAnchor),
+            aspect,
+        ])
         if hero.image == nil {
             ImageLoader.shared.load(entry.bestImagePath) { [weak self] image in self?.hero.image = image }
         }
+        applyArrangement(.stacked, capsHeroHeight: false)
 
         rarityBadge.configure(entry.rarity)
         let rarityRow = UIStackView(arrangedSubviews: [rarityBadge, UIView()])
@@ -143,10 +188,11 @@ final class CardDetailViewController: UIViewController {
         sizeLabel.font = .preferredFont(forTextStyle: .footnote)
         sizeLabel.adjustsFontForContentSizeCategory = true
         sizeLabel.textColor = .tertiaryLabel
+        sizeLabel.numberOfLines = 0
         stack.addArrangedSubview(sizeLabel)
         setMeta(size: nil)
 
-        stack.addArrangedSubview(divider())
+        stack.addArrangedSubview(HairlineView())
 
         narrationLabel.font = .preferredFont(forTextStyle: .body)
         narrationLabel.adjustsFontForContentSizeCategory = true
@@ -183,13 +229,6 @@ final class CardDetailViewController: UIViewController {
         label.textColor = color
         label.numberOfLines = 0
         return label
-    }
-
-    private func divider() -> UIView {
-        let line = UIView()
-        line.backgroundColor = .separator
-        line.heightAnchor.constraint(equalToConstant: 0.5).isActive = true
-        return line
     }
 
     private func setMeta(size: String?) {
