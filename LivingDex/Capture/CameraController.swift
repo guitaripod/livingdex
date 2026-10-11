@@ -32,13 +32,31 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
     /// arrives via `onFirstFrame` once the interruption ends and frames resume.
     var onInterrupted: (@Sendable () -> Void)?
 
-    private let session = AVCaptureSession()
-    private let photoOutput = AVCapturePhotoOutput()
+    /// Fired on the main queue after the session moved to a different camera, so the host
+    /// can reset the controls that belong to the previous one (zoom and torch).
+    var onDeviceChanged: (@Sendable () -> Void)?
+
+    /// Rotation and mirroring state for the Duo's displays, owned by the 27.1 extension and
+    /// touched on the main queue only.
+    var displayAdaptation: AnyObject?
+    /// The rotation to apply to the next photo, kept current by the rotation coordinator and
+    /// read under `lock` from the session queue.
+    var captureRotationAngle: CGFloat?
+
+    /// The unique ID of the camera the session is capturing from, safe to read from any queue.
+    var activeDeviceID: String? {
+        lock.lock()
+        defer { lock.unlock() }
+        return videoDevice?.uniqueID
+    }
+
+    let session = AVCaptureSession()
+    let photoOutput = AVCapturePhotoOutput()
     private let videoDataOutput = AVCaptureVideoDataOutput()
-    private let sessionQueue = DispatchQueue(label: "com.guitaripod.livingdex.camera")
+    let sessionQueue = DispatchQueue(label: "com.guitaripod.livingdex.camera")
     private let videoDataQueue = DispatchQueue(label: "com.guitaripod.livingdex.camera.videodata")
 
-    private let lock = NSLock()
+    let lock = NSLock()
     private var captureContinuation: CheckedContinuation<Data?, Never>?
     /// Armed on each `startRunning()`, disarmed by the first delivered frame, so
     /// every (re)start — cold launch or tab return — emits exactly one reveal.
@@ -47,8 +65,8 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
     private var isConfigured = false
     /// True only once a working video input is actually attached — capturing
     /// without one raises an uncatchable ObjC exception, so this gates capture.
-    private var hasVideoInput = false
-    private var videoDevice: AVCaptureDevice?
+    var hasVideoInput = false
+    private(set) var videoDevice: AVCaptureDevice?
 
     /// Native zoom factor that reads as 1.0× to the user (the wide-lens switch-over
     /// on a virtual multi-lens device, else 1). User zoom is expressed relative to
@@ -59,7 +77,7 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
     /// result has resolved.
     private(set) var minUserZoom: CGFloat = 1
     private(set) var maxUserZoom: CGFloat = 1
-    private(set) var hasTorch = false
+    internal(set) var hasTorch = false
 
     /// Longest-edge cap for captured photos. The card and grid thumbnails need far
     /// less than a full-sensor frame; capping cuts shutter-to-data latency, cloud
@@ -168,6 +186,7 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
         if let device = videoDevice {
             configureZoomBaseline(for: device)
             hasTorch = device.hasTorch
+            adaptToDisplaysIfSupported(device)
         }
         isConfigured = hasVideoInput
         AppLogger.shared.info("camera configured hardwareCost=\(session.hardwareCost)", category: .capture)
@@ -194,8 +213,27 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
             return
         }
         session.addInput(input)
-        videoDevice = device
+        setVideoDevice(device)
         hasVideoInput = true
+    }
+
+    /// Hands orientation to the Duo's rotation handling when the system has it; a no-op before iOS 27.1.
+    private func adaptToDisplaysIfSupported(_ device: AVCaptureDevice) {
+        #if canImport(UIKit, _version: 9127.0.85)
+        if #available(iOS 27.1, *) { adaptToDisplays(for: device) }
+        #endif
+    }
+
+    private func applyCaptureRotationIfSupported() {
+        #if canImport(UIKit, _version: 9127.0.85)
+        if #available(iOS 27.1, *) { applyCaptureRotation() }
+        #endif
+    }
+
+    func setVideoDevice(_ device: AVCaptureDevice) {
+        lock.lock()
+        videoDevice = device
+        lock.unlock()
     }
 
     /// Prefers a virtual multi-lens device so pinch zoom crosses the optical
@@ -214,7 +252,7 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
 
     /// Caps `maxPhotoDimensions` to the largest supported frame under
     /// `maxPhotoEdge`, or the smallest available if every option is larger.
-    private func applyPhotoDimensionCap(for device: AVCaptureDevice) {
+    func applyPhotoDimensionCap(for device: AVCaptureDevice) {
         let supported = device.activeFormat.supportedMaxPhotoDimensions
         guard !supported.isEmpty else { return }
         let underCap = supported.filter { max($0.width, $0.height) <= Self.maxPhotoEdge }
@@ -231,7 +269,7 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
 
     /// Maps user zoom so 1.0× is the standard wide field of view and records the
     /// reachable range (ultra-wide below 1×, optical tele above).
-    private func configureZoomBaseline(for device: AVCaptureDevice) {
+    func configureZoomBaseline(for device: AVCaptureDevice) {
         let switchOver = device.virtualDeviceSwitchOverVideoZoomFactors.first.map { CGFloat(truncating: $0) }
         baselineZoom = max(switchOver ?? 1, 1)
         do {
@@ -350,6 +388,7 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
                     continuation.resume(returning: nil)
                     return
                 }
+                self.applyCaptureRotationIfSupported()
                 self.photoOutput.capturePhoto(with: self.makePhotoSettings(), delegate: self)
             }
         }

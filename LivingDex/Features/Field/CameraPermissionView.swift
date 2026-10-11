@@ -38,6 +38,8 @@ final class CameraPermissionView: UIView {
     private let bodyLabel = UILabel()
     private let button = UIButton(configuration: .borderedProminent())
     private let photoButton = UIButton(configuration: .gray())
+    private let content = UIStackView()
+    private var isWide = false
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -78,26 +80,58 @@ final class CameraPermissionView: UIView {
         photoButton.configuration = photoConfig
         photoButton.showsMenuAsPrimaryAction = true
 
-        let stack = UIStackView(arrangedSubviews: [iconView, titleLabel, bodyLabel, button, photoButton])
-        stack.axis = .vertical
-        stack.alignment = .center
-        stack.spacing = DesignSystem.Spacing.m
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(stack)
+        let texts = UIStackView(arrangedSubviews: [iconView, titleLabel, bodyLabel])
+        texts.axis = .vertical
+        texts.alignment = .center
+        texts.spacing = DesignSystem.Spacing.m
+        let actions = UIStackView(arrangedSubviews: [button, photoButton])
+        actions.axis = .vertical
+        actions.alignment = .center
+        actions.spacing = DesignSystem.Spacing.m
+        content.addArrangedSubview(texts)
+        content.addArrangedSubview(actions)
+        content.alignment = .center
+        content.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(content)
 
+        let safe = safeAreaLayoutGuide
+        let margin = DesignSystem.Spacing.l
+        let centering = content.centerXAnchor.constraint(equalTo: centerXAnchor)
+        centering.priority = UILayoutPriority(rawValue: 999)
+        let fill = content.widthAnchor.constraint(equalTo: safe.widthAnchor, constant: -2 * margin)
+        fill.priority = .defaultHigh
         NSLayoutConstraint.activate([
             iconView.heightAnchor.constraint(equalToConstant: 64),
             iconView.widthAnchor.constraint(equalToConstant: 64),
-            stack.centerYAnchor.constraint(equalTo: centerYAnchor),
-            stack.leadingAnchor.constraint(equalTo: leadingAnchor, constant: DesignSystem.Spacing.l),
-            stack.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -DesignSystem.Spacing.l),
+            content.centerYAnchor.constraint(equalTo: centerYAnchor),
+            centering,
+            content.leadingAnchor.constraint(greaterThanOrEqualTo: safe.leadingAnchor, constant: margin),
+            content.trailingAnchor.constraint(lessThanOrEqualTo: safe.trailingAnchor, constant: -margin),
+            content.widthAnchor.constraint(lessThanOrEqualToConstant: AdaptiveLayout.wideColumnWidth),
+            fill,
         ])
+        arrange(wide: false)
 
         configure(.denied)
     }
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError() }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        let wide = bounds.width > bounds.height
+        if wide != isWide { arrange(wide: wide) }
+    }
+
+    /// The explanation and the actions sit side by side in a landscape window, divided at its
+    /// middle where a fold falls, and stacked in a portrait one.
+    private func arrange(wide: Bool) {
+        isWide = wide
+        content.axis = wide ? .horizontal : .vertical
+        content.distribution = wide ? .fillEqually : .fill
+        content.spacing = wide ? AdaptiveLayout.foldGap : DesignSystem.Spacing.l
+    }
 
     /// Invoked when the (optional) action button is tapped.
     var onAction: (() -> Void)?

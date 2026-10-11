@@ -27,6 +27,11 @@ final class FieldViewController: UIViewController {
         onBegin: { [weak self] in self?.statusChip.setText("Opening photo…") },
         onFailure: { [weak self] in self?.report("Couldn't open that photo — try another") })
 
+    private var directionMonitor: AnyObject?
+    private var tallHUDConstraints: [NSLayoutConstraint] = []
+    private var wideHUDConstraints: [NSLayoutConstraint] = []
+    private var isWideHUD = false
+
     private var pinchGesture: UIPinchGestureRecognizer!
     private var focusTapGesture: UITapGestureRecognizer!
 
@@ -67,6 +72,7 @@ final class FieldViewController: UIViewController {
 
         camera.onFirstFrame = { [weak self] in self?.revealPreview() }
         camera.onInterrupted = { [weak self] in self?.handleInterruption() }
+        observeCameraDirection()
 
         let center = NotificationCenter.default
         center.addObserver(
@@ -87,6 +93,18 @@ final class FieldViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         camera.previewLayer.frame = view.bounds
+        let wide = view.bounds.width > view.bounds.height
+        if wide != isWideHUD { applyHUDLayout(wide: wide) }
+    }
+
+    /// In a landscape window the capture control docks to the trailing edge, centred
+    /// vertically, with the photo picker under it and the zoom readout beside it, and the
+    /// status chip leads from the credits chip. Nothing sits on the vertical centre line, so
+    /// no control lands on a fold, and every control stays reachable in both layouts.
+    private func applyHUDLayout(wide: Bool) {
+        isWideHUD = wide
+        NSLayoutConstraint.deactivate(wide ? tallHUDConstraints : wideHUDConstraints)
+        NSLayoutConstraint.activate(wide ? wideHUDConstraints : tallHUDConstraints)
     }
 
     /// Shows the loading cover as the Field appears, then starts the camera only
@@ -100,7 +118,7 @@ final class FieldViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         #if DEBUG
-        if DemoSeeder.route == "field" {
+        if DemoSeeder.showsFieldBackdrop {
             presentDemoField()
             return
         }
@@ -123,7 +141,7 @@ final class FieldViewController: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         #if DEBUG
-        if DemoSeeder.route == "field" { return }
+        if DemoSeeder.showsFieldBackdrop { return }
         if DemoSeeder.route == "sample" { runDemoSample() }
         #endif
         guard !didRequestPermission else { return }
@@ -150,7 +168,7 @@ final class FieldViewController: UIViewController {
     /// from the background — but only while the Field is actually on screen.
     @objc private func appDidBecomeActive() {
         #if DEBUG
-        if DemoSeeder.route == "field" { return }
+        if DemoSeeder.showsFieldBackdrop { return }
         #endif
         guard isViewLoaded, view.window != nil,
               CameraController.authorizationStatus() == .authorized else { return }
@@ -177,6 +195,36 @@ final class FieldViewController: UIViewController {
     private func handleInterruption() {
         cancelRevealTimeout()
         beginPreviewCover()
+    }
+
+    /// On the Duo the display showing the preview can face the opposite way to the camera in
+    /// use, so a monitor follows which cameras look away from it and the camera moves with the
+    /// person between displays. Earlier systems have one display and keep the single camera.
+    private func observeCameraDirection() {
+        #if canImport(UIKit, _version: 9127.0.85)
+        guard #available(iOS 27.1, *) else { return }
+        let camera = camera
+        camera.onDeviceChanged = { [weak self] in
+            Task { @MainActor in self?.cameraDidSwitch() }
+        }
+        directionMonitor = CameraDirectionMonitor(
+            view: view,
+            activeDeviceID: { camera.activeDeviceID },
+            onReplacement: { camera.switchDevice(toDeviceWithID: $0) })
+        #endif
+    }
+
+    private func reevaluateCameraDirection() {
+        #if canImport(UIKit, _version: 9127.0.85)
+        guard #available(iOS 27.1, *), let monitor = directionMonitor as? CameraDirectionMonitor else { return }
+        monitor.reevaluate()
+        #endif
+    }
+
+    /// Resets the controls that belong to the camera that was just replaced.
+    private func cameraDidSwitch() {
+        guard isPreviewRevealed else { return }
+        configureCameraControls()
     }
 
     // MARK: Setup
@@ -234,8 +282,28 @@ final class FieldViewController: UIViewController {
 
         let statusCentering = statusChip.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         statusCentering.priority = .defaultHigh
-        NSLayoutConstraint.activate([
+        tallHUDConstraints = [
             statusCentering,
+            photosButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: DesignSystem.Spacing.l),
+            photosButton.centerYAnchor.constraint(equalTo: captureButton.centerYAnchor),
+            captureButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            captureButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -DesignSystem.Spacing.l),
+            zoomChip.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            zoomChip.bottomAnchor.constraint(equalTo: captureButton.topAnchor, constant: -DesignSystem.Spacing.m),
+        ]
+        let statusLeading = statusChip.leadingAnchor.constraint(equalTo: creditsButton.trailingAnchor, constant: DesignSystem.Spacing.s)
+        statusLeading.priority = .defaultHigh
+        wideHUDConstraints = [
+            statusLeading,
+            captureButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -DesignSystem.Spacing.l),
+            captureButton.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            photosButton.centerXAnchor.constraint(equalTo: captureButton.centerXAnchor),
+            photosButton.topAnchor.constraint(equalTo: captureButton.bottomAnchor, constant: DesignSystem.Spacing.l),
+            zoomChip.trailingAnchor.constraint(equalTo: captureButton.leadingAnchor, constant: -DesignSystem.Spacing.m),
+            zoomChip.centerYAnchor.constraint(equalTo: captureButton.centerYAnchor),
+        ]
+        NSLayoutConstraint.activate(tallHUDConstraints)
+        NSLayoutConstraint.activate([
             statusChip.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: DesignSystem.Spacing.m),
             statusChip.leadingAnchor.constraint(greaterThanOrEqualTo: creditsButton.trailingAnchor, constant: DesignSystem.Spacing.s),
             statusChip.trailingAnchor.constraint(lessThanOrEqualTo: torchButton.leadingAnchor, constant: -DesignSystem.Spacing.s),
@@ -243,8 +311,6 @@ final class FieldViewController: UIViewController {
             creditsButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: DesignSystem.Spacing.m),
             creditsButton.centerYAnchor.constraint(equalTo: statusChip.centerYAnchor),
 
-            photosButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: DesignSystem.Spacing.l),
-            photosButton.centerYAnchor.constraint(equalTo: captureButton.centerYAnchor),
             photosButton.widthAnchor.constraint(equalToConstant: 52),
             photosButton.heightAnchor.constraint(equalToConstant: 52),
 
@@ -253,13 +319,8 @@ final class FieldViewController: UIViewController {
             torchButton.widthAnchor.constraint(equalToConstant: 44),
             torchButton.heightAnchor.constraint(equalToConstant: 44),
 
-            captureButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            captureButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -DesignSystem.Spacing.l),
             captureButton.widthAnchor.constraint(equalToConstant: 76),
             captureButton.heightAnchor.constraint(equalToConstant: 76),
-
-            zoomChip.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            zoomChip.bottomAnchor.constraint(equalTo: captureButton.topAnchor, constant: -DesignSystem.Spacing.m),
 
             permissionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             permissionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
@@ -318,6 +379,7 @@ final class FieldViewController: UIViewController {
             let ready = await camera.configureAndStart()
             cameraReady = ready
             if ready {
+                reevaluateCameraDirection()
                 armRevealTimeout()
             } else {
                 showCameraUnavailable()
@@ -706,7 +768,7 @@ final class FieldViewController: UIViewController {
         .sink { [weak self] balance, isPro in
             guard let self else { return }
             #if DEBUG
-            if DemoSeeder.route == "field" { return }
+            if DemoSeeder.showsFieldBackdrop { return }
             #endif
             self.creditsKnown = isPro || balance != nil
             self.creditsButton.configure(balance: balance ?? 0, isPro: isPro)
