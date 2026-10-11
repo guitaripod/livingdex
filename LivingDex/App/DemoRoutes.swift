@@ -2,7 +2,8 @@
 import UIKit
 
 /// DEBUG-only routes beyond the first-screen ones in `DemoSeeder`: Field Guide,
-/// Settings (the guide also scrolled to its realm cards), the cloud consent sheet, Dex search, and a chosen species' card.
+/// Settings (the guide also scrolled to its realm cards), the cloud consent sheet, Dex search, a chosen species' card,
+/// and the shareable trading cards written to Documents/sharecards for the store artwork.
 /// `LIVINGDEX_DEMO_SPECIES` names the species the `card` route opens (by common
 /// name) and `LIVINGDEX_DEMO_QUERY` is the text the `search` route types.
 extension DemoSeeder {
@@ -41,11 +42,29 @@ extension DemoSeeder {
             push(guide, on: root)
             guide.scrollToRealms()
         case "settings": push(SettingsViewController(), on: root)
+        case "sharecards": exportShareCards()
         case "consent":
             guard let field = root.viewControllers?.first else { return }
             CloudConsent.request(from: field) { _ in }
         default: break
         }
+    }
+
+    /// Renders a trading card for every demo species into `Documents/sharecards/<speciesId>.png`.
+    @MainActor
+    private static func exportShareCards() {
+        guard let documents = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
+        let folder = documents.appendingPathComponent("sharecards", isDirectory: true)
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        for (index, sample) in samples.enumerated() {
+            guard let photo = photo(for: sample) else { continue }
+            let model = ShareCardModel(
+                commonName: sample.common, scientificName: sample.scientific, realm: sample.realm,
+                rarity: sample.rarity, caughtAt: Date().addingTimeInterval(-Double(index) * 3600), photo: photo)
+            let name = sample.common.lowercased().replacingOccurrences(of: " ", with: "-")
+            try? ShareCardRenderer.render(model).pngData()?.write(to: folder.appendingPathComponent("\(name).png"))
+        }
+        AppLogger.shared.info("demo share cards exported", category: .app)
     }
 
     @MainActor

@@ -162,7 +162,7 @@ enum DemoSeeder {
         return UIImage(contentsOfFile: "\(folder)/field-backdrop.jpg") ?? UIImage(contentsOfFile: "\(folder)/golden-eagle.jpg")
     }
 
-    private static func photo(for s: Sample) -> UIImage? {
+    static func photo(for s: Sample) -> UIImage? {
         guard let folder = ProcessInfo.processInfo.environment["LIVINGDEX_DEMO_PHOTOS"] else { return nil }
         return UIImage(contentsOfFile: "\(folder)/\(s.photo).jpg")
     }
