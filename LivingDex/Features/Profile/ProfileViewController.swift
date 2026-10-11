@@ -17,6 +17,7 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
         case pro(balance: Int?, isPro: Bool)
         case action(title: String, symbol: String, handler: () -> Void)
         case info(title: String, value: String)
+        case guide
     }
     private struct Section { let header: String?; let rows: [Row] }
     private var sections: [Section] = []
@@ -36,6 +37,7 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
         tableView.dataSource = self
         tableView.delegate = self
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        tableView.register(FieldGuideBannerCell.self, forCellReuseIdentifier: FieldGuideBannerCell.reuseID)
         headerView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: Self.headerHeight)
         tableView.tableHeaderView = headerView
         view.addSubview(tableView)
@@ -150,17 +152,13 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
             .map { .rarity($0, count: stats.byRarity[$0] ?? 0) }
 
         sections = [
+            Section(header: nil, rows: [.guide]),
             Section(header: "Collection", rows: collection),
             Section(header: "Identify", rows: [.pro(balance: balance, isPro: subscriptions.isPro)]),
             Section(header: "Compete", rows: [
                 .action(title: "Leaderboards & achievements", symbol: "trophy.fill") { [weak self] in
                     guard let self else { return }
                     GameCenterService.shared.presentDashboard(from: self)
-                },
-            ]),
-            Section(header: "Learn", rows: [
-                .action(title: "Field Guide", symbol: "book.fill") { [weak self] in
-                    self?.navigationController?.pushViewController(FieldGuideViewController(), animated: true)
                 },
             ]),
         ]
@@ -179,6 +177,9 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { sections[section].header }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        if case .guide = sections[indexPath.section].rows[indexPath.row] {
+            return tableView.dequeueReusableCell(withIdentifier: FieldGuideBannerCell.reuseID, for: indexPath)
+        }
         let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
         var content = cell.defaultContentConfiguration()
         cell.accessoryType = .none
@@ -231,6 +232,8 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
             cell.accessoryType = .disclosureIndicator
         case let .info(title, value):
             cell.contentConfiguration = pairConfig(title: title, value: value)
+        case .guide:
+            break
         }
         return cell
     }
@@ -253,6 +256,8 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
         switch sections[indexPath.section].rows[indexPath.row] {
         case let .action(_, _, handler):
             handler()
+        case .guide:
+            navigationController?.pushViewController(FieldGuideViewController(), animated: true)
         case let .pro(_, isPro):
             if isPro {
                 UIApplication.shared.open(subscriptions.manageSubscriptionsURL)

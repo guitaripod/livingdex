@@ -11,6 +11,9 @@ final class DexHeaderView: UICollectionReusableView {
     private let captionLabel = UILabel()
     private let track = UIView()
     private let fill = UIView()
+    let realmStrip = RealmStripView()
+    private var stripTop: NSLayoutConstraint!
+    private var stripHeight: NSLayoutConstraint!
     private var fillWidth: NSLayoutConstraint!
 
     override init(frame: CGRect) {
@@ -31,11 +34,13 @@ final class DexHeaderView: UICollectionReusableView {
         fill.backgroundColor = DesignSystem.Color.accent
         fill.layer.cornerRadius = 4
 
-        for v in [countLabel, captionLabel, track] { v.translatesAutoresizingMaskIntoConstraints = false; addSubview(v) }
+        for v in [countLabel, captionLabel, track, realmStrip] { v.translatesAutoresizingMaskIntoConstraints = false; addSubview(v) }
         fill.translatesAutoresizingMaskIntoConstraints = false
         track.addSubview(fill)
 
         fillWidth = fill.widthAnchor.constraint(equalTo: track.widthAnchor, multiplier: 0)
+        stripTop = realmStrip.topAnchor.constraint(equalTo: track.bottomAnchor, constant: 16)
+        stripHeight = realmStrip.heightAnchor.constraint(equalToConstant: 104)
         NSLayoutConstraint.activate([
             countLabel.topAnchor.constraint(equalTo: topAnchor, constant: 10),
             countLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
@@ -49,7 +54,12 @@ final class DexHeaderView: UICollectionReusableView {
             track.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
             track.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20),
             track.heightAnchor.constraint(equalToConstant: 8),
-            track.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
+
+            stripTop,
+            realmStrip.leadingAnchor.constraint(equalTo: leadingAnchor),
+            realmStrip.trailingAnchor.constraint(equalTo: trailingAnchor),
+            stripHeight,
+            realmStrip.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -8),
 
             fill.leadingAnchor.constraint(equalTo: track.leadingAnchor),
             fill.topAnchor.constraint(equalTo: track.topAnchor),
@@ -74,6 +84,14 @@ final class DexHeaderView: UICollectionReusableView {
         captionLabel.text = "species · \(detail)"
         track.isHidden = true
         setFill(0)
+    }
+
+    /// The realm medallions, with the active filter highlighted.
+    func showRealms(_ entries: [RealmStripView.Entry], selected: Realm?) {
+        realmStrip.isHidden = entries.isEmpty
+        stripTop.constant = entries.isEmpty ? 0 : 16
+        stripHeight.constant = entries.isEmpty ? 0 : 104
+        realmStrip.configure(entries, selected: selected)
     }
 
     private func setFill(_ ratio: CGFloat) {

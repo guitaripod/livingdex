@@ -138,7 +138,7 @@ final class DexCell: UICollectionViewCell {
         ]
         lockedIcon.image = UIImage(systemName: DexTile.realmSymbol(realm))
         lockedIcon.preferredSymbolConfiguration = UIImage.SymbolConfiguration(weight: .semibold)
-        lockedIcon.tintColor = UIColor.label.withAlphaComponent(0.38)
+        lockedIcon.tintColor = UIColor.white.withAlphaComponent(0.7)
     }
 
     private func applyShadow(_ label: UILabel) {
@@ -179,14 +179,16 @@ final class DexCell: UICollectionViewCell {
         rarityPip.backgroundColor = tile.rarity.color
 
         if tile.locked {
-            imageView.isHidden = true
-            scrim.isHidden = true
-            lockedIcon.isHidden = false
+            imageView.isHidden = false
+            imageView.image = RealmArt.tile(for: tile.realm, seed: RealmArt.seed(for: tile.speciesId))
+            imageView.alpha = 0.7
+            scrim.isHidden = false
             configureMystery(realm: tile.realm, rarity: tile.rarity)
+            lockedIcon.isHidden = imageView.image != nil
             nameLabel.text = "???"
-            nameLabel.textColor = .secondaryLabel
-            numberLabel.textColor = .tertiaryLabel
-            setLabelShadows(false)
+            nameLabel.textColor = UIColor(white: 1, alpha: 0.8)
+            numberLabel.textColor = UIColor(white: 1, alpha: 0.7)
+            setLabelShadows(true)
             rarityPip.alpha = 0.55
             isAccessibilityElement = true
             accessibilityLabel = "Slot \(tile.number), \(tile.rarity.title) \(tile.realm.rawValue.capitalized), not yet caught"
@@ -194,6 +196,7 @@ final class DexCell: UICollectionViewCell {
         }
 
         imageView.isHidden = false
+        imageView.alpha = 1
         scrim.isHidden = false
         lockedIcon.isHidden = true
         mysteryGradient.isHidden = true

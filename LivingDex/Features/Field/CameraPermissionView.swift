@@ -47,6 +47,7 @@ final class CameraPermissionView: UIView {
         // The camera surface is always dark; keep semantic label colors readable
         // in Light Mode too.
         overrideUserInterfaceStyle = .dark
+        addBackdrop()
 
         iconView.image = UIImage(systemName: "camera.viewfinder")
         iconView.tintColor = DesignSystem.Color.accent
@@ -60,7 +61,7 @@ final class CameraPermissionView: UIView {
 
         bodyLabel.font = .preferredFont(forTextStyle: .subheadline)
         bodyLabel.adjustsFontForContentSizeCategory = true
-        bodyLabel.textColor = .secondaryLabel
+        bodyLabel.textColor = UIColor(white: 1, alpha: 0.78)
         bodyLabel.textAlignment = .center
         bodyLabel.numberOfLines = 0
 
@@ -117,6 +118,27 @@ final class CameraPermissionView: UIView {
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError() }
+
+    /// The animals illustration, dimmed, so the fallback surface is part of the app rather than a black void.
+    private func addBackdrop() {
+        let backdrop = UIImageView(image: RealmArt.image(for: .animals))
+        backdrop.contentMode = .scaleAspectFill
+        backdrop.clipsToBounds = true
+        backdrop.alpha = 0.34
+        backdrop.isAccessibilityElement = false
+        backdrop.translatesAutoresizingMaskIntoConstraints = false
+        for axis in [NSLayoutConstraint.Axis.horizontal, .vertical] {
+            backdrop.setContentHuggingPriority(UILayoutPriority(1), for: axis)
+            backdrop.setContentCompressionResistancePriority(UILayoutPriority(1), for: axis)
+        }
+        addSubview(backdrop)
+        NSLayoutConstraint.activate([
+            backdrop.topAnchor.constraint(equalTo: topAnchor),
+            backdrop.bottomAnchor.constraint(equalTo: bottomAnchor),
+            backdrop.leadingAnchor.constraint(equalTo: leadingAnchor),
+            backdrop.trailingAnchor.constraint(equalTo: trailingAnchor),
+        ])
+    }
 
     override func layoutSubviews() {
         super.layoutSubviews()

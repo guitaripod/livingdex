@@ -365,6 +365,12 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
     }
 
     private func configureHeaderView(_ header: DexHeaderView) {
+        header.realmStrip.onSelect = { [weak self] realm in
+            guard let self else { return }
+            self.realmFilter = realm
+            self.updateBarButtons()
+            self.reload()
+        }
         if mode == .nearby {
             let caughtIds = Set(caught.map { $0.speciesId })
             let owned = regional.filter { caughtIds.contains($0.speciesId) }.count
@@ -372,6 +378,28 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         } else {
             let rarePlus = caught.filter { $0.rarity >= .rare }.count
             header.showSummary(species: caught.count, detail: rarePlus == 0 ? "your collection" : "\(rarePlus) rare or better")
+        }
+        header.showRealms(realmEntries(), selected: realmFilter)
+    }
+
+    /// One medallion per realm worth showing: the three everyone starts with always, the rarer
+    /// realms once they hold something. Nearby counts caught over catchable; Caught counts catches.
+    private func realmEntries() -> [RealmStripView.Entry] {
+        let caughtIds = Set(caught.map { $0.speciesId })
+        func detail(_ realm: Realm) -> (text: String, count: Int) {
+            if mode == .nearby {
+                let local = regional.filter { $0.realm == realm }
+                let owned = local.filter { caughtIds.contains($0.speciesId) }.count
+                return ("\(owned)/\(local.count)", local.count)
+            }
+            let owned = caught.filter { $0.realm == realm }.count
+            return ("\(owned)", owned)
+        }
+        let always: Set<Realm> = [.animals, .plants, .fungi]
+        return Realm.allCases.compactMap { realm in
+            let info = detail(realm)
+            guard always.contains(realm) || info.count > 0 else { return nil }
+            return RealmStripView.Entry(realm: realm, detail: info.text)
         }
     }
 
@@ -410,7 +438,7 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
             }
             return emptyConfiguration(
                 symbol: "leaf", title: "Nothing catalogued here yet",
-                subtitle: "Catch something nearby to start your Regional Dex.")
+                subtitle: "Catch something nearby to start your Regional Dex.", art: .fungi)
         }
     }
 
@@ -424,22 +452,28 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         return emptyConfiguration(
             symbol: "camera.viewfinder", title: "Your dex is empty",
             subtitle: "Point the camera at anything alive to make your first catch.",
-            buttonTitle: "Go to Field", action: UIAction { [weak self] _ in self?.goToField() })
+            buttonTitle: "Go to Field", action: UIAction { [weak self] _ in self?.goToField() }, art: .animals)
     }
 
     private func locationAccessConfiguration() -> UIContentUnavailableConfiguration {
         emptyConfiguration(
             symbol: "location.slash", title: "Location access needed",
             subtitle: "Turn on location to reveal the species living near you — your Regional Dex.",
-            buttonTitle: "Grant Access", action: UIAction { [weak self] _ in self?.handleLocationAccess() })
+            buttonTitle: "Grant Access", action: UIAction { [weak self] _ in self?.handleLocationAccess() }, art: .plants)
     }
 
     private func emptyConfiguration(
         symbol: String, title: String, subtitle: String?,
-        buttonTitle: String? = nil, action: UIAction? = nil
+        buttonTitle: String? = nil, action: UIAction? = nil, art: Realm? = nil
     ) -> UIContentUnavailableConfiguration {
         var config = UIContentUnavailableConfiguration.empty()
-        config.image = UIImage(systemName: symbol)
+        if let art, let image = RealmArt.image(for: art) {
+            config.image = image
+            config.imageProperties.maximumSize = CGSize(width: 150, height: 150)
+            config.imageProperties.cornerRadius = 75
+        } else {
+            config.image = UIImage(systemName: symbol)
+        }
         config.text = title
         config.secondaryText = subtitle
         if let buttonTitle, let action {
