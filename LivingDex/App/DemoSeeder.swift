@@ -73,7 +73,7 @@ enum DemoSeeder {
         AppSettings.hasOnboarded = true
         seedRegionalCache()
         let store = CollectionStore.shared
-        guard (try? store.dexCount()) == 0 else { return }
+        guard needsReseed(store) else { return }
         let progress = ProgressStore.shared
         let now = Date()
         let seeded = samples.enumerated().filter { route != "reveal" || $0.element.speciesId != heldBackSpeciesId }
@@ -84,6 +84,22 @@ enum DemoSeeder {
             _ = try? progress.record(rarity: s.rarity, isNew: isNew, now: capturedAt)
         }
         AppLogger.shared.info("demo data seeded (\(seeded.count) species)", category: .persistence)
+    }
+
+    private static let withholdsEagleKey = "demoSeededWithoutEagle"
+
+    /// True when the collection is empty or was seeded for a different route than this
+    /// launch: the `reveal` route needs the Golden Eagle absent and every other route
+    /// needs it present, so a relaunch on another route wipes and reseeds, while a
+    /// relaunch on the same route keeps what is there.
+    private static func needsReseed(_ store: CollectionStore) -> Bool {
+        let withholds = route == "reveal"
+        let defaults = UserDefaults.standard
+        let isEmpty = ((try? store.dexCount()) ?? 0) == 0
+        if !isEmpty && !withholds && !defaults.bool(forKey: withholdsEagleKey) { return false }
+        if !isEmpty { try? DatabaseManager.shared.eraseAllData() }
+        defaults.set(withholds, forKey: withholdsEagleKey)
+        return true
     }
 
     /// The Golden Eagle catch celebration, presented over the collection. The

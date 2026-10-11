@@ -33,6 +33,17 @@ final class RootViewController: UITabBarController, UITabBarControllerDelegate {
         ]
     }
 
+    #if DEBUG
+    private var didOpenDemoRoute = false
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        guard DemoSeeder.isEnabled, !didOpenDemoRoute else { return }
+        didOpenDemoRoute = true
+        DemoSeeder.openRoute(on: self)
+    }
+    #endif
+
     func tabBarController(_ tabBarController: UITabBarController, didSelect viewController: UIViewController) {
         guard !didAuthenticateGameCenter, selectedIndex != 0 else { return }
         didAuthenticateGameCenter = true
