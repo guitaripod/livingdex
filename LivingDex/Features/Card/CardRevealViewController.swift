@@ -230,8 +230,11 @@ final class CardRevealViewController: UIViewController {
 
     private func shareCatch() {
         Haptics.tap()
+        let model = ShareCardModel(
+            commonName: sighting.commonName, scientificName: sighting.scientificName,
+            realm: sighting.realm, rarity: sighting.rarity, caughtAt: sighting.capturedAt, photo: image)
         let share = UIActivityViewController(
-            activityItems: [image, sighting.commonName], applicationActivities: nil)
+            activityItems: ShareCardRenderer.shareItems(for: model), applicationActivities: nil)
         share.popoverPresentationController?.sourceView = shareButton ?? view
         present(share, animated: true)
     }

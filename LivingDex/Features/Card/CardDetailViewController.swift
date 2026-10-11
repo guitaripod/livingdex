@@ -55,10 +55,12 @@ final class CardDetailViewController: UIViewController {
     }
 
     private func shareCatch() {
-        let image = hero.image ?? ImageStore.load(entry.bestImagePath)
-        var items: [Any] = [entry.commonName]
-        if let image { items.insert(image, at: 0) }
-        let share = UIActivityViewController(activityItems: items, applicationActivities: nil)
+        guard let photo = ImageStore.load(entry.bestImagePath) ?? hero.image else { return }
+        let model = ShareCardModel(
+            commonName: entry.commonName, scientificName: entry.scientificName,
+            realm: entry.realm, rarity: entry.rarity, caughtAt: entry.lastCaughtAt, photo: photo)
+        let share = UIActivityViewController(
+            activityItems: ShareCardRenderer.shareItems(for: model), applicationActivities: nil)
         share.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItems?.first
         present(share, animated: true)
     }
@@ -204,7 +206,7 @@ final class CardDetailViewController: UIViewController {
                 narrationLabel.text = text
                 narrationLabel.textColor = .label
             } else {
-                narrationLabel.text = "This creature's dex entry will appear once it's written."
+                narrationLabel.text = "No field entry is available for this species yet."
                 narrationLabel.textColor = .secondaryLabel
             }
             if let category = sighting?.category, !category.isEmpty {
