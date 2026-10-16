@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-"""Idempotent creation of Living Dex's consumable credit-pack IAPs in ASC.
+"""Superseded by `midgar products` (Midgar decision D13); kept until this app's store flow moves to it. See ops/runbooks/store-commands.md in guitaripod/midgar-platform.
+
+Idempotent creation of Living Dex's consumable credit-pack IAPs in ASC.
 
 The mako backend already defines the packs (migrations/014_seed_livingdex.sql):
 product id = com.guitaripod.livingdex.credits.<pack_id>, mapped to a credit
