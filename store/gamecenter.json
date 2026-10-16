@@ -1,0 +1,179 @@
+{
+  "app": "6787688416",
+  "locales": [
+    "en-US"
+  ],
+  "leaderboards": [
+    {
+      "id": "com.guitaripod.livingdex.lb.species",
+      "referenceName": "Species Collected",
+      "formatter": "INTEGER",
+      "sort": "DESC",
+      "submission": "BEST_SCORE",
+      "image": {
+        "remote": {
+          "en-US": "52d22563-2212-40c8-ad39-b3c17f7f61fa"
+        }
+      },
+      "localizations": {
+        "en-US": {
+          "name": "Species Collected"
+        }
+      }
+    }
+  ],
+  "achievements": [
+    {
+      "id": "com.guitaripod.livingdex.ach.first_catch",
+      "referenceName": "First Catch",
+      "points": 5,
+      "showBeforeEarned": true,
+      "repeatable": false,
+      "image": {
+        "remote": {
+          "en-US": "6c9f940a-8141-4878-9c3e-0975ed5a9680"
+        }
+      },
+      "localizations": {
+        "en-US": {
+          "name": "First Catch",
+          "before": "Collect your very first species.",
+          "after": "Your Living Dex has begun. One down, millions to go."
+        }
+      }
+    },
+    {
+      "id": "com.guitaripod.livingdex.ach.species_10",
+      "referenceName": "Ten Species",
+      "points": 10,
+      "showBeforeEarned": true,
+      "repeatable": false,
+      "image": {
+        "remote": {
+          "en-US": "05a4c69f-f2f0-4789-af1e-74a643f466c0"
+        }
+      },
+      "localizations": {
+        "en-US": {
+          "name": "Ten Species",
+          "before": "Collect 10 different species.",
+          "after": "Ten species in the book. You are getting the hang of this."
+        }
+      }
+    },
+    {
+      "id": "com.guitaripod.livingdex.ach.species_50",
+      "referenceName": "Fifty Species",
+      "points": 25,
+      "showBeforeEarned": true,
+      "repeatable": false,
+      "image": {
+        "remote": {
+          "en-US": "5debd430-6d51-45d4-bad4-c9a5a9cb0491"
+        }
+      },
+      "localizations": {
+        "en-US": {
+          "name": "Fifty Species",
+          "before": "Collect 50 different species.",
+          "after": "Fifty species. Your Dex is starting to look like a real field guide."
+        }
+      }
+    },
+    {
+      "id": "com.guitaripod.livingdex.ach.species_100",
+      "referenceName": "Centurion",
+      "points": 50,
+      "showBeforeEarned": true,
+      "repeatable": false,
+      "image": {
+        "remote": {
+          "en-US": "f6b2e6c5-95c6-46ac-8445-aab54b66c19e"
+        }
+      },
+      "localizations": {
+        "en-US": {
+          "name": "Centurion",
+          "before": "Collect 100 different species.",
+          "after": "One hundred species. Nature should be asking you for tips."
+        }
+      }
+    },
+    {
+      "id": "com.guitaripod.livingdex.ach.all_realms",
+      "referenceName": "All Realms",
+      "points": 25,
+      "showBeforeEarned": true,
+      "repeatable": false,
+      "image": {
+        "remote": {
+          "en-US": "6262aca3-1c08-4f22-a905-043a1c409bb4"
+        }
+      },
+      "localizations": {
+        "en-US": {
+          "name": "All Realms",
+          "before": "Catch an animal, a plant and a fungus.",
+          "after": "Animal, plant and fungus: all three realms are in your Dex."
+        }
+      }
+    },
+    {
+      "id": "com.guitaripod.livingdex.ach.first_rare",
+      "referenceName": "Rare Find",
+      "points": 15,
+      "showBeforeEarned": true,
+      "repeatable": false,
+      "image": {
+        "remote": {
+          "en-US": "f0cf5285-59f7-43c2-b762-e56788a9d0e7"
+        }
+      },
+      "localizations": {
+        "en-US": {
+          "name": "Rare Find",
+          "before": "Find your first Rare or better species.",
+          "after": "A Rare find. Not everyone spots one of those."
+        }
+      }
+    },
+    {
+      "id": "com.guitaripod.livingdex.ach.first_legendary",
+      "referenceName": "Legendary Find",
+      "points": 40,
+      "showBeforeEarned": true,
+      "repeatable": false,
+      "image": {
+        "remote": {
+          "en-US": "50f7207f-9cdc-4602-9b7f-404976678766"
+        }
+      },
+      "localizations": {
+        "en-US": {
+          "name": "Legendary Find",
+          "before": "Find your first Legendary species.",
+          "after": "A Legendary find. Go tell somebody, they will not believe you."
+        }
+      }
+    },
+    {
+      "id": "com.guitaripod.livingdex.ach.streak_7",
+      "referenceName": "Week Streak",
+      "points": 25,
+      "showBeforeEarned": true,
+      "repeatable": false,
+      "image": {
+        "remote": {
+          "en-US": "e262ba89-c8ee-4b45-83d6-45ec8c337ff1"
+        }
+      },
+      "localizations": {
+        "en-US": {
+          "name": "Week Streak",
+          "before": "Catch something every day for 7 days in a row.",
+          "after": "Seven days in a row. The wild never sleeps and neither do you."
+        }
+      }
+    }
+  ]
+}
