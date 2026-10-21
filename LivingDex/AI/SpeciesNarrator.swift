@@ -25,7 +25,7 @@ struct PokedexEntry: Codable, Sendable {
 /// entry (the card still shows fine).
 final class SpeciesNarrator: Narrator {
     private let client: AICreditsClient
-    private let model = "claude-haiku-4-5"
+    private let model = "claude-haiku-5-5"
 
     init(client: AICreditsClient = AICreditsManager.shared.client) {
         self.client = client
