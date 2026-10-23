@@ -38,7 +38,14 @@ packages:
     from: "7.0.0"
   AICredits:
     url: git@github.com:guitaripod/AICredits.git
-    from: "1.3.0"
+    exactVersion: 1.7.0
+  MidgarKit:
+    url: https://github.com/guitaripod/MidgarKit
+    exactVersion: 4.3.1
+
+x-midgar-keychain-groups: &midgarKeychainGroups
+  - $(AppIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)
+  - $(AppIdentifierPrefix)cc.midgarcorp.shared
 
 targets:
   LivingDex:
@@ -58,6 +65,7 @@ targets:
         product: AICreditsRevenueCat
       - package: AICredits
         product: AICreditsUI
+      - package: MidgarKit
     info:
       path: LivingDex/Info.plist
       properties:
@@ -88,6 +96,7 @@ targets:
         com.apple.developer.game-center: true
         com.apple.developer.applesignin:
           - Default
+        keychain-access-groups: *midgarKeychainGroups
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.guitaripod.livingdex
