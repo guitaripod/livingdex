@@ -14,7 +14,7 @@ Run from the monorepo as `apps/living-dex`; the mirror is `guitaripod/livingdex`
 
 ## Midgar platform
 
-- **Packages.** MidgarKit is pinned `exactVersion: 4.3.1` by URL and AICredits `exactVersion: 1.7.0` in `project.yml`. Commerce stays on AICredits and RevenueCat until wallet linking; do not move purchases.
+- **Packages.** MidgarKit comes from the monorepo's `packages/MidgarKit` by path and AICredits from `packages/AICredits` by path, both in `project.yml` (decision D15). Commerce stays on AICredits and RevenueCat until wallet linking; do not move purchases.
 - **Composition root.** `LivingDexMidgar` (`LivingDex/App`) builds the Midgar ID (`MidgarIdentity`, no App Attest entitlement), the gateway addresses, the portal configuration and the log file. The keychain groups are the app's own first, then `$(AppIdentifierPrefix)cc.midgarcorp.shared`.
 - **Gateway.** mako is `https://api.midgarcorp.cc/v1/intelligence` (`LivingDexMidgar.intelligenceURL`, AICredits' base URL) and AICredits sends the Midgar token through `additionalHeaders` (`midgarTokenHeaders()`, never waited on). The worker is `https://api.midgarcorp.cc/v1/livingdex/...` through `LivingDexGateway`, each call once with the timeout it always had (3.5 s enrichment, 8 s Regional Dex and call lookup). The worker is keyless and the gateway forwards no `Authorization` to it, so worker calls carry none. The tenant id is `livingdex` (mako and the worker know the app by it); the Midgar ID, signals and the portal use the registry slug `living-dex`.
 - **Species verification.** The worker answers 404 with a plain `{"error": ...}` for a name GBIF rejects, which `SpeciesEnricher` reads as "unresolved" and never mints; a 404 with an error code is the gateway's own and only makes the result unavailable.
