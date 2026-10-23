@@ -1,4 +1,5 @@
 import Combine
+import MidgarCore
 import UIKit
 
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
@@ -26,7 +27,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         SubscriptionService.shared.bootstrap()
         // Game Center auth is deferred to the first non-Field tab (see
         // RootViewController) so its foreground-steal never freezes the camera at launch.
-        AppLogger.shared.info("scene connected", category: .app)
+        MidgarLog.info("scene connected", category: .app)
     }
 
     func sceneWillEnterForeground(_ scene: UIScene) {
@@ -82,16 +83,16 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         store.$identity
             .compactMap { $0 }
             .removeDuplicates()
-            .sink { AppLogger.shared.info("credits identity \($0.kind.rawValue) \($0.userID.prefix(8))", category: .credits) }
+            .sink { MidgarLog.info("credits identity \($0.kind.rawValue) \($0.userID.prefix(8))", category: .credits) }
             .store(in: &creditsObservers)
         store.$error
             .compactMap { $0 }
-            .sink { AppLogger.shared.error("credits error: \($0.localizedDescription)", category: .credits) }
+            .sink { MidgarLog.error("credits error: \($0.localizedDescription)", category: .credits) }
             .store(in: &creditsObservers)
         store.$balance
             .removeDuplicates()
             .dropFirst()
-            .sink { AppLogger.shared.info("credits balance \($0)", category: .credits) }
+            .sink { MidgarLog.info("credits balance \($0)", category: .credits) }
             .store(in: &creditsObservers)
     }
 }

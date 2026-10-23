@@ -1,3 +1,4 @@
+import MidgarCore
 import UIKit
 import AICreditsCore
 import AICreditsUI
@@ -262,7 +263,7 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
             } catch {
                 overlay.hide()
                 Haptics.failure()
-                AppLogger.shared.error("account deletion failed: \(error)", category: .app)
+                MidgarLog.error("account deletion failed: \(error)", category: .app)
                 let offline = (error as? AccountDeletionError) == .offline
                 presentAlert(
                     title: "Couldn't delete your account",
@@ -273,7 +274,7 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
             }
             AppSettings.reset()
             CreditsMeter.shared.reset()
-            AppLogger.shared.info("account deleted leftovers=\(leftovers)", category: .app)
+            MidgarLog.info("account deleted leftovers=\(leftovers)", category: .app)
             Haptics.tap()
             await AICreditsManager.store.bootstrap()
             overlay.hide()

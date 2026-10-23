@@ -1,3 +1,4 @@
+import MidgarCore
 import UIKit
 import AICreditsCore
 
@@ -33,18 +34,18 @@ final class CloudVisionIdentifier: SpeciesIdentifier {
         do {
             let result = try await client.run(request)
             guard let content = MakoChat.messageContent(result.raw) else {
-                AppLogger.shared.warn("cloud vision: reply had no message content: \(String(decoding: result.raw, as: UTF8.self).prefix(200))", category: .identify)
+                MidgarLog.notice("cloud vision: reply had no message content", category: .identify)
                 return IdentificationResult(candidates: [], error: .noSpecies)
             }
             guard let candidate = Self.parse(content, minConfidence: minConfidence) else {
-                AppLogger.shared.info("cloud vision: no clear organism: \(content.prefix(200))", category: .identify)
+                MidgarLog.info("cloud vision: no clear organism", category: .identify)
                 return IdentificationResult(candidates: [], error: .noSpecies)
             }
-            AppLogger.shared.info("cloud vision -> \(candidate.scientificName) \(String(format: "%.2f", candidate.confidence))", category: .identify)
+            MidgarLog.info("cloud vision -> \(candidate.scientificName) \(String(format: "%.2f", candidate.confidence))", category: .identify)
             return IdentificationResult(candidates: [candidate])
         } catch {
             let mapped = Self.identifyError(from: error)
-            AppLogger.shared.warn("cloud vision failed (\(mapped)): \(error.localizedDescription)", category: .identify)
+            MidgarLog.notice("cloud vision failed (\(mapped)): \(error.localizedDescription)", category: .identify)
             return IdentificationResult(candidates: [], error: mapped)
         }
     }

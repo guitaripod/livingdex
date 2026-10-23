@@ -1,4 +1,5 @@
 import Foundation
+import MidgarCore
 
 /// Real, grounded context for a captured species from the Living Dex domain
 /// Worker: a rarity tier computed from GBIF occurrence density near the sighting,
@@ -45,43 +46,25 @@ enum EnrichmentResult: Sendable {
 final class SpeciesEnricher: Sendable {
     static let shared = SpeciesEnricher()
 
-    private let baseURL: URL
-    private let session: URLSession
+    static let timeout: TimeInterval = 3.5
 
-    init(baseURL: URL = Secrets.workerBaseURL, timeout: TimeInterval = 3.5) {
-        self.baseURL = baseURL
-        let config = URLSessionConfiguration.ephemeral
-        config.timeoutIntervalForRequest = timeout
-        config.waitsForConnectivity = false
-        self.session = URLSession(configuration: config)
+    private let gateway: LivingDexGateway
+
+    init(gateway: LivingDexGateway = LivingDexMidgar.workerGateway(timeout: SpeciesEnricher.timeout)) {
+        self.gateway = gateway
     }
 
     func enrich(candidate: SpeciesCandidate, context: CaptureContext) async -> EnrichmentResult {
-        guard var components = URLComponents(url: baseURL.appendingPathComponent("v1/enrich"), resolvingAgainstBaseURL: false) else {
-            return .unavailable
+        let data: Data
+        do throws(MidgarHTTPError) {
+            data = try await gateway.fetchFromWorker("v1/enrich", query: Self.query(for: candidate, context: context))
+        } catch {
+            return Self.result(for: error, candidate: candidate)
         }
-        var items = [URLQueryItem(name: "name", value: candidate.scientificName)]
-        if let key = Self.gbifKey(from: candidate.speciesId) {
-            items.append(URLQueryItem(name: "taxonKey", value: key))
-        }
-        if let lat = context.latitude, let lng = context.longitude {
-            items.append(URLQueryItem(name: "lat", value: String(Self.coarsened(lat))))
-            items.append(URLQueryItem(name: "lng", value: String(Self.coarsened(lng))))
-        }
-        components.queryItems = items
-        guard let url = components.url else { return .unavailable }
-
         do {
-            let (data, response) = try await session.data(from: url)
-            guard let http = response as? HTTPURLResponse else { return .unavailable }
-            if http.statusCode == 404 {
-                AppLogger.shared.warn("enrich unresolved: \(candidate.scientificName)", category: .identify)
-                return .unresolved
-            }
-            guard http.statusCode == 200 else { return .unavailable }
             let decoded = try JSONDecoder().decode(EnrichResponse.self, from: data)
             guard let rarity = Rarity(rawValue: decoded.rarity) else { return .unavailable }
-            AppLogger.shared.info("enriched \(candidate.commonName) -> \(rarity.rawValue)", category: .identify)
+            MidgarLog.info("enriched \(candidate.commonName) -> \(rarity.rawValue)", category: .identify)
             return .resolved(SpeciesEnrichment(
                 rarity: rarity,
                 taxonKey: decoded.taxonKey,
@@ -90,9 +73,33 @@ final class SpeciesEnricher: Sendable {
                 summary: decoded.factSheet.summary,
                 iucnCategory: decoded.factSheet.iucnCategory))
         } catch {
-            AppLogger.shared.warn("enrich failed: \(error.localizedDescription)", category: .identify)
+            MidgarLog.notice("enrich failed: \(error.localizedDescription)", category: .identify)
             return .unavailable
         }
+    }
+
+    private static func query(for candidate: SpeciesCandidate, context: CaptureContext) -> [URLQueryItem] {
+        var items = [URLQueryItem(name: "name", value: candidate.scientificName)]
+        if let key = gbifKey(from: candidate.speciesId) {
+            items.append(URLQueryItem(name: "taxonKey", value: key))
+        }
+        if let lat = context.latitude, let lng = context.longitude {
+            items.append(URLQueryItem(name: "lat", value: String(coarsened(lat))))
+            items.append(URLQueryItem(name: "lng", value: String(coarsened(lng))))
+        }
+        return items
+    }
+
+    /// The worker answers 404 with a plain `{"error": "unresolved species"}` when GBIF rejects the name, which carries
+    /// no error code. The gateway's own 404s (an unknown route or service) carry a code, so they mean the worker was
+    /// never asked and must not reject a species.
+    private static func result(for error: MidgarHTTPError, candidate: SpeciesCandidate) -> EnrichmentResult {
+        if case .notFound(let code) = error, code == nil {
+            MidgarLog.notice("enrich unresolved: \(candidate.scientificName)", category: .identify)
+            return .unresolved
+        }
+        MidgarLog.notice("enrich failed: \(error.localizedDescription)", category: .identify)
+        return .unavailable
     }
 
     /// Rounds a coordinate to 0.1° (about 11 km). Rarity is judged over a 150 km radius, so

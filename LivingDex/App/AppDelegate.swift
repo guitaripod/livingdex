@@ -1,3 +1,4 @@
+import MidgarCore
 import UIKit
 
 @main
@@ -6,12 +7,14 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
+        LivingDexMidgar.configureLogging()
+        LivingDexMidgar.shared.start()
         warmUpLaunchServicesReceiptPath()
         _ = DatabaseManager.shared
         #if DEBUG
         DemoSeeder.seedIfNeeded()
         #endif
-        AppLogger.shared.info("app launched", category: .app)
+        MidgarLog.info("app launched", category: .app)
         return true
     }
 

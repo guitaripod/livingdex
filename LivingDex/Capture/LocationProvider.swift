@@ -1,5 +1,6 @@
 import CoreLocation
 import CoreMotion
+import MidgarCore
 
 /// One-shot capture context: current coarse location + barometric elevation,
 /// used to geo-tag a sighting and re-rank identification against a local prior.
@@ -102,7 +103,7 @@ final class LocationProvider: NSObject, CLLocationManagerDelegate, @unchecked Se
     }
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        AppLogger.shared.warn("location error: \(error.localizedDescription)", category: .location)
+        MidgarLog.notice("location error: \(error.localizedDescription)", category: .location)
     }
 
     private func startLocationUpdates() {

@@ -1,5 +1,6 @@
 import AVFoundation
 import Combine
+import MidgarCore
 import UIKit
 
 /// The camera-first "Field" — the app's home. Live preview fills the screen; a
@@ -59,7 +60,7 @@ final class FieldViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        AppLogger.shared.info("field view loaded", category: .capture)
+        MidgarLog.info("field view loaded", category: .capture)
         view.backgroundColor = .black
         camera.previewLayer.opacity = 0
         view.layer.addSublayer(camera.previewLayer)
@@ -460,7 +461,7 @@ final class FieldViewController: UIViewController {
     private func armRevealTimeout() {
         cancelRevealTimeout()
         let work = DispatchWorkItem { [weak self] in
-            AppLogger.shared.warn("preview reveal timed out — no first frame", category: .capture)
+            MidgarLog.notice("preview reveal timed out — no first frame", category: .capture)
             self?.revealPreview()
         }
         revealTimeout = work
@@ -687,7 +688,7 @@ final class FieldViewController: UIViewController {
             Haptics.failure()
             finishCapture(reset: "Couldn't save that catch — try again")
         case let .minted(capture):
-            AppLogger.shared.info(
+            MidgarLog.info(
                 "captured \(capture.sighting.commonName) new=\(capture.isNew) saved=\(capture.saved)", category: .capture)
             presentCard(
                 for: capture.sighting, image: capture.image, isNew: capture.isNew, progress: capture.progress,
@@ -745,7 +746,7 @@ final class FieldViewController: UIViewController {
             do {
                 try store.setNarration(sightingId: sightingId, entry: entry)
             } catch {
-                AppLogger.shared.error("persist narration failed: \(error)", category: .persistence)
+                MidgarLog.error("persist narration failed: \(error)", category: .persistence)
             }
         }
     }

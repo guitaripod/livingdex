@@ -6,7 +6,8 @@ import AICreditsUI
 /// Wires the shared mako AI-credits backend (X-App-ID `livingdex`) through the
 /// AICredits package. The `pro` entitlement unlocks unlimited Claude cloud ID +
 /// "ask the creature" Q&A; consumable credit packs meter per-cloud-call cost for
-/// non-subscribers. On-device identification & narration stay free of this.
+/// non-subscribers. On-device identification & narration stay free of this. Calls
+/// go to mako behind the gateway and carry the Midgar token next to the api key.
 final class AICreditsManager: Sendable {
     static let shared = AICreditsManager()
 
@@ -14,12 +15,14 @@ final class AICreditsManager: Sendable {
         client: AICreditsManager.shared.client, lowBalanceThreshold: 5)
 
     let client: AICreditsClient
-    let baseURL = Secrets.makoBaseURL
-    private let appID = "livingdex"
+    let baseURL = LivingDexMidgar.intelligenceURL
+    private let appID = LivingDexMidgar.tenantID
     private let revenueCatPublicKey = Secrets.revenueCatPublicKey
 
     private init() {
-        let config = AICreditsConfig(baseURL: baseURL, appID: appID, lowBalanceThreshold: 5)
+        let config = AICreditsConfig(
+            baseURL: baseURL, appID: appID, lowBalanceThreshold: 5,
+            additionalHeaders: { await LivingDexMidgar.shared.midgarTokenHeaders() })
         client = AICreditsClient(
             config: config,
             purchaseProvider: RevenueCatPurchaseProvider(apiKey: revenueCatPublicKey))

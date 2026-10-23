@@ -1,3 +1,4 @@
+import MidgarCore
 import UIKit
 
 /// Asks, once and in plain language, before the first photo leaves the device for
@@ -210,7 +211,7 @@ enum CloudConsent {
         sheet.onDecision = { allowed in
             if allowed {
                 AppSettings.hasAcceptedCloudAI = true
-                AppLogger.shared.info("cloud AI consent granted", category: .app)
+                MidgarLog.info("cloud AI consent granted", category: .app)
             }
             completion(allowed)
         }

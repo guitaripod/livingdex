@@ -1,5 +1,6 @@
 import AVFoundation
 import CoreMedia
+import MidgarCore
 import UIKit
 
 /// Thin wrapper over an AVCaptureSession + photo output. Owns the preview layer;
@@ -117,7 +118,7 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
         case .videoDeviceNotAvailableDueToSystemPressure: name = "systemPressure"
         default: name = "unknown"
         }
-        AppLogger.shared.warn("session interrupted reason=\(raw) (\(name))", category: .capture)
+        MidgarLog.notice("session interrupted reason=\(raw) (\(name))", category: .capture)
         let callback = onInterrupted
         if let callback { DispatchQueue.main.async { callback() } }
     }
@@ -126,7 +127,7 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
     /// in — the session auto-resumes without another `startLocked()`, so nothing
     /// else would re-arm it.
     @objc private func sessionInterruptionEnded(_ note: Notification) {
-        AppLogger.shared.info("session interruption ended", category: .capture)
+        MidgarLog.info("session interruption ended", category: .capture)
         lock.lock()
         firstFrameArmed = true
         lock.unlock()
@@ -134,7 +135,7 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
 
     @objc private func sessionRuntimeError(_ note: Notification) {
         let error = note.userInfo?[AVCaptureSessionErrorKey] as? AVError
-        AppLogger.shared.error("session runtime error=\(String(describing: error))", category: .capture)
+        MidgarLog.error("session runtime error=\(String(describing: error))", category: .capture)
     }
 
     static func authorizationStatus() -> AVAuthorizationStatus {
@@ -189,7 +190,7 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
             adaptToDisplaysIfSupported(device)
         }
         isConfigured = hasVideoInput
-        AppLogger.shared.info("camera configured hardwareCost=\(session.hardwareCost)", category: .capture)
+        MidgarLog.info("camera configured hardwareCost=\(session.hardwareCost)", category: .capture)
     }
 
     /// Adds the single permitted video-data output. Its first delivered buffer is
@@ -205,11 +206,11 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
 
     private func attachVideoInputLocked() {
         guard let device = Self.preferredDevice() else {
-            AppLogger.shared.error("no camera input available", category: .capture)
+            MidgarLog.error("no camera input available", category: .capture)
             return
         }
         guard let input = try? AVCaptureDeviceInput(device: device), session.canAddInput(input) else {
-            AppLogger.shared.error("camera input attach failed", category: .capture)
+            MidgarLog.error("camera input attach failed", category: .capture)
             return
         }
         session.addInput(input)
@@ -277,7 +278,7 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
             device.videoZoomFactor = clampNative(baselineZoom, for: device)
             device.unlockForConfiguration()
         } catch {
-            AppLogger.shared.warn("zoom baseline failed: \(error.localizedDescription)", category: .capture)
+            MidgarLog.notice("zoom baseline failed: \(error.localizedDescription)", category: .capture)
         }
         minUserZoom = device.minAvailableVideoZoomFactor / baselineZoom
         maxUserZoom = min(device.maxAvailableVideoZoomFactor / baselineZoom, Self.maxUserZoomCap)
@@ -328,7 +329,7 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
                 device.videoZoomFactor = native
                 device.unlockForConfiguration()
             } catch {
-                AppLogger.shared.warn("zoom failed: \(error.localizedDescription)", category: .capture)
+                MidgarLog.notice("zoom failed: \(error.localizedDescription)", category: .capture)
             }
         }
     }
@@ -350,7 +351,7 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
                 }
                 device.unlockForConfiguration()
             } catch {
-                AppLogger.shared.warn("focus failed: \(error.localizedDescription)", category: .capture)
+                MidgarLog.notice("focus failed: \(error.localizedDescription)", category: .capture)
             }
         }
     }
@@ -363,7 +364,7 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
                 device.torchMode = on ? .on : .off
                 device.unlockForConfiguration()
             } catch {
-                AppLogger.shared.warn("torch failed: \(error.localizedDescription)", category: .capture)
+                MidgarLog.notice("torch failed: \(error.localizedDescription)", category: .capture)
             }
         }
     }
@@ -422,7 +423,7 @@ final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
         error: (any Error)?
     ) {
         if let error {
-            AppLogger.shared.error("photo capture failed: \(error.localizedDescription)", category: .capture)
+            MidgarLog.error("photo capture failed: \(error.localizedDescription)", category: .capture)
         }
         resolveContinuation(with: photo.fileDataRepresentation())
     }

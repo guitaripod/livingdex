@@ -1,4 +1,5 @@
 import Foundation
+import MidgarCore
 #if canImport(FoundationModels)
 import FoundationModels
 #endif
@@ -15,10 +16,10 @@ struct OnDeviceNarrator: Narrator {
         #if canImport(FoundationModels)
         switch SystemLanguageModel.default.availability {
         case .available:
-            AppLogger.shared.info("on-device model available", category: .ai)
+            MidgarLog.info("on-device model available", category: .ai)
             return OnDeviceNarrator()
         default:
-            AppLogger.shared.info("on-device model unavailable — cloud narration only", category: .ai)
+            MidgarLog.info("on-device model unavailable — cloud narration only", category: .ai)
             return nil
         }
         #else
@@ -35,12 +36,12 @@ struct OnDeviceNarrator: Narrator {
                 to: Self.prompt(for: candidate, grounding: grounding),
                 generating: GeneratedEntry.self)
             let generated = response.content
-            AppLogger.shared.info("on-device narrated \(candidate.commonName)", category: .ai)
+            MidgarLog.info("on-device narrated \(candidate.commonName)", category: .ai)
             return PokedexEntry(
                 entry: generated.entry, funFacts: generated.funFacts,
                 category: generated.category, typicalSize: generated.typicalSize)
         } catch {
-            AppLogger.shared.error("on-device narration failed: \(error.localizedDescription)", category: .ai)
+            MidgarLog.error("on-device narration failed: \(error.localizedDescription)", category: .ai)
             return nil
         }
         #else

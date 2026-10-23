@@ -1,5 +1,6 @@
 import AICreditsCore
 import Foundation
+import MidgarCore
 
 enum AccountDeletionError: Error, Equatable {
     case offline
@@ -12,46 +13,41 @@ protocol RemoteAccountDeleting: Sendable {
     func deleteRemoteAccount() async throws
 }
 
-/// `DELETE /v1/identity` on the mako credits backend, authenticated by the
+/// `DELETE /v1/identity` on the mako credits backend behind the Midgar gateway, authenticated by the
 /// player's own API key. A key the server no longer recognises (401) counts as already
 /// deleted; an unreachable or failing server — including a missing endpoint (404) —
 /// blocks deletion so the key is never discarded while the account may still exist.
 struct MakoAccountDeleter: RemoteAccountDeleting {
-    let baseURL: URL
-    let appID: String
+    let gateway: LivingDexGateway
     let apiKey: @Sendable () async -> String?
-    let session: URLSession
 
     init(
-        baseURL: URL = Secrets.makoBaseURL,
-        appID: String = "livingdex",
-        session: URLSession = .shared,
+        gateway: LivingDexGateway = LivingDexMidgar.makoGateway(),
         apiKey: @escaping @Sendable () async -> String?
     ) {
-        self.baseURL = baseURL
-        self.appID = appID
-        self.session = session
+        self.gateway = gateway
         self.apiKey = apiKey
     }
 
     func deleteRemoteAccount() async throws {
         guard let key = await apiKey() else { return }
-        var request = URLRequest(url: baseURL.appendingPathComponent("v1/identity"))
-        request.httpMethod = "DELETE"
-        request.timeoutInterval = 20
-        request.setValue(appID, forHTTPHeaderField: "X-App-ID")
-        request.setValue("Bearer \(key)", forHTTPHeaderField: "Authorization")
-        do {
-            let (_, response) = try await session.data(for: request)
-            guard let http = response as? HTTPURLResponse else { throw AccountDeletionError.server }
-            switch http.statusCode {
-            case 200...299, 401: return
-            default: throw AccountDeletionError.server
-            }
-        } catch let error as AccountDeletionError {
-            throw error
+        do throws(MidgarHTTPError) {
+            try await gateway.send(.delete, service: LivingDexGateway.makoService, path: "v1/identity", apiKey: key)
         } catch {
+            try Self.acceptOrThrow(error)
+        }
+    }
+
+    /// An unknown key is already deleted. A call that never got an answer is offline, so the player can retry; any
+    /// answer that is not a success is a server failure.
+    private static func acceptOrThrow(_ error: MidgarHTTPError) throws {
+        switch error {
+        case .unauthorized:
+            return
+        case .offline, .timeout, .cancelled, .tokenUnavailable:
             throw AccountDeletionError.offline
+        default:
+            throw AccountDeletionError.server
         }
     }
 }

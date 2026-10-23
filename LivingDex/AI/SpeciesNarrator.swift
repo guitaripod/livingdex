@@ -1,5 +1,6 @@
 import Foundation
 import AICreditsCore
+import MidgarCore
 
 /// A Claude-authored "Pokédex entry" for a species.
 struct PokedexEntry: Codable, Sendable {
@@ -40,17 +41,17 @@ final class SpeciesNarrator: Narrator {
         do {
             let result = try await client.run(request)
             guard let content = MakoChat.messageContent(result.raw) else {
-                AppLogger.shared.error("narration parse failed (no content)", category: .ai)
+                MidgarLog.error("narration parse failed (no content)", category: .ai)
                 return nil
             }
             guard let entry = Self.decode(content) else {
-                AppLogger.shared.error("narration decode failed: \(content.prefix(200))", category: .ai)
+                MidgarLog.error("narration decode failed", category: .ai)
                 return nil
             }
-            AppLogger.shared.info("narrated \(candidate.commonName)", category: .ai)
+            MidgarLog.info("narrated \(candidate.commonName)", category: .ai)
             return entry
         } catch {
-            AppLogger.shared.error("narration request failed: \(error.localizedDescription)", category: .ai)
+            MidgarLog.error("narration request failed: \(error.localizedDescription)", category: .ai)
             return nil
         }
     }

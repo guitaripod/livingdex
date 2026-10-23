@@ -1,4 +1,5 @@
 import CoreML
+import MidgarCore
 import UIKit
 import Vision
 
@@ -36,7 +37,7 @@ final class CoreMLSpeciesIdentifier: SpeciesIdentifier, @unchecked Sendable {
             .prefix(topK)
             .compactMap { catalog.candidate(forLabel: $0.identifier, confidence: Double($0.confidence)) }
         let ranked = geoPrior.rerank(Array(candidates), context: context)
-        AppLogger.shared.info("coreml identify -> \(ranked.first?.commonName ?? "none")", category: .identify)
+        MidgarLog.info("coreml identify -> \(ranked.first?.commonName ?? "none")", category: .identify)
         return IdentificationResult(candidates: ranked)
     }
 
@@ -55,7 +56,7 @@ final class CoreMLSpeciesIdentifier: SpeciesIdentifier, @unchecked Sendable {
             do {
                 try handler.perform([request])
             } catch {
-                AppLogger.shared.error("vision perform failed: \(error.localizedDescription)", category: .identify)
+                MidgarLog.error("vision perform failed: \(error.localizedDescription)", category: .identify)
                 resumeOnce.resume(with: [])
             }
         }
@@ -68,13 +69,13 @@ final class CoreMLSpeciesIdentifier: SpeciesIdentifier, @unchecked Sendable {
 enum SpeciesIdentifierFactory {
     static func make() -> SpeciesIdentifier {
         if TaxonCatalog.shared.isLoaded, let coreML = CoreMLSpeciesIdentifier() {
-            AppLogger.shared.info("using Core ML identifier", category: .identify)
+            MidgarLog.info("using Core ML identifier", category: .identify)
             return coreML
         }
         // No bundled model yet → real cloud-vision ID through mako. No stub
         // fallback in production: an unclear photo must read as "nothing found",
         // never a random minted species.
-        AppLogger.shared.info("using cloud-vision identifier", category: .identify)
+        MidgarLog.info("using cloud-vision identifier", category: .identify)
         return CloudVisionIdentifier()
     }
 }

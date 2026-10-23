@@ -1,5 +1,6 @@
 #if canImport(UIKit, _version: 9127.0.85)
 import AVFoundation
+import MidgarCore
 import UIKit
 
 /// Camera behaviour that only exists once the displays can change under a running session:
@@ -22,7 +23,7 @@ extension CameraController {
             guard self.session.canAddInput(input) else {
                 if let previous { self.session.addInput(previous) }
                 self.session.commitConfiguration()
-                AppLogger.shared.warn("camera switch refused for \(device.localizedName)", category: .capture)
+                MidgarLog.notice("camera switch refused for \(device.localizedName)", category: .capture)
                 return
             }
             self.session.addInput(input)
@@ -32,7 +33,7 @@ extension CameraController {
             self.configureZoomBaseline(for: device)
             self.hasTorch = device.hasTorch
             self.adaptToDisplays(for: device)
-            AppLogger.shared.info("camera switched to \(device.localizedName)", category: .capture)
+            MidgarLog.info("camera switched to \(device.localizedName)", category: .capture)
             if let callback = self.onDeviceChanged {
                 DispatchQueue.main.async { callback() }
             }

@@ -1,4 +1,5 @@
 import Combine
+import MidgarCore
 import UIKit
 import SwiftUI
 import AICreditsUI
@@ -69,7 +70,7 @@ final class PaywallViewController: UIViewController {
         layoutContent()
         bind()
         Task { await service.loadPlans() }
-        AppLogger.shared.info("paywall shown reason=\(reason)", category: .credits)
+        MidgarLog.info("paywall shown reason=\(reason)", category: .credits)
     }
 
     private func layoutContent() {
@@ -504,7 +505,7 @@ final class PaywallViewController: UIViewController {
     /// Re-runs the plans load, which also re-attempts the credits client's identity
     /// bootstrap when the first-launch registration failed.
     private func retryLoadPlans() {
-        AppLogger.shared.info("paywall pricing retry", category: .credits)
+        MidgarLog.info("paywall pricing retry", category: .credits)
         Task { [weak self] in await self?.service.loadPlans() }
     }
 

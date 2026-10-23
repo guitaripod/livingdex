@@ -1,5 +1,6 @@
 #if DEBUG
 import AICreditsCore
+import MidgarCore
 import UIKit
 
 /// DEBUG-only: seeds a populated collection of real, public-domain or CC0 species
@@ -83,7 +84,7 @@ enum DemoSeeder {
             let isNew = (try? store.save(sighting)) ?? false
             _ = try? progress.record(rarity: s.rarity, isNew: isNew, now: capturedAt)
         }
-        AppLogger.shared.info("demo data seeded (\(seeded.count) species)", category: .persistence)
+        MidgarLog.info("demo data seeded (\(seeded.count) species)", category: .persistence)
     }
 
     private static let withholdsEagleKey = "demoSeededWithoutEagle"

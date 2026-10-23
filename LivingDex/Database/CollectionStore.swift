@@ -1,5 +1,6 @@
 import Foundation
 import GRDB
+import MidgarCore
 
 /// Reads/writes the player's collection. Saving a sighting upserts its
 /// materialized `DexEntry` in the same transaction so the Dex grid stays
@@ -69,7 +70,7 @@ final class CollectionStore: Sendable {
         return observation.start(
             in: dbQueue,
             scheduling: .async(onQueue: .main),
-            onError: { AppLogger.shared.error("dex observation error: \($0)", category: .persistence) },
+            onError: { MidgarLog.error("dex observation error: \($0)", category: .persistence) },
             onChange: onChange)
     }
 
@@ -126,7 +127,7 @@ final class CollectionStore: Sendable {
             return imagePaths
         }
         for path in paths where !path.isEmpty { ImageStore.delete(path) }
-        AppLogger.shared.info("released \(speciesId)", category: .persistence)
+        MidgarLog.info("released \(speciesId)", category: .persistence)
     }
 
     /// Applies a late GBIF confirmation to a provisional species: real rarity +
@@ -145,7 +146,7 @@ final class CollectionStore: Sendable {
             try db.execute(
                 sql: "UPDATE sightings SET rarity = ?, commonName = ?, scientificName = ?, enriched = 1 WHERE speciesId = ?",
                 arguments: [rarity.rawValue, commonName, scientificName, speciesId])
-            AppLogger.shared.info("healed \(speciesId) -> \(rarity.rawValue)", category: .persistence)
+            MidgarLog.info("healed \(speciesId) -> \(rarity.rawValue)", category: .persistence)
             return entry
         }
     }

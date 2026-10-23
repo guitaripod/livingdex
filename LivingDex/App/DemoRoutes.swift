@@ -1,4 +1,5 @@
 #if DEBUG
+import MidgarCore
 import UIKit
 
 /// DEBUG-only routes beyond the first-screen ones in `DemoSeeder`: Field Guide,
@@ -64,7 +65,7 @@ extension DemoSeeder {
             let name = sample.common.lowercased().replacingOccurrences(of: " ", with: "-")
             try? ShareCardRenderer.render(model).pngData()?.write(to: folder.appendingPathComponent("\(name).png"))
         }
-        AppLogger.shared.info("demo share cards exported", category: .app)
+        MidgarLog.info("demo share cards exported", category: .app)
     }
 
     @MainActor

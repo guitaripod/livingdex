@@ -1,4 +1,5 @@
 import Foundation
+import MidgarCore
 
 /// Maps a classifier's output label to species metadata. Backed by an optional
 /// bundled `taxa.json` (`[label: TaxonInfo]`) so the on-device model's labels
@@ -22,7 +23,7 @@ final class TaxonCatalog: Sendable {
            let data = try? Data(contentsOf: url),
            let map = try? JSONDecoder().decode([String: TaxonInfo].self, from: data) {
             byLabel = map
-            AppLogger.shared.info("taxon catalog loaded: \(map.count) taxa", category: .identify)
+            MidgarLog.info("taxon catalog loaded: \(map.count) taxa", category: .identify)
         } else {
             byLabel = [:]
         }

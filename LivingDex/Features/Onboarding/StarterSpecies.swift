@@ -1,3 +1,4 @@
+import MidgarCore
 import UIKit
 
 /// One of the real species a new player can start their Dex with. Everything is bundled, so
@@ -101,11 +102,11 @@ struct StarterCatch: Sendable {
             isNew = try sightingStore.save(sighting)
         } catch {
             imageStore.delete(path)
-            AppLogger.shared.error("starter save failed: \(error)", category: .persistence)
+            MidgarLog.error("starter save failed: \(error)", category: .persistence)
             return nil
         }
         let event = try? progress.record(rarity: sighting.rarity, isNew: isNew, now: now)
-        AppLogger.shared.info("starter minted \(sighting.commonName)", category: .capture)
+        MidgarLog.info("starter minted \(sighting.commonName)", category: .capture)
         return Outcome(sighting: sighting, image: image, isNew: isNew, progress: event)
     }
 }

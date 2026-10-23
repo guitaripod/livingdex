@@ -1,3 +1,4 @@
+import MidgarCore
 import UIKit
 
 /// The capture decision pipeline — identify → ground → mint → progress → report —
@@ -83,7 +84,7 @@ struct CaptureFlow: Sendable {
         do {
             event = try progress.record(rarity: top.rarity, isNew: isNew, now: now)
         } catch {
-            AppLogger.shared.error(
+            MidgarLog.error(
                 "progression write failed after mint: \(error)", category: .persistence)
         }
         await reportAchievements()
@@ -148,7 +149,7 @@ struct CaptureFlow: Sendable {
     /// credit, card, or narration write, so a lost row never masquerades as a catch.
     private func abortOnSaveFailure(path: String, error: any Error) -> CaptureOutcome {
         imageStore.delete(path)
-        AppLogger.shared.error("save sighting failed: \(error)", category: .persistence)
+        MidgarLog.error("save sighting failed: \(error)", category: .persistence)
         return .saveFailed
     }
 

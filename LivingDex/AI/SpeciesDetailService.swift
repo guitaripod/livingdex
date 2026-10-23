@@ -1,5 +1,6 @@
 import AVFoundation
 import Foundation
+import MidgarCore
 
 /// A playable, commercial-safe recording of a species' call ("cry").
 struct SpeciesCall: Sendable {
@@ -20,25 +21,21 @@ struct SpeciesCall: Sendable {
 /// Worker's `/v1/detail`, and streams the audio on demand. Best-effort — most
 /// species simply have no safe recording.
 final class SpeciesDetailService: NSObject, @unchecked Sendable {
-    private let baseURL: URL
-    private let session: URLSession
+    static let timeout: TimeInterval = 8
+
+    private let gateway: LivingDexGateway
     private var player: AVPlayer?
     private var endObservers: [NSObjectProtocol] = []
 
-    init(baseURL: URL = Secrets.workerBaseURL) {
-        self.baseURL = baseURL
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = 8
-        self.session = URLSession(configuration: config)
+    init(gateway: LivingDexGateway = LivingDexMidgar.workerGateway(timeout: SpeciesDetailService.timeout)) {
+        self.gateway = gateway
+        super.init()
     }
 
     func call(scientificName: String) async -> SpeciesCall? {
-        guard var components = URLComponents(url: baseURL.appendingPathComponent("v1/detail"), resolvingAgainstBaseURL: false) else { return nil }
-        components.queryItems = [URLQueryItem(name: "name", value: scientificName)]
-        guard let url = components.url else { return nil }
         do {
-            let (data, response) = try await session.data(from: url)
-            guard let http = response as? HTTPURLResponse, http.statusCode == 200 else { return nil }
+            let data = try await gateway.fetchFromWorker(
+                "v1/detail", query: [URLQueryItem(name: "name", value: scientificName)])
             let decoded = try JSONDecoder().decode(DetailResponse.self, from: data)
             guard let c = decoded.call, let u = URL(string: c.url) else { return nil }
             return SpeciesCall(url: u, recordist: c.recordist, license: c.license, source: c.source)
@@ -57,7 +54,7 @@ final class SpeciesDetailService: NSObject, @unchecked Sendable {
         observeEnd(of: item)
         player = AVPlayer(playerItem: item)
         player?.play()
-        AppLogger.shared.info("playing call from \(call.source)", category: .ai)
+        MidgarLog.info("playing call from \(call.source)", category: .ai)
     }
 
     /// Releases the player and hands the audio session back so ducked Music /
@@ -67,11 +64,15 @@ final class SpeciesDetailService: NSObject, @unchecked Sendable {
         player = nil
         removeEndObservers()
         let session = AVAudioSession.sharedInstance()
-        // Restore the app's default ambient behaviour so the process-wide category
-        // doesn't stay `.playback` (silent-switch-ignoring) after the clip ends.
+        Self.restoreAmbientAudio(session)
+        MidgarLog.info("call finished, audio session released", category: .ai)
+    }
+
+    /// Restores the app's default ambient behaviour so the process-wide category doesn't stay `.playback`
+    /// (silent-switch-ignoring) after the clip ends.
+    @MainActor private static func restoreAmbientAudio(_ session: AVAudioSession) {
         try? session.setActive(false, options: .notifyOthersOnDeactivation)
         try? session.setCategory(.ambient)
-        AppLogger.shared.info("call finished, audio session released", category: .ai)
     }
 
     @MainActor private func observeEnd(of item: AVPlayerItem) {

@@ -1,4 +1,5 @@
 import Foundation
+import MidgarCore
 
 /// A species that plausibly occurs near the player — a slot in the Regional Dex.
 struct RegionSpecies: Codable, Hashable, Sendable {
@@ -20,21 +21,21 @@ struct RegionSpecies: Codable, Hashable, Sendable {
 final class RegionStore: @unchecked Sendable {
     static let shared = RegionStore()
 
-    private let baseURL: URL
-    private let session: URLSession
+    static let timeout: TimeInterval = 8
+
+    private let gateway: LivingDexGateway
     private let ttl: TimeInterval
     private var cache: [String: CacheEntry] = [:]
     private var refreshing: Set<String> = []
     private var loadedFromDisk = false
     private let lock = NSLock()
 
-    init(baseURL: URL = Secrets.workerBaseURL, timeout: TimeInterval = 8, staleAfter: TimeInterval = 24 * 60 * 60) {
-        self.baseURL = baseURL
+    init(
+        gateway: LivingDexGateway = LivingDexMidgar.workerGateway(timeout: RegionStore.timeout),
+        staleAfter: TimeInterval = 24 * 60 * 60
+    ) {
+        self.gateway = gateway
         self.ttl = staleAfter
-        let config = URLSessionConfiguration.default
-        config.timeoutIntervalForRequest = timeout
-        config.requestCachePolicy = .useProtocolCachePolicy
-        self.session = URLSession(configuration: config)
     }
 
     /// Coarse cache key (~0.5° cells) so nearby fetches share a result.
@@ -88,18 +89,13 @@ final class RegionStore: @unchecked Sendable {
     }
 
     private func fetchAndStore(key k: String, lat: Double, lng: Double) async -> [RegionSpecies]? {
-        guard var components = URLComponents(url: baseURL.appendingPathComponent("v1/region"), resolvingAgainstBaseURL: false) else {
-            return nil
-        }
-        components.queryItems = [
+        let query = [
             URLQueryItem(name: "lat", value: String(lat)),
             URLQueryItem(name: "lng", value: String(lng)),
             URLQueryItem(name: "limit", value: "120"),
         ]
-        guard let url = components.url else { return nil }
         do {
-            let (data, response) = try await session.data(from: url)
-            guard let http = response as? HTTPURLResponse, http.statusCode == 200 else { return nil }
+            let data = try await gateway.fetchFromWorker("v1/region", query: query)
             let decoded = try JSONDecoder().decode(RegionResponse.self, from: data)
             let species = decoded.species.map {
                 RegionSpecies(
@@ -111,10 +107,10 @@ final class RegionStore: @unchecked Sendable {
                 cache[k] = CacheEntry(species: species, fetchedAt: Date())
                 persist()
             }
-            AppLogger.shared.info("regional dex: \(species.count) species", category: .identify)
+            MidgarLog.info("regional dex: \(species.count) species", category: .identify)
             return species
         } catch {
-            AppLogger.shared.warn("region fetch failed: \(error.localizedDescription)", category: .identify)
+            MidgarLog.notice("region fetch failed: \(error.localizedDescription)", category: .identify)
             return nil
         }
     }

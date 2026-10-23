@@ -1,4 +1,5 @@
 import GameKit
+import MidgarCore
 import UIKit
 
 /// Game Center integration: authenticates the local player, shows the access
@@ -21,12 +22,12 @@ final class GameCenterService {
                 return
             }
             if let error {
-                AppLogger.shared.warn("game center auth error: \(error.localizedDescription)", category: .gamecenter)
+                MidgarLog.notice("game center auth error: \(error.localizedDescription)", category: .gamecenter)
                 return
             }
             let authed = GKLocalPlayer.local.isAuthenticated
             self?.isAuthenticated = authed
-            AppLogger.shared.info("game center authenticated=\(authed)", category: .gamecenter)
+            MidgarLog.info("game center authenticated=\(authed)", category: .gamecenter)
             if authed {
                 GKAccessPoint.shared.location = .topLeading
                 GKAccessPoint.shared.isActive = false // shown on demand, not over the camera
@@ -48,7 +49,7 @@ final class GameCenterService {
                     count, context: 0, player: GKLocalPlayer.local,
                     leaderboardIDs: [Achievement.speciesLeaderboardID])
             } catch {
-                AppLogger.shared.warn("leaderboard submit failed: \(error.localizedDescription)", category: .gamecenter)
+                MidgarLog.notice("leaderboard submit failed: \(error.localizedDescription)", category: .gamecenter)
             }
         }
     }
@@ -67,7 +68,7 @@ final class GameCenterService {
             do {
                 try await GKAchievement.report(achievements)
             } catch {
-                AppLogger.shared.warn("achievement report failed: \(error.localizedDescription)", category: .gamecenter)
+                MidgarLog.notice("achievement report failed: \(error.localizedDescription)", category: .gamecenter)
             }
         }
     }

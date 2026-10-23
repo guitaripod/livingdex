@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import AICreditsCore
+import MidgarCore
 
 /// Living Dex's single source of truth for Pro access and the paywall's plan list. Talks
 /// to the store through ``SubscriptionBacking`` (production: ``AICreditsSubscriptionBackend``
@@ -92,7 +93,7 @@ final class SubscriptionService {
         case .free:
             commitEntitlement(false)
         case .unknown:
-            AppLogger.shared.info(
+            MidgarLog.info(
                 "entitlement check inconclusive, keeping pro=\(isPro)", category: .credits)
         }
     }
@@ -114,7 +115,7 @@ final class SubscriptionService {
     private func commitEntitlement(_ pro: Bool) {
         entitlementStore.record(pro)
         entitlementSubject.send(pro)
-        AppLogger.shared.info("entitlement refreshed pro=\(pro)", category: .credits)
+        MidgarLog.info("entitlement refreshed pro=\(pro)", category: .credits)
     }
 
     /// Pulls live RevenueCat subscription plans and republishes them annual-first. Failures
@@ -128,7 +129,7 @@ final class SubscriptionService {
         do {
             live = try await backend.subscriptionPlans()
         } catch {
-            AppLogger.shared.warn("subscription plans load failed: \(error)", category: .credits)
+            MidgarLog.notice("subscription plans load failed: \(error)", category: .credits)
             markPlansUnavailableIfNeverLoaded()
             return
         }
@@ -165,12 +166,12 @@ final class SubscriptionService {
             // at an unchanged paywall having been charged — the per-request
             // backend check re-verifies regardless.
             if !isPro { commitEntitlement(true) }
-            AppLogger.shared.info("purchase ok \(plan.productID)", category: .credits)
+            MidgarLog.info("purchase ok \(plan.productID)", category: .credits)
             return .purchased
         } catch AICreditsError.purchaseCancelled {
             return .cancelled
         } catch {
-            AppLogger.shared.error("purchase failed \(plan.productID): \(error)", category: .credits)
+            MidgarLog.error("purchase failed \(plan.productID): \(error)", category: .credits)
             return .failed
         }
     }
@@ -179,10 +180,10 @@ final class SubscriptionService {
         do {
             try await backend.restoreEntitlements()
             await refreshEntitlement()
-            AppLogger.shared.info("restore ok pro=\(entitlementSubject.value)", category: .credits)
+            MidgarLog.info("restore ok pro=\(entitlementSubject.value)", category: .credits)
             return entitlementSubject.value ? .restored : .nothingToRestore
         } catch {
-            AppLogger.shared.error("restore failed: \(error)", category: .credits)
+            MidgarLog.error("restore failed: \(error)", category: .credits)
             return .failed
         }
     }

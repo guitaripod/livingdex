@@ -1,4 +1,5 @@
 import CoreLocation
+import MidgarCore
 import UIKit
 
 /// The Dex — the heart of the game. Two modes:
@@ -561,7 +562,7 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
             try CollectionStore.shared.release(speciesId: speciesId)
             Haptics.tap()
         } catch {
-            AppLogger.shared.error("release failed: \(error.localizedDescription)", category: .persistence)
+            MidgarLog.error("release failed: \(error.localizedDescription)", category: .persistence)
             let alert = UIAlertController(
                 title: "Couldn't release",
                 message: "Something went wrong releasing that species. Please try again.",
@@ -622,6 +623,6 @@ extension DexViewController: CLLocationManagerDelegate {
     }
 
     nonisolated func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
-        AppLogger.shared.error("dex location failed: \(error.localizedDescription)", category: .location)
+        MidgarLog.error("dex location failed: \(error.localizedDescription)", category: .location)
     }
 }

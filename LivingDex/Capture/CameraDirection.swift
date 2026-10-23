@@ -1,5 +1,6 @@
 import AVFoundation
 import AVKit
+import MidgarCore
 import UIKit
 
 /// Which camera the Field should stream from when the displays can face opposite ways.
@@ -74,7 +75,7 @@ final class CameraDirectionMonitor {
         let replacement = CameraDirectionPolicy.replacement(
             activeID: activeDeviceID(), backwardFacing: backward, ranking: Self.rankedTypes.map(\.rawValue))
         guard let replacement else { return }
-        AppLogger.shared.info("camera direction changed, switching to \(replacement.deviceType)", category: .capture)
+        MidgarLog.info("camera direction changed, switching to \(replacement.deviceType)", category: .capture)
         onReplacement(replacement.uniqueID)
     }
 }

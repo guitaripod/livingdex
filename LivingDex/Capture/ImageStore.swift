@@ -1,3 +1,4 @@
+import MidgarCore
 import UIKit
 
 /// Persists captured images to the app sandbox and returns a stable relative
@@ -21,7 +22,7 @@ enum ImageStore {
             try data.write(to: url, options: .atomic)
             return "\(directoryName)/\(name)"
         } catch {
-            AppLogger.shared.error("image save failed: \(error)", category: .persistence)
+            MidgarLog.error("image save failed: \(error)", category: .persistence)
             return nil
         }
     }
