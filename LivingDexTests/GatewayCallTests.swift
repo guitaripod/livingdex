@@ -65,6 +65,7 @@ struct GatewayCallTests {
     func regionUsesTheWorkerRoute() async throws {
         let body = #"{"count":1,"species":[{"taxonKey":1,"commonName":"Robin","scientificName":"Erithacus rubecula","realm":"animals","rarity":"common"}]}"#
         let store = RegionStore(gateway: GatewayStub.gateway(body: body))
+        store.clear()
         defer { store.clear() }
         let species = await store.regionalSpecies(latitude: 60.1, longitude: 24.9)
         #expect(species?.map(\.speciesId) == ["gbif:1"])
