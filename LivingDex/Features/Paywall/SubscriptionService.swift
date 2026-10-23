@@ -172,6 +172,7 @@ final class SubscriptionService {
             return .cancelled
         } catch {
             MidgarLog.error("purchase failed \(plan.productID): \(error)", category: .credits)
+            ReviewPrompt.notePurchaseFailure()
             return .failed
         }
     }

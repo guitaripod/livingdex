@@ -9,6 +9,7 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     ) -> Bool {
         LivingDexMidgar.configureLogging()
         LivingDexMidgar.shared.start()
+        ReviewPrompt.beginSession()
         warmUpLaunchServicesReceiptPath()
         _ = DatabaseManager.shared
         #if DEBUG

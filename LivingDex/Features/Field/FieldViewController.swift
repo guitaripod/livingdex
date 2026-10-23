@@ -692,7 +692,8 @@ final class FieldViewController: UIViewController {
                 "captured \(capture.sighting.commonName) new=\(capture.isNew) saved=\(capture.saved)", category: .capture)
             presentCard(
                 for: capture.sighting, image: capture.image, isNew: capture.isNew, progress: capture.progress,
-                caption: capture.saved ? nil : "Sample photo — not added to your Dex")
+                caption: capture.saved ? nil : "Sample photo — not added to your Dex",
+                reportsNewEntry: capture.saved && capture.isNew)
             finishCapture(reset: "Point at anything alive", isFailure: false)
             if capture.saved {
                 narrate(capture.candidate, sightingId: capture.sighting.id, grounding: capture.grounding)
@@ -752,10 +753,17 @@ final class FieldViewController: UIViewController {
     }
 
     private func presentCard(
-        for sighting: Sighting, image: UIImage, isNew: Bool, progress: ProgressEvent?, caption: String? = nil
+        for sighting: Sighting, image: UIImage, isNew: Bool, progress: ProgressEvent?, caption: String? = nil,
+        reportsNewEntry: Bool = false
     ) {
         let card = CardRevealViewController(
             sighting: sighting, image: image, isNewDexEntry: isNew, progress: progress, caption: caption)
+        if reportsNewEntry {
+            card.onDismiss = { [weak self] in
+                guard let self else { return }
+                ReviewPrompt.recordNewEntry(from: self)
+            }
+        }
         card.modalPresentationStyle = .overFullScreen
         card.modalTransitionStyle = .crossDissolve
         present(card, animated: true)
