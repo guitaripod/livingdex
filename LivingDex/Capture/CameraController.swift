@@ -16,8 +16,8 @@ import UIKit
 /// latches once a working video input is actually attached — so a transient
 /// cold-start attach failure is retried on the next call instead of wedging the
 /// "camera unavailable" gate for the whole process lifetime.
-final class CameraController: NSObject, AVCapturePhotoCaptureDelegate,
-    AVCaptureVideoDataOutputSampleBufferDelegate, @unchecked Sendable {
+final class CameraController: NSObject, @unchecked Sendable,
+    AVCapturePhotoCaptureDelegate, AVCaptureVideoDataOutputSampleBufferDelegate {
     let previewLayer: AVCaptureVideoPreviewLayer
 
     /// Fired on the main queue exactly once per session start, the instant the

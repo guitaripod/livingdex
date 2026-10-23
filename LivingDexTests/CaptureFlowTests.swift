@@ -174,6 +174,7 @@ final class CaptureFlowTests: XCTestCase {
     }
 }
 
+/// Holds a value behind a lock, so the tests can read what an async collaborator wrote.
 private final class Box<T>: @unchecked Sendable {
     private let lock = NSLock()
     private var stored: T
@@ -188,18 +189,21 @@ private final class Box<T>: @unchecked Sendable {
     }
 }
 
+/// Immutable after init, so sharing it between tasks is safe.
 private final class MockIdentifier: SpeciesIdentifier, @unchecked Sendable {
     private let result: IdentificationResult
     init(_ result: IdentificationResult) { self.result = result }
     func identify(_ image: UIImage, context: CaptureContext) async -> IdentificationResult { result }
 }
 
+/// Immutable after init, so sharing it between tasks is safe.
 private final class MockEnricher: SpeciesEnriching, @unchecked Sendable {
     private let result: EnrichmentResult
     init(_ result: EnrichmentResult) { self.result = result }
     func enrich(candidate: SpeciesCandidate, context: CaptureContext) async -> EnrichmentResult { result }
 }
 
+/// Its only mutable state is a `Box`, which locks, so sharing it between tasks is safe.
 private final class MockImageStore: CaptureImageStoring, @unchecked Sendable {
     private let savePath: String?
     let deleted = Box<[String]>([])
@@ -208,6 +212,7 @@ private final class MockImageStore: CaptureImageStoring, @unchecked Sendable {
     func delete(_ relativePath: String) { deleted.mutate { $0.append(relativePath) } }
 }
 
+/// Its only mutable state is a `Box`, which locks, so sharing it between tasks is safe.
 private final class MockSightingStore: SightingPersisting, @unchecked Sendable {
     private let isNew: Bool
     private let error: Error?
@@ -226,6 +231,7 @@ private final class MockSightingStore: SightingPersisting, @unchecked Sendable {
     }
 }
 
+/// Its only mutable state is a `Box`, which locks, so sharing it between tasks is safe.
 private final class MockProgress: ProgressRecording, @unchecked Sendable {
     let recordCount = Box(0)
     func record(rarity: Rarity, isNew: Bool, now: Date) throws -> ProgressEvent {
@@ -235,6 +241,7 @@ private final class MockProgress: ProgressRecording, @unchecked Sendable {
     func current() throws -> PlayerProgress { .initial() }
 }
 
+/// Its only mutable state is a `Box`, which locks, so sharing it between tasks is safe.
 private final class MockReporter: CatchReporting, @unchecked Sendable {
     let reportCount = Box(0)
     func report(_ context: AchievementContext) async { reportCount.mutate { $0 += 1 } }

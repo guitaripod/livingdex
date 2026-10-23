@@ -36,6 +36,8 @@ final class PhotoImporter: NSObject, PHPickerViewControllerDelegate {
     /// Dismisses the picker at once (so a slow iCloud original can't be picked twice), then
     /// loads the one chosen photo and hands it over only after the picker is gone.
     nonisolated func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+        /// The provider is only read once, inside `MainActor.assumeIsolated` on the delegate's own callback, and
+        /// never touched by this thread again.
         nonisolated(unsafe) let provider = results.first?.itemProvider
         MainActor.assumeIsolated {
             picker.dismiss(animated: true) { [self] in

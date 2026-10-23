@@ -22,6 +22,7 @@ final class StarterCatalogTests: XCTestCase {
 }
 
 final class StarterCatchTests: XCTestCase {
+    /// Every read and write of its mutable state happens under its lock, so sharing it between tasks is safe.
     private final class Images: CaptureImageStoring, @unchecked Sendable {
         private let lock = NSLock()
         private var removed: [String] = []
@@ -38,6 +39,7 @@ final class StarterCatchTests: XCTestCase {
         }
     }
 
+    /// Every read and write of its mutable state happens under its lock, so sharing it between tasks is safe.
     private final class Sightings: SightingPersisting, @unchecked Sendable {
         private let lock = NSLock()
         private var stored: [Sighting] = []
@@ -58,6 +60,7 @@ final class StarterCatchTests: XCTestCase {
         }
     }
 
+    /// Every read and write of its mutable state happens under its lock, so sharing it between tasks is safe.
     private final class Progress: ProgressRecording, @unchecked Sendable {
         private let lock = NSLock()
         private var rarities: [Rarity] = []

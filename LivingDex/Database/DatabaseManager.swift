@@ -2,6 +2,8 @@ import Foundation
 import GRDB
 import MidgarCore
 
+/// The app's one GRDB queue. It is safe to share because `DatabaseQueue` serializes every access and the stored
+/// properties are immutable after `init`.
 final class DatabaseManager: @unchecked Sendable {
     static let shared = DatabaseManager()
 
