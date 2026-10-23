@@ -8,6 +8,16 @@ enum AccountDeletionError: Error, Equatable {
     case localCleanup
 }
 
+extension AccountDeletionError: LocalizedError {
+    var errorDescription: String? {
+        switch self {
+        case .offline: return "You appear to be offline. Nothing was deleted, so reconnect and try again."
+        case .server: return "Something went wrong on our side. Nothing was deleted, so try again in a moment."
+        case .localCleanup: return "Some data couldn't be removed from this device. Deleting the app removes the rest."
+        }
+    }
+}
+
 /// Removes the player's server-side account (credit wallet, ledger, stored images).
 protocol RemoteAccountDeleting: Sendable {
     func deleteRemoteAccount() async throws

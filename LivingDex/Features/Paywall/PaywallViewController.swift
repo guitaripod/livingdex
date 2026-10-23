@@ -379,8 +379,8 @@ final class PaywallViewController: UIViewController {
         links.alignment = .center
         links.distribution = .fillEqually
         for (title, url) in [
-            ("Terms", "https://mako.midgarcorp.cc/terms/livingdex"),
-            ("Privacy", "https://mako.midgarcorp.cc/privacy/livingdex"),
+            ("Terms", LegalLinks.terms.absoluteString),
+            ("Privacy", LegalLinks.privacy.absoluteString),
             ("Restore", ""),
         ] {
             let button = UIButton(type: .system)
