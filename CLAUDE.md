@@ -22,7 +22,7 @@ Run from the monorepo as `apps/living-dex`; the mirror is `guitaripod/livingdex`
 - **Settings.** `SettingsViewController` hosts MidgarUI's `MidgarSettingsViewController` with the portal card (`LivingDexMidgar.portalConfig`) in `MidgarTheme.livingDex`.
 - **Reviews.** `ReviewPrompt` reports a saved new Dex entry to `MidgarReviewPolicy` and asks StoreKit only when it allows.
 - **Legal.** Policy and terms live at `https://midgarcorp.cc/legal/living-dex/{privacy,terms}/` (`LegalLinks`); the source is `web/midgarcorp/src/content/legal/living-dex/`. Keep `LivingDex/PrivacyInfo.xcprivacy`, `store/privacy-label.md` and the policy in step.
-- **Worker** (`backend/`, `livingdex-worker`): GBIF rarity, Regional Dex and species call. Deploy it and the gateway before an app release that depends on a route.
+- **Worker** (`services/living-dex`, `livingdex-worker`): GBIF rarity, Regional Dex and species call. Deploy it and the gateway before an app release that depends on a route.
 
 ## Rules
 
