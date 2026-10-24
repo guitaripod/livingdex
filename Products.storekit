@@ -1,0 +1,141 @@
+{
+  "appPolicies": {
+    "eula": "",
+    "policies": [
+      {
+        "locale": "en_US",
+        "policyText": "",
+        "policyURL": "https://midgarcorp.cc/legal/living-dex/privacy"
+      }
+    ]
+  },
+  "identifier": "1B0E0001",
+  "nonRenewingSubscriptions": [],
+  "products": [
+    {
+      "displayPrice": "2.99",
+      "familyShareable": false,
+      "internalID": "1B0E0002",
+      "localizations": [
+        {
+          "description": "100 identifications",
+          "displayName": "Starter",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "com.guitaripod.livingdex.credits.starter",
+      "referenceName": "Starter",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "9.99",
+      "familyShareable": false,
+      "internalID": "1B0E0003",
+      "localizations": [
+        {
+          "description": "400 identifications, a season of discovery",
+          "displayName": "Regular",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "com.guitaripod.livingdex.credits.regular",
+      "referenceName": "Regular",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "24.99",
+      "familyShareable": false,
+      "internalID": "1B0E0004",
+      "localizations": [
+        {
+          "description": "1,200 identifications for the relentless collector",
+          "displayName": "Explorer",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "com.guitaripod.livingdex.credits.propack",
+      "referenceName": "Explorer",
+      "type": "Consumable"
+    },
+    {
+      "displayPrice": "49.99",
+      "familyShareable": false,
+      "internalID": "1B0E0005",
+      "localizations": [
+        {
+          "description": "2,600 identifications: identify everything",
+          "displayName": "Naturalist",
+          "locale": "en_US"
+        }
+      ],
+      "productID": "com.guitaripod.livingdex.credits.science",
+      "referenceName": "Naturalist",
+      "type": "Consumable"
+    }
+  ],
+  "settings": {
+    "_failTransactionsEnabled": false,
+    "_locale": "en_US",
+    "_storeKitErrors": [],
+    "_storefront": "USA"
+  },
+  "subscriptionGroups": [
+    {
+      "id": "1B0E0006",
+      "localizations": [],
+      "name": "Living Dex Pro",
+      "subscriptions": [
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "4.99",
+          "familyShareable": false,
+          "groupNumber": 1,
+          "internalID": "1B0E0007",
+          "introductoryOffer": null,
+          "localizations": [
+            {
+              "description": "Unlimited identifications, billed monthly",
+              "displayName": "Pro Monthly",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "com.guitaripod.livingdex.pro.monthly",
+          "recurringSubscriptionPeriod": "P1M",
+          "referenceName": "Living Dex Pro Monthly",
+          "subscriptionGroupID": "1B0E0006",
+          "type": "RecurringSubscription"
+        },
+        {
+          "adHocOffers": [],
+          "codeOffers": [],
+          "displayPrice": "29.99",
+          "familyShareable": false,
+          "groupNumber": 1,
+          "internalID": "1B0E0008",
+          "introductoryOffer": {
+            "internalID": "1B0E0009",
+            "paymentMode": "free",
+            "subscriptionPeriod": "P3D"
+          },
+          "localizations": [
+            {
+              "description": "Unlimited identifications, billed yearly",
+              "displayName": "Pro Annual",
+              "locale": "en_US"
+            }
+          ],
+          "productID": "com.guitaripod.livingdex.pro.annual",
+          "recurringSubscriptionPeriod": "P1Y",
+          "referenceName": "Living Dex Pro Annual",
+          "subscriptionGroupID": "1B0E0006",
+          "type": "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version": {
+    "major": 4,
+    "minor": 0
+  }
+}
