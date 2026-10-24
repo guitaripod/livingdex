@@ -1,6 +1,6 @@
 import AICreditsCore
 import Foundation
-import MidgarCore
+import MidgarCredits
 
 enum AccountDeletionError: Error, Equatable {
     case offline
@@ -23,41 +23,37 @@ protocol RemoteAccountDeleting: Sendable {
     func deleteRemoteAccount() async throws
 }
 
-/// `DELETE /v1/identity` on the mako credits backend behind the Midgar gateway, authenticated by the
-/// player's own API key. A key the server no longer recognises (401) counts as already
-/// deleted; an unreachable or failing server — including a missing endpoint (404) —
-/// blocks deletion so the key is never discarded while the account may still exist.
-struct MakoAccountDeleter: RemoteAccountDeleting {
-    let gateway: LivingDexGateway
-    let apiKey: @Sendable () async -> String?
-
-    init(
-        gateway: LivingDexGateway = LivingDexMidgar.makoGateway(),
-        apiKey: @escaping @Sendable () async -> String?
-    ) {
-        self.gateway = gateway
-        self.apiKey = apiKey
-    }
+/// Deletes the old per-app account at mako. With the wallet, the key goes through `MidgarCredits.deleteLegacyAccount()`
+/// (`DELETE /v1/identity` authorized by the player's own API key, which also erases this app's partition of the wallet for
+/// a player already linked to it); a key mako no longer recognises, or an account it no longer has, counts as already
+/// deleted. Without the wallet (a host that reaches no Midgar service) AICredits deletes its own identity. An unreachable
+/// or failing server blocks deletion so the key is never discarded while the account may still exist.
+struct LegacyAccountDeleter: RemoteAccountDeleting {
+    let credits: MidgarCredits?
+    let client: AICreditsClient
 
     func deleteRemoteAccount() async throws {
-        guard let key = await apiKey() else { return }
-        do throws(MidgarHTTPError) {
-            try await gateway.send(.delete, service: LivingDexGateway.makoService, path: "v1/identity", apiKey: key)
+        do {
+            if let credits {
+                try await credits.deleteLegacyAccount()
+            } else {
+                try await client.deleteIdentity()
+            }
         } catch {
-            try Self.acceptOrThrow(error)
+            throw Self.accountDeletionError(for: error)
         }
     }
 
-    /// An unknown key is already deleted. A call that never got an answer is offline, so the player can retry; any
-    /// answer that is not a success is a server failure.
-    private static func acceptOrThrow(_ error: MidgarHTTPError) throws {
+    /// A call that never got an answer is offline, so the player can retry; any answer that is not a success is a
+    /// server failure.
+    static func accountDeletionError(for error: any Error) -> AccountDeletionError {
         switch error {
-        case .unauthorized:
-            return
-        case .offline, .timeout, .cancelled, .tokenUnavailable:
-            throw AccountDeletionError.offline
+        case MidgarCreditsError.offline:
+            return .offline
+        case AICreditsError.transport:
+            return .offline
         default:
-            throw AccountDeletionError.server
+            return .server
         }
     }
 }
@@ -84,7 +80,7 @@ struct AccountDeletionService: Sendable {
     static func live() -> AccountDeletionService {
         let client = AICreditsManager.shared.client
         return AccountDeletionService(
-            remote: MakoAccountDeleter(apiKey: { await client.identity?.apiKey }),
+            remote: LegacyAccountDeleter(credits: LivingDexMidgar.shared.credits, client: client),
             signOut: { await client.signOut() },
             eraseLocal: {
                 try DatabaseManager.shared.eraseAllData()

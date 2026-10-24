@@ -1,5 +1,4 @@
 #if DEBUG
-import AICreditsCore
 import LivingDexCore
 import MidgarCore
 import UIKit
@@ -147,15 +146,20 @@ enum DemoSeeder {
         try? data.write(to: support.appendingPathComponent("region-cache.json"), options: .atomic)
     }
 
-    /// The Pro paywall over the Profile tab with live-looking store prices, for the App
+        /// The Pro paywall over the Profile tab with live-looking store prices, for the App
     /// Review screenshots of the subscriptions (a simulator has no App Store to price them).
     @MainActor
     static func presentPaywall(from presenter: UIViewController) {
-        let service = SubscriptionService(
-            backend: DemoSubscriptionBacking(), entitlementStore: ProEntitlementStore(suiteName: "livingdex.demo"))
-        PaywallPresenter.present(from: presenter, service: service, reason: "Every identification uses a credit.")
-        Task { await service.loadPlans() }
+        PaywallPresenter.present(
+            from: presenter, access: ProAccess(store: nil, entitlementStore: ProEntitlementStore(suiteName: "livingdex.demo")),
+            reason: "Every identification uses a credit.", fixedPlans: demoPlans)
     }
+
+    /// The two plans at their store prices, annual with its three-day free trial.
+    private static let demoPlans = PaywallPlan.assemble(from: [
+        ProPlanQuote(product: .annual, displayPrice: "$29.99", price: 29.99, currencyCode: "USD", trialDays: 3),
+        ProPlanQuote(product: .monthly, displayPrice: "$4.99", price: 4.99, currencyCode: "USD", trialDays: nil),
+    ])
 
     /// The photograph the `field` route shows in place of the live camera feed:
     /// `field-backdrop.jpg` in the photos folder, else the Golden Eagle portrait.
@@ -187,24 +191,5 @@ enum DemoSeeder {
             }
         }
     }
-}
-
-/// Plans priced like the real App Store products, so the paywall renders as a player sees it.
-private struct DemoSubscriptionBacking: SubscriptionBacking {
-    func proVerdict() async -> ProVerdict { .free }
-
-    func subscriptionPlans() async throws -> [SubscriptionPlan] {
-        [
-            SubscriptionPlan(
-                id: "$rc_annual", productID: "com.guitaripod.livingdex.pro.annual", localizedPrice: "$29.99",
-                price: 29.99, currencyCode: "USD", period: .annual, trialDays: 3, trialEligible: true),
-            SubscriptionPlan(
-                id: "$rc_monthly", productID: "com.guitaripod.livingdex.pro.monthly", localizedPrice: "$4.99",
-                price: 4.99, currencyCode: "USD", period: .monthly, trialDays: nil, trialEligible: false),
-        ]
-    }
-
-    func purchaseSubscription(_ plan: SubscriptionPlan) async throws {}
-    func restoreEntitlements() async throws {}
 }
 #endif

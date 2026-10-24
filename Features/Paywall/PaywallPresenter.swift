@@ -9,11 +9,14 @@ enum PaywallPresenter {
     /// caller should instead reflect the active entitlement).
     static func present(
         from presenter: UIViewController,
-        service: SubscriptionService = .shared,
-        reason: String = "Identify without limits, anywhere life turns up."
+        access: ProAccess = .shared,
+        reason: String = "Identify without limits, anywhere life turns up.",
+        shortfall: Int? = nil,
+        fixedPlans: [PaywallPlan]? = nil
     ) {
-        guard !service.isPro else { return }
-        let paywall = PaywallViewController(service: service, reason: reason)
+        guard !access.isPro else { return }
+        let paywall = PaywallViewController(
+            access: access, reason: reason, shortfall: shortfall, fixedPlans: fixedPlans)
         let nav = UINavigationController(rootViewController: paywall)
         nav.navigationBar.tintColor = DesignSystem.Color.accent
         nav.modalPresentationStyle = .pageSheet

@@ -676,9 +676,9 @@ final class FieldViewController: UIViewController {
         switch outcome {
         case let .identifyFailed(error):
             Haptics.failure()
-            let exhausted = error == .creditsExhausted
-            finishCapture(reset: Self.message(for: error), isFailure: !exhausted)
-            if exhausted { promptGoProForCredits() }
+            let shortfall = error.creditShortfall
+            finishCapture(reset: Self.message(for: error), isFailure: shortfall == nil)
+            if let shortfall { promptGoProForCredits(shortfall: shortfall) }
         case .lowConfidence:
             Haptics.failure()
             finishCapture(reset: Self.lowConfidenceMessage)
@@ -706,22 +706,24 @@ final class FieldViewController: UIViewController {
     /// re-read after every attempt that reached the backend; an offline attempt cost nothing.
     private func refreshCredits(after outcome: CaptureOutcome) async {
         if case .identifyFailed(.offline) = outcome { return }
-        await AICreditsManager.store.refresh()
+        await CreditsModel.shared.refresh()
     }
 
     /// Offers the way out of the metered cap the instant an identification is refused for
-    /// want of credits: go Pro for unlimited identifications, or top up consumable credits.
+    /// want of credits: go Pro for unlimited identifications, or top up consumable credits
+    /// (the paywall passes the shortfall on to the credit store).
     /// Silent for a user who already holds Pro (they should never hit this) — the alert
     /// would be noise.
-    private func promptGoProForCredits() {
-        guard !SubscriptionService.shared.isPro else { return }
+    private func promptGoProForCredits(shortfall: Int) {
+        guard !ProAccess.shared.isPro else { return }
         let alert = UIAlertController(
             title: "Out of identifications",
             message: "You've used your free identifications. Go Pro for unlimited identifications, or add credits to keep identifying.",
             preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "Go Pro", style: .default) { [weak self] _ in
             guard let self else { return }
-            PaywallPresenter.present(from: self, reason: "You've used your free identifications.")
+            PaywallPresenter.present(
+                from: self, reason: "You've used your free identifications.", shortfall: shortfall)
         })
         alert.addAction(UIAlertAction(title: "Not now", style: .cancel))
         present(alert, animated: true)
@@ -800,7 +802,7 @@ final class FieldViewController: UIViewController {
     /// hidden until the balance is genuinely known so it never shows a made-up zero.
     private func observeCredits() {
         Publishers.CombineLatest(
-            CreditsMeter.shared.knownBalancePublisher, SubscriptionService.shared.entitlementPublisher
+            CreditsModel.shared.knownBalancePublisher, ProAccess.shared.entitlementPublisher
         )
         .receive(on: DispatchQueue.main)
         .sink { [weak self] balance, isPro in
@@ -817,8 +819,8 @@ final class FieldViewController: UIViewController {
 
     @objc private func didTapCredits() {
         Haptics.tap()
-        if SubscriptionService.shared.isPro {
-            UIApplication.shared.open(SubscriptionService.shared.manageSubscriptionsURL)
+        if ProAccess.shared.isPro {
+            UIApplication.shared.open(ProAccess.shared.manageSubscriptionsURL)
         } else {
             PaywallPresenter.present(from: self, reason: "Every identification uses a credit.")
         }

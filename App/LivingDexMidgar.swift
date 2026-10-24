@@ -1,10 +1,12 @@
 import Foundation
+import MidgarCommerce
 import MidgarCore
+import MidgarCredits
 import MidgarPortal
 
 /// The composition root of everything Living Dex shares with the other Midgar apps: the Midgar ID, the gateway
-/// client built on it, the gateway addresses of mako and the worker and the log file. One instance lives for the
-/// whole process, so there is one identity.
+/// client built on it, the purchase engine and the credit wallet, the gateway addresses of mako and the worker and the
+/// log file. One instance lives for the whole process, so there is one identity.
 final class LivingDexMidgar: Sendable {
     /// The registry slug: the `X-App-ID` of every Midgar service call.
     static let appID = "living-dex"
@@ -26,9 +28,6 @@ final class LivingDexMidgar: Sendable {
     /// The longest a call waits for the Midgar ID's access token before it goes without.
     static let tokenWait: Duration = .seconds(2)
 
-    /// How long mako's account deletion waits before it gives up.
-    static let makoTimeout: TimeInterval = 20
-
     static let shared = LivingDexMidgar()
 
     /// The Midgar ID client. Minted on first launch, attached on every later one, shared through the keychain group.
@@ -37,21 +36,48 @@ final class LivingDexMidgar: Sendable {
     /// The gateway client that carries the Midgar ID's bearer token, for the portal's "Your Midgar".
     let account: MidgarHTTPClient
 
+    /// The purchase engine for Living Dex Pro and the credit packs: StoreKit 2 with the Midgar ID as `appAccountToken`.
+    /// Nil in a test host or a demo capture, which must not reach the ledger.
+    let store: MidgarStore?
+
+    /// The wallet behind the credit packs: the balance, the purchase and the credit on the Midgar ID, with the old
+    /// AICredits api key as the legacy key so the balance from before the move stays linked. Nil where `store` is.
+    let credits: MidgarCredits?
+
     private init() {
         let configuration = MidgarHTTPConfiguration(appID: Self.appID)
         let identity = MidgarIdentity(httpConfiguration: configuration, bundleID: Self.bundleID)
         self.identity = identity
-        account = MidgarHTTPClient(configuration: identity.authorizing(configuration))
+        let account = MidgarHTTPClient(configuration: identity.authorizing(configuration))
+        self.account = account
+        let commerce = Self.makeCommerce(identity: identity, account: account, configuration: configuration)
+        store = commerce?.store
+        credits = commerce?.credits
+    }
+
+    /// Builds the store and the wallet on it, or nothing where the app reaches no Midgar service. The wallet takes the
+    /// plain configuration, because it authorizes its own requests: the legacy key and the Midgar token travel in
+    /// different headers.
+    private static func makeCommerce(
+        identity: MidgarIdentity,
+        account: MidgarHTTPClient,
+        configuration: MidgarHTTPConfiguration
+    ) -> (store: MidgarStore, credits: MidgarCredits)? {
+        guard reachesMidgarServices else { return nil }
+        let store = MidgarStore(configuration: LivingDexPacks.storeConfiguration(), identity: identity, http: account)
+        let credits = MidgarCredits(
+            configuration: LivingDexPacks.creditsConfiguration(),
+            http: configuration,
+            identity: identity,
+            purchasing: store,
+            legacyAPIKey: { await AICreditsManager.shared.legacyAPIKey() }
+        )
+        return (store, credits)
     }
 
     /// The gateway client for the worker, whose calls give up after `timeout` seconds.
     static func workerGateway(timeout: TimeInterval) -> LivingDexGateway {
         gateway(timeout: timeout)
-    }
-
-    /// The gateway client for mako's account deletion.
-    static func makoGateway() -> LivingDexGateway {
-        gateway(timeout: makoTimeout)
     }
 
     private static func gateway(timeout: TimeInterval) -> LivingDexGateway {

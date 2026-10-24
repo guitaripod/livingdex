@@ -54,10 +54,16 @@ final class CloudVisionIdentifierTests: XCTestCase {
         XCTAssertNil(CloudVisionIdentifier.parse("no organism here"))
     }
 
-    func testInsufficientCreditsMapsToCreditsExhausted() {
+    func testInsufficientCreditsMapsToCreditsExhaustedWithTheShortfall() {
         let mapped = CloudVisionIdentifier.identifyError(
             from: AICreditsError.insufficientCredits(required: 5, available: 1))
-        XCTAssertEqual(mapped, .creditsExhausted)
+        XCTAssertEqual(mapped, .creditsExhausted(shortfall: 4))
+    }
+
+    func testInsufficientCreditsWithoutNumbersAsksForOneCredit() {
+        let mapped = CloudVisionIdentifier.identifyError(
+            from: AICreditsError.insufficientCredits(required: nil, available: nil))
+        XCTAssertEqual(mapped, .creditsExhausted(shortfall: 1))
     }
 
     func testTransportErrorMapsToOffline() {

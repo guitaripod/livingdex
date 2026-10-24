@@ -1,7 +1,6 @@
 import Combine
 import LivingDexCore
 import UIKit
-import AICreditsUI
 
 /// Profile & progress: the collection's headline stats, a rarity breakdown, the
 /// Living Dex Pro surface, and diagnostics (log export). A collection game lives
@@ -9,7 +8,7 @@ import AICreditsUI
 final class ProfileViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     private let tableView = UITableView(frame: .zero, style: .insetGrouped)
     private let headerView = ProfileHeaderView()
-    private let subscriptions = SubscriptionService.shared
+    private let pro = ProAccess.shared
     private var cancellables = Set<AnyCancellable>()
 
     private enum Row {
@@ -49,7 +48,7 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
             stackedLeading,
         ])
 
-        subscriptions.entitlementPublisher
+        pro.entitlementPublisher
             .dropFirst()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
@@ -60,9 +59,11 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
             .store(in: &cancellables)
 
         // The credit balance changes when a pack is bought from the sheet, which
-        // doesn't fire viewWillAppear — observe the store so the "credits
+        // doesn't fire viewWillAppear — observe the wallet so the "credits
         // remaining" row refreshes live instead of only on tab switch.
-        AICreditsManager.store.objectWillChange
+        CreditsModel.shared.knownBalancePublisher
+            .dropFirst()
+            .removeDuplicates()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self, self.isViewLoaded, self.view.window != nil else { return }
@@ -139,7 +140,7 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
     private func rebuild() {
         let stats = (try? CollectionStore.shared.stats()) ?? .init(speciesCount: 0, totalCatches: 0, byRarity: [:], realms: [], maxRarity: nil)
         let progress = (try? ProgressStore.shared.current()) ?? .initial()
-        let balance = CreditsMeter.shared.knownBalance
+        let balance = CreditsModel.shared.knownBalance
 
         headerView.configure(with: progress, speciesCount: stats.speciesCount)
 
@@ -155,7 +156,7 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
         sections = [
             Section(header: nil, rows: [.guide]),
             Section(header: "Collection", rows: collection),
-            Section(header: "Identify", rows: [.pro(balance: balance, isPro: subscriptions.isPro)]),
+            Section(header: "Identify", rows: [.pro(balance: balance, isPro: pro.isPro)]),
             Section(header: "Compete", rows: [
                 .action(title: "Leaderboards & achievements", symbol: "trophy.fill") { [weak self] in
                     guard let self else { return }
@@ -261,7 +262,7 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
             navigationController?.pushViewController(FieldGuideViewController(), animated: true)
         case let .pro(_, isPro):
             if isPro {
-                UIApplication.shared.open(subscriptions.manageSubscriptionsURL)
+                UIApplication.shared.open(pro.manageSubscriptionsURL)
             } else {
                 PaywallPresenter.present(from: self)
             }

@@ -40,18 +40,21 @@ extension SettingsViewController {
         CloudConsent.request(from: self) { [weak self] _ in self?.refreshList() }
     }
 
-    /// Routes through the single ``SubscriptionService/restore()`` path so the Pro gate updates everywhere, and
-    /// distinguishes a genuine empty restore from a failed call: a paying subscriber is never told there was nothing
-    /// to restore because the App Store was simply unreachable. The credit balance is refreshed alongside so a
-    /// restored consumable purchase (packs) also reflects immediately.
+    /// Routes through the single ``ProAccess/restore()`` path so the Pro gate updates everywhere, and distinguishes a
+    /// genuine empty restore from a failed call: a paying subscriber is never told there was nothing to restore because
+    /// the App Store was simply unreachable. The credit balance is refreshed alongside, which also retries a pack that
+    /// was paid for and not yet credited.
     func restorePurchases() async throws {
-        let result = await SubscriptionService.shared.restore()
-        await AICreditsManager.store.refresh()
-        switch result {
-        case .restored: return
-        case .nothingToRestore: throw RestoreError.nothingToRestore
-        case .failed: throw RestoreError.failed
+        let access = ProAccess.shared
+        do {
+            try await access.restore()
+        } catch {
+            MidgarLog.error("restore failed: \(error)", category: .credits)
+            await CreditsModel.shared.refresh()
+            throw RestoreError.failed
         }
+        await CreditsModel.shared.refresh()
+        guard access.isPro else { throw RestoreError.nothingToRestore }
     }
 
     func exportLogs() {
@@ -83,10 +86,10 @@ extension SettingsViewController {
             throw error
         }
         AppSettings.reset()
-        CreditsMeter.shared.reset()
+        CreditsModel.shared.forget()
         MidgarLog.info("account deleted leftovers=\(leftovers)", category: .app)
         Haptics.tap()
-        await AICreditsManager.store.bootstrap()
+        await CreditsModel.shared.refresh()
         overlay.hide()
         finishDeletion(leftovers: leftovers)
     }

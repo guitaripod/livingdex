@@ -1,10 +1,8 @@
-import Combine
 import MidgarCore
 import UIKit
 
 final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
-    private var creditsObservers: Set<AnyCancellable> = []
 
     func scene(
         _ scene: UIScene,
@@ -13,8 +11,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     ) {
         guard let windowScene = scene as? UIWindowScene else { return }
 
-        observeCreditsEvents()
-        CreditsMeter.shared.start()
+        CreditsModel.shared.start()
 
         let window = UIWindow(windowScene: windowScene)
         window.overrideUserInterfaceStyle = AppSettings.appearance
@@ -23,8 +20,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         self.window = window
         window.makeKeyAndVisible()
 
-        Task { await AICreditsManager.store.bootstrap() }
-        SubscriptionService.shared.bootstrap()
+        _ = ProAccess.shared
         // Game Center auth is deferred to the first non-Field tab (see
         // RootViewController) so its foreground-steal never freezes the camera at launch.
         MidgarLog.info("scene connected", category: .app)
@@ -32,7 +28,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     func sceneWillEnterForeground(_ scene: UIScene) {
         LocationProvider.shared.warmUp()
-        SubscriptionService.shared.refreshEntitlementIfStale()
+        Task { await CreditsModel.shared.refresh() }
     }
 
     func sceneDidEnterBackground(_ scene: UIScene) {
@@ -73,26 +69,5 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             return onboarding
         }
         return RootViewController()
-    }
-
-    /// The AICredits package emits no logging of its own, so the store's
-    /// published identity/error/balance transitions are the app's only trace of
-    /// bootstrap, Apple-link, refresh, and purchase outcomes.
-    private func observeCreditsEvents() {
-        let store = AICreditsManager.store
-        store.$identity
-            .compactMap { $0 }
-            .removeDuplicates()
-            .sink { MidgarLog.info("credits identity \($0.kind.rawValue) \($0.userID.prefix(8))", category: .credits) }
-            .store(in: &creditsObservers)
-        store.$error
-            .compactMap { $0 }
-            .sink { MidgarLog.error("credits error: \($0.localizedDescription)", category: .credits) }
-            .store(in: &creditsObservers)
-        store.$balance
-            .removeDuplicates()
-            .dropFirst()
-            .sink { MidgarLog.info("credits balance \($0)", category: .credits) }
-            .store(in: &creditsObservers)
     }
 }

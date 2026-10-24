@@ -32,7 +32,8 @@ public struct SpeciesCandidate: Sendable, Equatable {
 /// credits, and server faults all into "no clear living thing".
 public enum IdentifyError: Error, Sendable, Equatable {
     case offline
-    case creditsExhausted
+    /// The wallet refused the call. `shortfall` is how many more credits it needed than the wallet held, at least 1.
+    case creditsExhausted(shortfall: Int)
     case serverError
     case noSpecies
 }

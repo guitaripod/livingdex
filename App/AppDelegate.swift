@@ -10,20 +10,12 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         LivingDexMidgar.configureLogging()
         LivingDexMidgar.shared.start()
         ReviewPrompt.beginSession()
-        warmUpLaunchServicesReceiptPath()
         _ = DatabaseManager.shared
         #if DEBUG
         DemoSeeder.seedIfNeeded()
         #endif
         MidgarLog.info("app launched", category: .app)
         return true
-    }
-
-    /// Pre-warms the LaunchServices XPC connection behind
-    /// `Bundle.main.appStoreReceiptURL` on the main thread, before RevenueCat's
-    /// background queue reads it during configuration.
-    private func warmUpLaunchServicesReceiptPath() {
-        _ = Bundle.main.appStoreReceiptURL
     }
 
     func application(

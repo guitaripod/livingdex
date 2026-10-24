@@ -167,11 +167,11 @@ final class CaptureFlowTests: XCTestCase {
 
     func testIdentifyFailurePropagatesTypedError() async {
         let flow = makeFlow(
-            identify: IdentificationResult(candidates: [], error: .creditsExhausted),
+            identify: IdentificationResult(candidates: [], error: .creditsExhausted(shortfall: 2)),
             enrich: .resolved(enrichment()))
         let outcome = await flow.run(image: image(), context: CaptureContext(latitude: nil, longitude: nil, elevationMeters: nil))
         guard case let .identifyFailed(error) = outcome else { return XCTFail("expected identifyFailed, got \(outcome)") }
-        XCTAssertEqual(error, .creditsExhausted)
+        XCTAssertEqual(error, .creditsExhausted(shortfall: 2))
     }
 }
 

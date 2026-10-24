@@ -1,8 +1,7 @@
 import Combine
+import MidgarCommerce
 import MidgarCore
 import UIKit
-import SwiftUI
-import AICreditsUI
 
 /// Living Dex Pro's paywall — the naturalist's field companion tier. Shown from the
 /// Profile "Identifications" row and from the credits-exhausted capture path. Selectable plan
@@ -18,8 +17,13 @@ final class PaywallViewController: UIViewController {
     /// Fired once when the paywall leaves the screen via any dismissal path.
     var onDidDismiss: (@MainActor () -> Void)?
 
-    private let service: SubscriptionService
+    /// How many more credits the refused identification needed, which the credit store shows as its banner, or nil when
+    /// the player opened the paywall themselves.
+    let shortfall: Int?
+
+    private let access: ProAccess
     private let reason: String
+    private let fixedPlans: [PaywallPlan]?
     private var cancellables = Set<AnyCancellable>()
 
     private let scrollView = UIScrollView()
@@ -46,11 +50,15 @@ final class PaywallViewController: UIViewController {
         })
 
     init(
-        service: SubscriptionService = .shared,
-        reason: String = "Identify without limits, anywhere life turns up."
+        access: ProAccess = .shared,
+        reason: String = "Identify without limits, anywhere life turns up.",
+        shortfall: Int? = nil,
+        fixedPlans: [PaywallPlan]? = nil
     ) {
-        self.service = service
+        self.access = access
         self.reason = reason
+        self.shortfall = shortfall
+        self.fixedPlans = fixedPlans
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -69,7 +77,7 @@ final class PaywallViewController: UIViewController {
 
         layoutContent()
         bind()
-        Task { await service.loadPlans() }
+        loadPlans()
         MidgarLog.info("paywall shown reason=\(reason)", category: .credits)
     }
 
@@ -240,13 +248,28 @@ final class PaywallViewController: UIViewController {
         return container
     }
 
-    private func bind() {
-        service.plansPublisher
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] state in self?.render(state) }
-            .store(in: &cancellables)
+    /// Loads the plans from StoreKit. A failure, or a store that sells none, is the honest unavailable state with a
+    /// retry, unless plans were already shown, which stay: a refresh failure never discards store-sourced prices.
+    private func loadPlans() {
+        if let fixedPlans {
+            render(.loaded(fixedPlans))
+            return
+        }
+        if plans.isEmpty { render(.loading) }
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let loaded = try await self.access.plans()
+                self.render(loaded.isEmpty ? .unavailable : .loaded(loaded))
+            } catch {
+                MidgarLog.notice("subscription plans load failed: \(error)", category: .credits)
+                if self.plans.isEmpty { self.render(.unavailable) }
+            }
+        }
+    }
 
-        service.entitlementPublisher
+    private func bind() {
+        access.entitlementPublisher
             .dropFirst()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] isPro in
@@ -368,9 +391,8 @@ final class PaywallViewController: UIViewController {
     }
 
     private func presentCreditStore() {
-        let store = AICreditsManager.store
-        let host = UIHostingController(rootView: CreditStoreView().environmentObject(store))
-        present(host, animated: true)
+        guard let store = CreditStoreSheet.makeController(credits: .shared, shortfall: shortfall) else { return }
+        present(store, animated: true)
     }
 
     private func makeLegalFooter() -> UIView {
@@ -404,12 +426,22 @@ final class PaywallViewController: UIViewController {
         setPurchasing(true)
         Task { [weak self] in
             guard let self else { return }
-            let result = await self.service.purchase(plan)
-            self.setPurchasing(false)
-            guard case .failed = result else { return }
-            self.presentAlert(
-                "Purchase didn't complete",
-                message: "You were not charged. Check your connection and try again.")
+            do {
+                let result = try await self.access.purchase(plan.product, in: self.view.window?.windowScene)
+                self.setPurchasing(false)
+                if PaywallPurchaseEffect.of(result) == .waitForApproval {
+                    self.presentAlert(
+                        "Waiting for approval",
+                        message: "Your purchase is waiting for approval. Living Dex Pro unlocks by itself once it is approved.")
+                }
+            } catch {
+                self.setPurchasing(false)
+                MidgarLog.error("purchase failed \(plan.product.rawValue): \(error)", category: .credits)
+                ReviewPrompt.notePurchaseFailure()
+                self.presentAlert(
+                    "Purchase didn't complete",
+                    message: "You were not charged. Check your connection and try again.")
+            }
         }
     }
 
@@ -418,17 +450,17 @@ final class PaywallViewController: UIViewController {
         setRestoring(true)
         Task { [weak self] in
             guard let self else { return }
-            let result = await self.service.restore()
-            self.setRestoring(false)
-            switch result {
-            case .restored:
-                break
-            case .nothingToRestore:
+            do {
+                try await self.access.restore()
+                self.setRestoring(false)
+                guard !self.access.isPro else { return }
                 self.presentAlert(
                     "Nothing to restore",
                     message: "No active Living Dex Pro purchase was found on this Apple ID. "
                         + "If you subscribed on another device, sign in with the same Apple ID and try again.")
-            case .failed:
+            } catch {
+                self.setRestoring(false)
+                MidgarLog.error("restore failed: \(error)", category: .credits)
                 self.presentAlert(
                     "Couldn't reach the App Store",
                     message: "Check your connection and try again.")
@@ -502,11 +534,9 @@ final class PaywallViewController: UIViewController {
         return container
     }
 
-    /// Re-runs the plans load, which also re-attempts the credits client's identity
-    /// bootstrap when the first-launch registration failed.
     private func retryLoadPlans() {
         MidgarLog.info("paywall pricing retry", category: .credits)
-        Task { [weak self] in await self?.service.loadPlans() }
+        loadPlans()
     }
 
     private func presentAlert(_ title: String, message: String) {

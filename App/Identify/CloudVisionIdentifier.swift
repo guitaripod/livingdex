@@ -76,7 +76,8 @@ final class CloudVisionIdentifier: SpeciesIdentifier {
     static func identifyError(from error: Error) -> IdentifyError {
         if let creditsError = error as? AICreditsError {
             switch creditsError {
-            case .insufficientCredits: return .creditsExhausted
+            case .insufficientCredits(let required, let available):
+                return .creditsExhausted(shortfall: CreditShortfall.of(required: required, available: available))
             case .transport: return .offline
             default: return .serverError
             }

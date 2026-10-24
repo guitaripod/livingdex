@@ -24,7 +24,7 @@ final class NarratorService: Narrator {
     init(
         onDevice: Narrator? = OnDeviceNarrator.makeIfAvailable(),
         cloud: Narrator = SpeciesNarrator(),
-        isPro: @escaping @Sendable () async -> Bool = { await MainActor.run { SubscriptionService.shared.isPro } }
+        isPro: @escaping @Sendable () async -> Bool = { await MainActor.run { ProAccess.shared.isPro } }
     ) {
         self.onDevice = onDevice
         self.cloud = cloud

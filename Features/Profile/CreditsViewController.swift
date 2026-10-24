@@ -39,7 +39,6 @@ final class CreditsViewController: UIViewController, UITableViewDataSource, UITa
             footer: nil,
             entries: [
                 .init(title: "GRDB.swift", detail: "Gwendal Roué · MIT", url: URL(string: "https://github.com/groue/GRDB.swift")),
-                .init(title: "RevenueCat Purchases", detail: "RevenueCat · MIT", url: URL(string: "https://github.com/RevenueCat/purchases-ios")),
             ]),
     ]
 
