@@ -19,7 +19,7 @@ from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter, ImageFo
 CANVAS = (1320, 2868)
 FONT_FILE = "/System/Library/Fonts/Avenir Next.ttc"
 HEAVY, DEMI, MEDIUM = 8, 2, 5
-ART_DIR = Path(__file__).resolve().parent.parent / "LivingDex/Assets.xcassets"
+ART_DIR = Path(__file__).resolve().parent.parent / "Resources/Assets.xcassets"
 
 PHONE_SHOTS = [
     ("field", "animals", (255, 176, 70), ["Point at", "anything alive"], "Birds, plants, bugs and fungi, named in seconds"),

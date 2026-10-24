@@ -1,6 +1,6 @@
 # App Privacy answers (App Store Connect > App Privacy)
 
-Matches `LivingDex/PrivacyInfo.xcprivacy` and the live privacy policy. Nothing is used to track, so
+Matches `Resources/PrivacyInfo.xcprivacy` and the live privacy policy. Nothing is used to track, so
 "Data Used to Track You" is empty. Publish after saving.
 
 | Data type | Purpose | Linked to the user | Why |

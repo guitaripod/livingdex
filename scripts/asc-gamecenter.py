@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Idempotent Game Center provisioner for Living Dex, driven through the `asc` CLI.
 
-Mirrors LivingDex/GameCenter/Achievements.swift, which is the source of truth: an
+Mirrors App/GameCenter/Achievements.swift, which is the source of truth: an
 achievement added there is added here in the same change. Ensures the app's
 gameCenterDetail, every achievement and the species leaderboard with their en-US
 localizations, SF-Symbol artwork on the app's emerald gradient, and the

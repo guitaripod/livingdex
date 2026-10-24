@@ -1,0 +1,165 @@
+import Foundation
+import GRDB
+import LivingDexCore
+import MidgarCore
+
+/// Reads/writes the player's collection. Saving a sighting upserts its
+/// materialized `DexEntry` in the same transaction so the Dex grid stays
+/// consistent, and `observeDex` drives the grid reactively via GRDB.
+final class CollectionStore: Sendable {
+    static let shared = CollectionStore()
+
+    private let dbQueue: DatabaseQueue
+
+    init(dbQueue: DatabaseQueue = DatabaseManager.shared.dbQueue) {
+        self.dbQueue = dbQueue
+    }
+
+    /// Persists a capture and folds it into the species' dex entry. Returns
+    /// whether this was the first-ever catch of the species (a "new dex entry"
+    /// — the big XP / celebration beat).
+    @discardableResult
+    func save(_ sighting: Sighting) throws -> Bool {
+        try dbQueue.write { db in
+            var s = sighting
+            try s.insert(db)
+
+            let existing = try DexEntry.fetchOne(db, key: sighting.speciesId)
+            if var entry = existing {
+                entry.sightingCount += 1
+                entry.lastCaughtAt = sighting.capturedAt
+                if sighting.capturedAt < entry.firstCaughtAt { entry.firstCaughtAt = sighting.capturedAt }
+                // A confirmed capture heals a previously-provisional dex entry:
+                // adopt the real rarity/names once GBIF has spoken.
+                if sighting.enriched && !entry.enriched {
+                    entry.rarity = sighting.rarity
+                    entry.commonName = sighting.commonName
+                    entry.scientificName = sighting.scientificName
+                    // Adopt the confirmed realm too, else a first catch minted
+                    // offline with the vision model's realm guess stays filed in
+                    // the wrong Dex section forever.
+                    entry.realm = sighting.realm
+                    entry.enriched = true
+                }
+                try entry.update(db)
+                return false
+            } else {
+                var entry = DexEntry(
+                    speciesId: sighting.speciesId,
+                    commonName: sighting.commonName,
+                    scientificName: sighting.scientificName,
+                    realm: sighting.realm,
+                    rarity: sighting.rarity,
+                    firstCaughtAt: sighting.capturedAt,
+                    lastCaughtAt: sighting.capturedAt,
+                    sightingCount: 1,
+                    bestImagePath: sighting.imagePath,
+                    enriched: sighting.enriched)
+                try entry.insert(db)
+                return true
+            }
+        }
+    }
+
+    /// Emits the full dex (rarest first, then most recent) whenever it changes.
+    func observeDex(onChange: @escaping @Sendable ([DexEntry]) -> Void) -> AnyDatabaseCancellable {
+        let observation = ValueObservation.tracking { db in
+            try DexEntry
+                .order(Column("lastCaughtAt").desc)
+                .fetchAll(db)
+        }
+        return observation.start(
+            in: dbQueue,
+            scheduling: .async(onQueue: .main),
+            onError: { MidgarLog.error("dex observation error: \($0)", category: .persistence) },
+            onChange: onChange)
+    }
+
+    func dexCount() throws -> Int {
+        try dbQueue.read { try DexEntry.fetchCount($0) }
+    }
+
+    /// Collection summary: total unique species, total catches, and a per-rarity
+    /// breakdown — the progress surface for the Profile tab.
+    struct Stats: Sendable {
+        var speciesCount: Int
+        var totalCatches: Int
+        var byRarity: [Rarity: Int]
+        var realms: Set<Realm>
+        var maxRarity: Rarity?
+    }
+
+    func stats() throws -> Stats {
+        try dbQueue.read { db in
+            let entries = try DexEntry.fetchAll(db)
+            var byRarity: [Rarity: Int] = [:]
+            var realms: Set<Realm> = []
+            var totalCatches = 0
+            for e in entries {
+                byRarity[e.rarity, default: 0] += 1
+                realms.insert(e.realm)
+                totalCatches += e.sightingCount
+            }
+            let maxRarity = Rarity.allCases.last { byRarity[$0] != nil }
+            return Stats(
+                speciesCount: entries.count, totalCatches: totalCatches,
+                byRarity: byRarity, realms: realms, maxRarity: maxRarity)
+        }
+    }
+
+    /// Stores the narrated Pokédex entry (+ category and typical size) onto a
+    /// sighting, filled async after capture; the card reads the latest sighting.
+    func setNarration(sightingId: String, entry: PokedexEntry) throws {
+        try dbQueue.write { db in
+            try db.execute(
+                sql: "UPDATE sightings SET pokedexEntry = ?, category = ?, typicalSize = ? WHERE id = ?",
+                arguments: [entry.displayText, entry.category, entry.typicalSize, sightingId])
+        }
+    }
+
+    /// Removes a species from the collection entirely — every sighting, its dex
+    /// entry, and the stored photos. Used to release a misidentification.
+    func release(speciesId: String) throws {
+        let paths: [String] = try dbQueue.write { db in
+            let imagePaths = try String.fetchAll(
+                db, sql: "SELECT imagePath FROM sightings WHERE speciesId = ?", arguments: [speciesId])
+            try db.execute(sql: "DELETE FROM sightings WHERE speciesId = ?", arguments: [speciesId])
+            try db.execute(sql: "DELETE FROM dex_entries WHERE speciesId = ?", arguments: [speciesId])
+            return imagePaths
+        }
+        for path in paths where !path.isEmpty { ImageStore.delete(path) }
+        MidgarLog.info("released \(speciesId)", category: .persistence)
+    }
+
+    /// Applies a late GBIF confirmation to a provisional species: real rarity +
+    /// names, marked enriched. Returns the updated entry (nil if it's gone).
+    @discardableResult
+    func healEnrichment(speciesId: String, rarity: Rarity, commonName: String, scientificName: String) throws -> DexEntry? {
+        try dbQueue.write { db in
+            guard var entry = try DexEntry.fetchOne(db, key: speciesId), !entry.enriched else {
+                return try DexEntry.fetchOne(db, key: speciesId)
+            }
+            entry.rarity = rarity
+            entry.commonName = commonName
+            entry.scientificName = scientificName
+            entry.enriched = true
+            try entry.update(db)
+            try db.execute(
+                sql: "UPDATE sightings SET rarity = ?, commonName = ?, scientificName = ?, enriched = 1 WHERE speciesId = ?",
+                arguments: [rarity.rawValue, commonName, scientificName, speciesId])
+            MidgarLog.info("healed \(speciesId) -> \(rarity.rawValue)", category: .persistence)
+            return entry
+        }
+    }
+
+    /// The most recent sighting of a species — powers the card detail (image +
+    /// narration + capture metadata).
+    func latestSighting(speciesId: String) throws -> Sighting? {
+        try dbQueue.read { db in
+            try Sighting
+                .filter(Column("speciesId") == speciesId)
+                .order(Column("capturedAt").desc)
+                .fetchOne(db)
+        }
+    }
+}

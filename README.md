@@ -20,7 +20,7 @@ A camera-first "real-life Pokédex" collection game for iOS 26 — discover, ide
 
 ```sh
 brew install xcodegen        # if needed
-cp LivingDex/Secrets.example.swift LivingDex/Secrets.swift   # fill in the RevenueCat key
+cp App/Secrets.example.swift App/Secrets.swift   # fill in the RevenueCat key
 xcodegen generate
 open LivingDex.xcodeproj
 ```
@@ -31,12 +31,15 @@ Requires Xcode 26 / iOS 26 SDK. `Secrets.swift` is gitignored.
 
 | Area | Where |
 |---|---|
-| App shell | `LivingDex/App/` (AppDelegate, SceneDelegate, RootViewController, AppLogger, Haptics, DesignSystem) |
-| Capture | `LivingDex/Capture/` (CameraController, ImageStore, LocationProvider) |
-| Identification | `LivingDex/Identify/` (SpeciesIdentifier, CoreMLSpeciesIdentifier, TaxonCatalog, GeoPrior) |
-| AI narration | `LivingDex/AI/` (SpeciesNarrator, MakoChat) |
-| Persistence | `LivingDex/Database/` (DatabaseManager, Records, CollectionStore) |
-| Features | `LivingDex/Features/` (Field, Card, Dex, Profile, Guide, Paywall, Consent, Onboarding) |
+| App shell | `App/` (AppDelegate, SceneDelegate, RootViewController, Haptics, DesignSystem) |
+| Capture | `App/Capture/` (CameraController, ImageStore, LocationProvider) |
+| Identification | `App/Identify/` (SpeciesIdentifier, CoreMLSpeciesIdentifier, TaxonCatalog, GeoPrior) |
+| AI narration | `App/AI/` (SpeciesNarrator, MakoChat) |
+| Persistence | `App/Database/` (DatabaseManager, Records, CollectionStore) |
+| Features | `Features/` (Field, Card, Dex, Profile, Guide, Paywall, Consent, Onboarding) |
+| Domain | `Core/LivingDexCore/` (Swift package: Rarity, Realm, XP and Level, identification candidates) |
+| Resources | `Resources/` (Assets.xcassets, PrivacyInfo.xcprivacy, Samples) |
+| Tests | `Tests/LivingDexTests/` |
 
 Backend is [`guitaripod/mako`](https://github.com/guitaripod/mako) (shared AI-credits Worker); this app is one of its tenants.
 

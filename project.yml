@@ -38,6 +38,8 @@ packages:
     from: "7.0.0"
   AICredits:
     path: ../../packages/AICredits
+  LivingDexCore:
+    path: Core/LivingDexCore
   MidgarKit:
     path: ../../packages/MidgarKit
 
@@ -50,13 +52,16 @@ targets:
     type: application
     platform: iOS
     sources:
-      - path: LivingDex
+      - path: App
         excludes:
           - "Secrets.example.swift"
-      - path: LivingDex/Secrets.swift
+      - path: App/Secrets.swift
         optional: true
+      - path: Features
+      - path: Resources
     dependencies:
       - package: GRDB
+      - package: LivingDexCore
       - package: AICredits
         product: AICreditsCore
       - package: AICredits
@@ -65,7 +70,7 @@ targets:
         product: AICreditsUI
       - package: MidgarKit
     info:
-      path: LivingDex/Info.plist
+      path: App/Info.plist
       properties:
         CFBundleDisplayName: Living Dex
         CFBundleShortVersionString: $(MARKETING_VERSION)
@@ -119,7 +124,7 @@ targets:
           - midgar-08
           - midgar-09
     entitlements:
-      path: LivingDex/LivingDex.entitlements
+      path: App/LivingDex.entitlements
       properties:
         com.apple.developer.game-center: true
         com.apple.developer.applesignin:
@@ -145,7 +150,7 @@ targets:
     type: bundle.unit-test
     platform: iOS
     sources:
-      - LivingDexTests
+      - Tests/LivingDexTests
     dependencies:
       - target: LivingDex
     settings:
