@@ -12,7 +12,7 @@ A camera-first "real-life Pokédex" collection game for iOS 26 — discover, ide
 - **Identification**: cloud vision through the shared [mako](https://github.com/guitaripod/mako) backend (Gemini), then the name is verified against GBIF through the domain Worker (`services/living-dex` at the repo root); an unconfirmed species is never minted. A consent sheet precedes the first photo that leaves the device. No on-device species model ships yet (`CoreMLSpeciesIdentifier` is wired and takes over once `SpeciesClassifier.mlmodelc` + `taxa.json` are bundled).
 - **Dex**: Nearby (regional species as locked slots) and Caught (searchable, sortable); card detail with a field entry (Apple Foundation Models, else the sourced Wikipedia summary; Pro gets cloud entries) and a playable call.
 - **Progression**: XP, levels, streaks, Game Center leaderboard and eight achievements (`scripts/asc-gamecenter.py`).
-- **Money**: 30 free identifications per device; Living Dex Pro (monthly, annual with trial) is unlimited; consumable credit packs. Everything runs through AICredits + RevenueCat.
+- **Money**: 30 free identifications per device; Living Dex Pro (monthly, annual with trial) is unlimited; consumable credit packs. Pro and the credit packs are sold through MidgarStore and MidgarCredits on the Midgar ID; AICredits only runs the AI calls.
 - **Privacy**: anonymous identity, privacy manifest, revocable cloud consent, in-app Delete Account & Data (`DELETE /v1/identity`, then local wipe).
 - Agent-native file logger (`Library/Logs/livingdex.log`), haptics, VoiceOver, Dynamic Type, Reduce Motion.
 
@@ -20,12 +20,11 @@ A camera-first "real-life Pokédex" collection game for iOS 26 — discover, ide
 
 ```sh
 brew install xcodegen        # if needed
-cp App/Secrets.example.swift App/Secrets.swift   # fill in the RevenueCat key
 xcodegen generate
 open LivingDex.xcodeproj
 ```
 
-Requires Xcode 26 / iOS 26 SDK. `Secrets.swift` is gitignored.
+Requires Xcode 26 / iOS 26 SDK. The app holds no secret key.
 
 ## Architecture
 

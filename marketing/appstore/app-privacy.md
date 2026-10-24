@@ -10,6 +10,6 @@ Matches `Resources/PrivacyInfo.xcprivacy` and the live privacy policy. Nothing i
 | Email Address | App Functionality | Yes | Only if the player links Sign in with Apple (may be Apple's private relay) |
 | User ID | App Functionality | Yes | The anonymous account id |
 | Device ID | App Functionality | Yes | Keychain device id + DeviceCheck for one free allowance per device |
-| Purchase History | App Functionality | Yes | Apple/RevenueCat purchase records for Pro and credit packs |
+| Purchase History | App Functionality | Yes | Apple purchase records for Pro and credit packs, verified by mako |
 
 Tracking: No. Third-party advertising: No.
