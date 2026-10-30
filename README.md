@@ -2,11 +2,11 @@
 
 **Point your iPhone at anything alive and add it to the only Pokédex where the creatures are real.**
 
-A camera-first "real-life Pokédex" collection game for iOS 26 — discover, identify, and collect every life form on Earth, gamified. UIKit + GRDB, Liquid Glass, on-device identification with a Claude cloud layer through the shared [mako](https://github.com/guitaripod/mako) backend.
+A camera-first "real-life Pokédex" collection game for iOS 26: discover, identify and collect every life form on Earth. UIKit, GRDB and Liquid Glass, with cloud identification and field entries through Midgar's shared [mako](https://github.com/guitaripod/mako) backend.
 
 ## What it does
 
-**Spot → identify → collect → learn.** Point the camera (or pick a photo, or try a bundled sample) at anything alive and get a rarity-graded card for your Dex.
+**Spot, identify, collect, learn.** Point the camera at anything alive (or pick a photo, or try a bundled sample) and get a rarity-graded card for your Dex.
 
 - **Field**: camera-first view with a Liquid Glass HUD, a credits meter, and a photo menu (library or sample).
 - **Identification**: cloud vision through the shared [mako](https://github.com/guitaripod/mako) backend (Gemini), then the name is verified against GBIF through the domain Worker (`services/living-dex` at the repo root); an unconfirmed species is never minted. A consent sheet precedes the first photo that leaves the device. No on-device species model ships yet (`CoreMLSpeciesIdentifier` is wired and takes over once `SpeciesClassifier.mlmodelc` + `taxa.json` are bundled).
@@ -24,7 +24,7 @@ xcodegen generate
 open LivingDex.xcodeproj
 ```
 
-Requires Xcode 26 / iOS 26 SDK. The app holds no secret key.
+Requires Xcode 27; runs on iOS 26 or later. The app holds no secret key.
 
 ## Architecture
 
@@ -40,7 +40,7 @@ Requires Xcode 26 / iOS 26 SDK. The app holds no secret key.
 | Resources | `Resources/` (Assets.xcassets, PrivacyInfo.xcprivacy, Samples) |
 | Tests | `Tests/LivingDexTests/` |
 
-Backend is [`guitaripod/mako`](https://github.com/guitaripod/mako) (shared AI-credits Worker); this app is one of its tenants.
+The backend is [mako](https://github.com/guitaripod/mako), Midgar's shared AI Worker: Gemini identifies, Claude Haiku writes cloud field entries, and credits come from the Midgar ID wallet.
 
 ## Demo and store assets
 
@@ -48,4 +48,4 @@ DEBUG builds read `LIVINGDEX_DEMO=<route>` (`field`, `reveal`, `caught`, `nearby
 
 ## Roadmap
 
-Bundle a real BioCLIP→Core ML model + taxon catalog so identification works offline · the "ask the creature" Q&A · sensitive-species obscuring · localisation.
+A bundled BioCLIP Core ML model and taxon catalog so identification works offline, the "ask the creature" Q&A, sensitive-species obscuring, and localisation.
