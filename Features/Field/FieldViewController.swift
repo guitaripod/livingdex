@@ -761,11 +761,12 @@ final class FieldViewController: UIViewController {
     ) {
         let card = CardRevealViewController(
             sighting: sighting, image: image, isNewDexEntry: isNew, progress: progress, caption: caption)
-        if reportsNewEntry {
-            card.onDismiss = { [weak self] in
-                guard let self else { return }
+        card.onDismiss = { [weak self] in
+            guard let self else { return }
+            if reportsNewEntry {
                 ReviewPrompt.recordNewEntry(from: self)
             }
+            CatchOffer.offerIfDue(over: self)
         }
         card.modalPresentationStyle = .overFullScreen
         card.modalTransitionStyle = .crossDissolve

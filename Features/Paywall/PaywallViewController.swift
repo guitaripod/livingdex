@@ -35,7 +35,7 @@ final class PaywallViewController: UIViewController {
         config.baseForegroundColor = .black
         config.cornerStyle = .large
         config.buttonSize = .large
-        config.title = "Subscribe"
+        config.title = "Go Pro"
         return config
     }())
     private let trialNoteLabel = UILabel()
@@ -335,7 +335,7 @@ final class PaywallViewController: UIViewController {
 
     private func updateCTA() {
         guard plans.indices.contains(selectedIndex) else {
-            ctaButton.configuration?.title = "Subscribe"
+            ctaButton.configuration?.title = "Go Pro"
             ctaButton.isEnabled = false
             trialNoteLabel.text = nil
             return
@@ -348,7 +348,7 @@ final class PaywallViewController: UIViewController {
 
     private func ctaTitle(for plan: PaywallPlan) -> String {
         if let days = plan.trialDays { return "Start \(days)-day free trial" }
-        return "Subscribe"
+        return "Go Pro"
     }
 
     private func trialNote(for plan: PaywallPlan) -> String {
