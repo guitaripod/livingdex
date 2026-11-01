@@ -113,11 +113,7 @@
           "familyShareable": false,
           "groupNumber": 1,
           "internalID": "1B0E0008",
-          "introductoryOffer": {
-            "internalID": "1B0E0009",
-            "paymentMode": "free",
-            "subscriptionPeriod": "P3D"
-          },
+          "introductoryOffer": null,
           "localizations": [
             {
               "description": "Unlimited identifications, billed yearly",

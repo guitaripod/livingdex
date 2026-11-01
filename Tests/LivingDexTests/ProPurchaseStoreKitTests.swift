@@ -10,7 +10,7 @@ import UIKit
 
 extension StoreKitSuites {
     /// Buys Living Dex Pro through MidgarStore with the app's own configuration, against `Products.storekit` (the file the
-    /// scheme runs with), so the products, prices, trial and entitlement mapping the app ships are checked together on a
+    /// scheme runs with), so the products, prices and entitlement mapping the app ships are checked together on a
     /// real StoreKit. StoreKit is process-wide, so the suites under `StoreKitSuites` run serially. A test session signs
     /// its transactions with Xcode's local certificate, so the store never reports them to the ledger; the ledger is the
     /// gateway stub, which knows the Midgar ID and holds nothing.
@@ -54,7 +54,7 @@ extension StoreKitSuites {
             return Harness(store: store, access: access, session: session, directory: directory, suiteName: suiteName)
         }
 
-        @Test func theConfigurationFileSellsTheTwoPlansAtTheirPricesAndThreeDaysFreeOnTheAnnualOne() throws {
+        @Test func theConfigurationFileSellsTheTwoPlansAtTheirPricesWithNoTrial() throws {
             let file = try StoreKitFile.load()
             let group = try #require(file.subscriptionGroups.first)
             let plans = Dictionary(uniqueKeysWithValues: group.subscriptions.map { ($0.productID, $0) })
@@ -67,12 +67,11 @@ extension StoreKitSuites {
             #expect(plans[ProProduct.monthly.rawValue]?.introductoryOffer == nil)
             #expect(plans[ProProduct.annual.rawValue]?.displayPrice == "29.99")
             #expect(plans[ProProduct.annual.rawValue]?.recurringSubscriptionPeriod == "P1Y")
-            #expect(plans[ProProduct.annual.rawValue]?.introductoryOffer?.paymentMode == "free")
-            #expect(plans[ProProduct.annual.rawValue]?.introductoryOffer?.subscriptionPeriod == "P3D")
+            #expect(plans[ProProduct.annual.rawValue]?.introductoryOffer == nil)
             #expect(Set(file.allProducts.map(\.productID)) == Set(LivingDexPacks.productIDs))
         }
 
-        @Test func thePaywallPlansAreWhatStoreKitReportsAnnualFirstWithTheTrialOnTheAnnualPlan() async throws {
+        @Test func thePaywallPlansAreWhatStoreKitReportsAnnualFirstWithNoTrial() async throws {
             let harness = try await makeHarness()
 
             let plans = try await harness.access.plans()
@@ -84,7 +83,7 @@ extension StoreKitSuites {
                 let product = try #require(reported.first { $0.id == plan.id })
                 #expect(plan.displayPrice == product.displayPrice)
             }
-            #expect(plans.map(\.trialDays) == [3, nil])
+            #expect(plans.map(\.trialDays) == [nil, nil])
             #expect(plans.first?.savings?.hasPrefix("Save ") == true)
             #expect(plans.last?.savings == nil)
             #expect(plans.first?.monthlyEquivalent?.hasSuffix("/ mo") == true)

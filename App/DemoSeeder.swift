@@ -155,9 +155,9 @@ enum DemoSeeder {
             reason: "Every identification uses a credit.", fixedPlans: demoPlans)
     }
 
-    /// The two plans at their store prices, annual with its three-day free trial.
+    /// The two plans at their store prices, with no free trial (decision D22).
     private static let demoPlans = PaywallPlan.assemble(from: [
-        ProPlanQuote(product: .annual, displayPrice: "$29.99", price: 29.99, currencyCode: "USD", trialDays: 3),
+        ProPlanQuote(product: .annual, displayPrice: "$29.99", price: 29.99, currencyCode: "USD", trialDays: nil),
         ProPlanQuote(product: .monthly, displayPrice: "$4.99", price: 4.99, currencyCode: "USD", trialDays: nil),
     ])
 
