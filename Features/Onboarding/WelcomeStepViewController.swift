@@ -7,11 +7,11 @@ final class WelcomeStepViewController: OnboardingStepViewController {
     private let titleLabel = OnboardingStyle.label(
         "Living Dex", style: .largeTitle, weight: .heavy, size: 46, alignment: .center)
     private let promise = OnboardingStyle.label(
-        "Catch the real world.", style: .title3, weight: .semibold, color: OnboardingStyle.accent, alignment: .center)
+        String(localized: "Catch the real world."), style: .title3, weight: .semibold, color: OnboardingStyle.accent, alignment: .center)
     private let detail = OnboardingStyle.label(
-        "Point your camera at anything alive. Build a collection of real species, rated by how rare they truly are where you are.",
+        String(localized: "Point your camera at anything alive. Build a collection of real species, rated by how rare they truly are where you are."),
         style: .callout, color: UIColor.white.withAlphaComponent(0.75), alignment: .center)
-    private lazy var beginButton = OnboardingStyle.primaryButton(title: "Begin", symbol: "arrow.right") { [weak self] in
+    private lazy var beginButton = OnboardingStyle.primaryButton(title: String(localized: "Begin"), symbol: "arrow.right") { [weak self] in
         Haptics.tap()
         self?.onAdvance?()
     }
@@ -100,7 +100,7 @@ final class CardFanView: UIView {
         cards = picks.map { FloatingCardView(photo: SampleLibrary.image(named: $0.0), name: $0.1, accent: $0.2) }
         super.init(frame: frame)
         isAccessibilityElement = true
-        accessibilityLabel = "Three example species cards: European Robin, Red Fox and Fly Agaric"
+        accessibilityLabel = String(localized: "Three example species cards: European Robin, Red Fox and Fly Agaric")
         for card in [cards[0], cards[2], cards[1]] { addSubview(card) }
         for (i, card) in cards.enumerated() {
             let tilt = UIInterpolatingMotionEffect(keyPath: "center.x", type: .tiltAlongHorizontalAxis)

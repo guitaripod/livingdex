@@ -11,23 +11,23 @@ final class CameraPermissionView: UIView {
 
         var title: String {
             switch self {
-            case .denied: return "Camera access needed"
-            case .unavailable: return "Camera unavailable"
+            case .denied: return String(localized: "Camera access needed")
+            case .unavailable: return String(localized: "Camera unavailable")
             }
         }
 
         var body: String {
             switch self {
             case .denied:
-                return "Living Dex identifies and collects the life you point the camera at. Enable the camera in Settings, or identify a photo instead."
+                return String(localized: "Living Dex identifies and collects the life you point the camera at. Enable the camera in Settings, or identify a photo instead.")
             case .unavailable:
-                return "No camera is available right now. You can still identify a photo from your library, or try a sample."
+                return String(localized: "No camera is available right now. You can still identify a photo from your library, or try a sample.")
             }
         }
 
         var actionTitle: String? {
             switch self {
-            case .denied: return "Open Settings"
+            case .denied: return String(localized: "Open Settings")
             case .unavailable: return nil
             }
         }
@@ -44,8 +44,6 @@ final class CameraPermissionView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .black
-        // The camera surface is always dark; keep semantic label colors readable
-        // in Light Mode too.
         overrideUserInterfaceStyle = .dark
         addBackdrop()
 
@@ -73,7 +71,7 @@ final class CameraPermissionView: UIView {
         button.addAction(UIAction { [weak self] _ in self?.onAction?() }, for: .touchUpInside)
 
         var photoConfig = UIButton.Configuration.gray()
-        photoConfig.title = "Identify a photo instead"
+        photoConfig.title = String(localized: "Identify a photo instead")
         photoConfig.image = UIImage(systemName: "photo.on.rectangle")
         photoConfig.imagePadding = 8
         photoConfig.baseForegroundColor = .white

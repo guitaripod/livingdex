@@ -18,9 +18,9 @@ final class CloudConsentViewController: UIViewController {
     }
 
     private let points: [Point] = [
-        .init(symbol: "lock.fill", text: "Sent over an encrypted connection, and only when you identify. Nothing uploads in the background."),
-        .init(symbol: "person.crop.circle.badge.xmark", text: "No sign-up needed. Your photos are never shown to other players."),
-        .init(symbol: "trash", text: "Delete your account and everything stored about you at any time in Settings."),
+        .init(symbol: "lock.fill", text: String(localized: "Sent over an encrypted connection, and only when you identify. Nothing uploads in the background.")),
+        .init(symbol: "person.crop.circle.badge.xmark", text: String(localized: "No sign-up needed. Your photos are never shown to other players.")),
+        .init(symbol: "trash", text: String(localized: "Delete your account and everything stored about you at any time in Settings.")),
     ]
 
     override func viewDidLoad() {
@@ -49,7 +49,7 @@ final class CloudConsentViewController: UIViewController {
         icon.isAccessibilityElement = false
 
         let title = UILabel()
-        title.text = "Identify with cloud AI"
+        title.text = String(localized: "Identify with cloud AI")
         title.font = Self.font(.title2, weight: .bold)
         title.adjustsFontForContentSizeCategory = true
         title.textAlignment = .center
@@ -57,7 +57,7 @@ final class CloudConsentViewController: UIViewController {
         title.accessibilityTraits = .header
 
         let body = UILabel()
-        body.text = "To name what you point at, Living Dex sends your photo to a cloud AI service (Google Gemini, through our server) that finds the species. That is the only thing it is used for."
+        body.text = String(localized: "To name what you point at, Living Dex sends your photo to a cloud AI service (Google Gemini, through our server) that finds the species. That is the only thing it is used for.")
         body.font = .preferredFont(forTextStyle: .callout)
         body.adjustsFontForContentSizeCategory = true
         body.textColor = .secondaryLabel
@@ -85,7 +85,7 @@ final class CloudConsentViewController: UIViewController {
         scroll.addSubview(content)
 
         var allow = UIButton.Configuration.borderedProminent()
-        allow.title = "Allow & identify"
+        allow.title = String(localized: "Allow & identify")
         allow.baseBackgroundColor = DesignSystem.Color.accent
         allow.baseForegroundColor = .black
         allow.cornerStyle = .large
@@ -97,14 +97,14 @@ final class CloudConsentViewController: UIViewController {
         })
 
         var decline = UIButton.Configuration.plain()
-        decline.title = "Not now"
+        decline.title = String(localized: "Not now")
         decline.baseForegroundColor = .secondaryLabel
         let declineButton = UIButton(configuration: decline, primaryAction: UIAction { [weak self] _ in
             self?.dismiss(animated: true)
         })
 
         var policy = UIButton.Configuration.plain()
-        policy.title = "Read the Privacy Policy"
+        policy.title = String(localized: "Read the Privacy Policy")
         policy.baseForegroundColor = DesignSystem.Color.accent
         policy.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
             var attributes = attributes

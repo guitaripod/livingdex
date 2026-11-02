@@ -7,9 +7,9 @@ final class StarterStepViewController: OnboardingStepViewController, UICollectio
     private let starterCatch: StarterCatch
     private let starters = StarterCatalog.all
     private let titleLabel = OnboardingStyle.label(
-        "Choose your starter", style: .largeTitle, weight: .heavy, size: 36)
+        String(localized: "Choose your starter"), style: .largeTitle, weight: .heavy, size: 36)
     private let subtitle = OnboardingStyle.label(
-        "Every Dex begins with one real species. Swipe, then pick the one that calls to you.",
+        String(localized: "Every Dex begins with one real species. Swipe, then pick the one that calls to you."),
         style: .callout, color: UIColor.white.withAlphaComponent(0.75))
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeLayout())
     private lazy var chooseButton = OnboardingStyle.primaryButton(title: "", symbol: "scope") { [weak self] in
@@ -148,8 +148,8 @@ final class StarterStepViewController: OnboardingStepViewController, UICollectio
 
     private func updateButton() {
         let starter = starters[centeredIndex]
-        chooseButton.configuration?.title = "Choose \(starter.commonName)"
-        chooseButton.accessibilityLabel = "Choose \(starter.commonName) as your starter"
+        chooseButton.configuration?.title = String(localized: "Choose \(starter.commonName)")
+        chooseButton.accessibilityLabel = String(localized: "Choose \(starter.commonName) as your starter")
     }
 
     // MARK: Collection
@@ -221,8 +221,9 @@ final class StarterStepViewController: OnboardingStepViewController, UICollectio
         chooseButton.isEnabled = true
         Haptics.failure()
         let alert = UIAlertController(
-            title: "Couldn't add your starter", message: "Something went wrong saving it. Try again.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
+            title: String(localized: "Couldn't add your starter"),
+            message: String(localized: "Something went wrong saving it. Try again."), preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: String(localized: "OK"), style: .default))
         present(alert, animated: true)
     }
 
@@ -241,7 +242,7 @@ final class StarterStepViewController: OnboardingStepViewController, UICollectio
     private func showReveal(_ outcome: StarterCatch.Outcome) {
         let card = CardRevealViewController(
             sighting: outcome.sighting, image: outcome.image, isNewDexEntry: outcome.isNew,
-            progress: outcome.progress, caption: "Your starter — a gift to begin your Dex")
+            progress: outcome.progress, caption: String(localized: "Your starter — a gift to begin your Dex"))
         card.modalPresentationStyle = .overFullScreen
         card.modalTransitionStyle = .crossDissolve
         card.onDismiss = { [weak self] in self?.onAdvance?() }
@@ -335,10 +336,10 @@ private final class StarterCardCell: UICollectionViewCell {
         photo.image = starter.image
         tagLabel.text = starter.tag.uppercased()
         nameLabel.text = starter.commonName
-        epithet.text = "The \(starter.category)"
+        epithet.text = String(localized: "The \(starter.category)")
         scientific.text = starter.scientificName
-        accessibilityLabel = "\(starter.commonName), \(starter.tag). The \(starter.category)."
-        accessibilityHint = "Chooses it as your starter"
+        accessibilityLabel = String(localized: "\(starter.commonName), \(starter.tag). The \(starter.category).")
+        accessibilityHint = String(localized: "Chooses it as your starter")
     }
 
     override func accessibilityActivate() -> Bool {

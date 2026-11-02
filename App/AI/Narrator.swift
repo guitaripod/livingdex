@@ -46,6 +46,23 @@ final class NarratorService: Narrator {
     static func groundedEntry(_ grounding: String?) -> PokedexEntry? {
         guard let text = grounding?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
         return PokedexEntry(
-            entry: "\(text)\n\nSource: Wikipedia, CC BY-SA 4.0.", funFacts: [], category: nil, typicalSize: nil)
+            entry: "\(text)\n\n" + String(localized: "Source: Wikipedia, CC BY-SA 4.0.", comment: "Attribution under a species summary taken from Wikipedia"),
+            funFacts: [], category: nil, typicalSize: nil)
+    }
+}
+
+/// The language the interface runs in, so narration reads in the same language as the screen around it.
+enum NarrationLanguage {
+    /// The interface language named in English for a model prompt ("German", "Chinese (Traditional)"),
+    /// or nil when the interface runs in English and the prompt needs no instruction.
+    static var promptName: String? {
+        guard let code = Bundle.main.preferredLocalizations.first, !code.hasPrefix("en") else { return nil }
+        return Locale(identifier: "en").localizedString(forIdentifier: code)
+    }
+
+    /// The sentence that asks a model to write its prose in the interface language, or an empty string in English.
+    static var promptInstruction: String {
+        guard let name = promptName else { return "" }
+        return "\nWrite entry, funFacts, category and typicalSize in \(name). Keep the JSON keys in English."
     }
 }

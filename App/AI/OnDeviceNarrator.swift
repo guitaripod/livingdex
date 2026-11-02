@@ -62,8 +62,19 @@ struct OnDeviceNarrator: Narrator {
         Write a Pokédex entry for this organism.
         Common name: \(c.commonName)
         Scientific name: \(c.scientificName)
-        Kingdom/realm: \(c.realm.rawValue)\(facts)
+        Kingdom/realm: \(c.realm.rawValue)\(facts)\(languageInstruction)
         """
+    }
+
+    /// Asks for the interface language only when the on-device model supports it; otherwise it writes English,
+    /// which reads better than a language the model handles poorly.
+    private static var languageInstruction: String {
+        #if canImport(FoundationModels)
+        guard SystemLanguageModel.default.supportsLocale() else { return "" }
+        return NarrationLanguage.promptInstruction.replacingOccurrences(of: " Keep the JSON keys in English.", with: "")
+        #else
+        return ""
+        #endif
     }
 }
 

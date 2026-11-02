@@ -38,13 +38,13 @@ final class FieldGuideBannerCell: UITableViewCell {
 
         wash.translatesAutoresizingMaskIntoConstraints = false
 
-        titleLabel.text = "Field Guide"
+        titleLabel.text = String(localized: "Field Guide")
         titleLabel.font = Self.rounded(.title2, weight: .bold)
         titleLabel.adjustsFontForContentSizeCategory = true
         titleLabel.textColor = .white
         titleLabel.numberOfLines = 0
 
-        subtitleLabel.text = "Every realm of life, illustrated."
+        subtitleLabel.text = String(localized: "Every realm of life, illustrated.")
         subtitleLabel.font = .preferredFont(forTextStyle: .subheadline)
         subtitleLabel.adjustsFontForContentSizeCategory = true
         subtitleLabel.textColor = UIColor(white: 1, alpha: 0.82)
@@ -89,8 +89,8 @@ final class FieldGuideBannerCell: UITableViewCell {
         ])
 
         isAccessibilityElement = true
-        accessibilityLabel = "Field Guide"
-        accessibilityHint = "Every realm of life, illustrated."
+        accessibilityLabel = String(localized: "Field Guide")
+        accessibilityHint = String(localized: "Every realm of life, illustrated.")
         accessibilityTraits = .button
     }
 

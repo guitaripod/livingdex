@@ -21,12 +21,22 @@ nonisolated struct PaywallPlan: Sendable, Equatable, Identifiable {
     let displayPrice: String
     /// The trial length in days, surfaced only when the user is trial-eligible.
     let trialDays: Int?
-    /// The derived "≈ $X.XX / mo" line for the annual; `nil` for monthly.
-    let monthlyEquivalent: String?
+    /// The annual price divided by twelve, formatted in the store currency; `nil` for monthly.
+    let monthlyEquivalentPrice: String?
     /// The derived "Save N%" badge for the annual vs. monthly; `nil` otherwise.
     let savings: String?
 
     var id: String { product.rawValue }
+
+    /// The derived "≈ $X.XX / mo" line for the annual; `nil` for monthly.
+    var monthlyEquivalent: String? {
+        monthlyEquivalentPrice.map { String(localized: "≈ \($0) / mo", comment: "Annual plan's price per month, abbreviated") }
+    }
+
+    /// The monthly equivalent as VoiceOver should read it ("about $X.XX per month"); `nil` for monthly.
+    var monthlyEquivalentSpoken: String? {
+        monthlyEquivalentPrice.map { String(localized: "about \($0) per month", comment: "VoiceOver reading of the annual plan's price per month") }
+    }
 
     /// Whether this is the plan Living Dex recommends (the annual). Drives the "Best
     /// value" ribbon and the default selection so the value read is unambiguous.
@@ -34,15 +44,15 @@ nonisolated struct PaywallPlan: Sendable, Equatable, Identifiable {
 
     var headline: String {
         switch billing {
-        case .annual: return "Annual"
-        case .monthly: return "Monthly"
+        case .annual: return String(localized: "Annual")
+        case .monthly: return String(localized: "Monthly")
         }
     }
 
     var cadenceCaption: String {
         switch billing {
-        case .annual: return "per year"
-        case .monthly: return "per month"
+        case .annual: return String(localized: "per year")
+        case .monthly: return String(localized: "per month")
         }
     }
 }
@@ -137,16 +147,15 @@ extension PaywallPlan {
             billing: billing,
             displayPrice: quote.displayPrice,
             trialDays: (quote.trialDays ?? 0) > 0 ? quote.trialDays : nil,
-            monthlyEquivalent: billing == .annual ? monthlyEquivalentText(for: quote) : nil,
+            monthlyEquivalentPrice: billing == .annual ? monthlyEquivalentPrice(for: quote) : nil,
             savings: billing == .annual ? savingsText(annual: quote, monthly: monthlyReference) : nil)
     }
 
-    private static func monthlyEquivalentText(for annual: ProPlanQuote) -> String? {
+    private static func monthlyEquivalentPrice(for annual: ProPlanQuote) -> String? {
         let perMonth = (annual.price as NSDecimalNumber).doubleValue / 12.0
         guard perMonth > 0 else { return nil }
         let formatter = currencyFormatter(for: annual.currencyCode)
-        guard let formatted = formatter.string(from: NSNumber(value: perMonth)) else { return nil }
-        return "≈ \(formatted) / mo"
+        return formatter.string(from: NSNumber(value: perMonth))
     }
 
     private static func savingsText(annual: ProPlanQuote, monthly: ProPlanQuote?) -> String? {
@@ -156,7 +165,7 @@ extension PaywallPlan {
         guard monthlyYear > 0, annualValue > 0, annualValue < monthlyYear else { return nil }
         let percent = Int(((monthlyYear - annualValue) / monthlyYear * 100).rounded())
         guard percent > 0 else { return nil }
-        return "Save \(percent)%"
+        return String(localized: "Save \(percent)%")
     }
 
     private static func currencyFormatter(for code: String?) -> NumberFormatter {

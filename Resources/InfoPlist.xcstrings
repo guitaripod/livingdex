@@ -1,0 +1,235 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "CFBundleDisplayName" : {
+      "comment" : "Bundle display name",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Living Dex"
+          }
+        }
+      },
+      "shouldTranslate" : false
+    },
+    "NSCameraUsageDescription" : {
+      "comment" : "Privacy - Camera Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex nutzt die Kamera, um die Lebewesen, auf die du sie richtest, zu bestimmen und zu sammeln."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Living Dex uses the camera to identify and collect the life forms you point it at."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex usa la cámara para identificar y coleccionar los seres vivos a los que la apuntes."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex utilise la caméra pour identifier et collecter les êtres vivants que vous lui présentez."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex usa la fotocamera per identificare e raccogliere gli esseri viventi che inquadri."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex は、向けられた生き物を識別して集めるためにカメラを使用します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex는 카메라가 향한 생명체를 식별하고 수집하기 위해 카메라를 사용해요."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex używa aparatu, by identyfikować i zbierać organizmy, na które go skierujesz."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Living Dex usa a câmera para identificar e colecionar os seres vivos para os quais você aponta."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex 使用相机来识别并收集你对准的生命体。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex 使用相機來識別並收集你對準的生物。"
+          }
+        }
+      }
+    },
+    "NSLocationWhenInUseUsageDescription" : {
+      "comment" : "Privacy - Location When In Use Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex markiert jede Sichtung mit ihrem Standort, um deinen regionalen Dex aufzubauen und die Seltenheit einzuschätzen. Dein genauer Standort wird nie mit anderen Spielern geteilt."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Living Dex tags each sighting with its location to build your regional dex and gauge rarity. Your precise location is never shared with other players."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex etiqueta cada avistamiento con su ubicación para crear tu dex regional y calcular su rareza. Tu ubicación exacta nunca se comparte con otros jugadores."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex associe chaque observation à sa position pour constituer votre Dex régional et évaluer la rareté. Votre position précise n'est jamais partagée avec d'autres joueurs."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex associa ogni avvistamento alla sua posizione per creare il tuo Dex regionale e calcolarne la rarità. La tua posizione precisa non viene mai condivisa con altri giocatori."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex は、地域の Dex を作り、レアリティを測るために、各目撃に位置情報を付けます。正確な位置情報が他のプレイヤーと共有されることはありません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex는 지역 Dex를 만들고 희귀도를 가늠하기 위해 각 목격에 위치 정보를 붙여요. 정확한 위치 정보는 다른 플레이어와 절대 공유되지 않아요."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex oznacza każde spotkanie jego lokalizacją, by budować Twój dex regionalny i określać rzadkość. Twoja dokładna lokalizacja nigdy nie jest udostępniana innym graczom."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Living Dex marca cada avistamento com sua localização para montar seu Dex regional e calcular a raridade. Sua localização precisa nunca é compartilhada com outros jogadores."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex 会为每次观察记录其位置，用于建立你所在地区的 Dex 并评估稀有度。你的精确位置永远不会与其他玩家共享。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex 會為每次觀察記錄其位置，用於建立你所在地區的 Dex 並評估稀有度。你的精確位置絕不會與其他玩家分享。"
+          }
+        }
+      }
+    },
+    "NSMotionUsageDescription" : {
+      "comment" : "Privacy - Motion Usage Description",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex erfasst die Höhe einer Sichtung, um Arten des Flachlands von Arten der Alpen zu unterscheiden."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Living Dex records the elevation of a sighting to distinguish lowland from alpine species."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex registra la altitud de un avistamiento para distinguir las especies de tierras bajas de las alpinas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex enregistre l'altitude d'une observation pour distinguer les espèces de plaine de celles d'altitude."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex registra l'altitudine di un avvistamento per distinguere le specie di pianura da quelle alpine."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex は、低地の種と高山の種を区別するために、目撃地点の標高を記録します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex는 저지대 종과 고산 종을 구분하기 위해 목격 장소의 고도를 기록해요."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex zapisuje wysokość spotkania, by odróżniać gatunki nizinne od górskich."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "O Living Dex registra a altitude de um avistamento para distinguir espécies de planície das de altitude."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex 会记录观察地点的海拔，以区分低地物种与高山物种。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Living Dex 會記錄觀察地點的海拔，以區分低地物種與高山物種。"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

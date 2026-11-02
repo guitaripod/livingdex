@@ -192,7 +192,7 @@ final class DexCell: UICollectionViewCell {
             setLabelShadows(true)
             rarityPip.alpha = 0.55
             isAccessibilityElement = true
-            accessibilityLabel = "Slot \(tile.number), \(tile.rarity.title) \(tile.realm.rawValue.capitalized), not yet caught"
+            accessibilityLabel = String(localized: "Slot \(tile.number), \(tile.rarity.title) \(RealmArt.displayName(tile.realm)), not yet caught")
             return
         }
 
@@ -207,7 +207,7 @@ final class DexCell: UICollectionViewCell {
         setLabelShadows(true)
         rarityPip.alpha = 1
         isAccessibilityElement = true
-        accessibilityLabel = "\(tile.name), \(tile.rarity.title), number \(tile.number)"
+        accessibilityLabel = String(localized: "\(tile.name), \(tile.rarity.title), number \(tile.number)")
         accessibilityTraits = .button
 
         guard let path = tile.imagePath, !path.isEmpty else { return }

@@ -10,7 +10,7 @@ enum PaywallPresenter {
     static func present(
         from presenter: UIViewController,
         access: ProAccess = .shared,
-        reason: String = "Identify without limits, anywhere life turns up.",
+        reason: String = String(localized: "Identify without limits, anywhere life turns up."),
         shortfall: Int? = nil,
         fixedPlans: [PaywallPlan]? = nil
     ) {

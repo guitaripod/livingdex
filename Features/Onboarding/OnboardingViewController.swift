@@ -25,7 +25,7 @@ final class OnboardingViewController: UIViewController {
         let state = OnboardingState()
         steps.forEach { $0.state = state }
         self.dots = StepDotsView(count: steps.count)
-        self.skipButton = OnboardingStyle.quietButton(title: "Skip") {}
+        self.skipButton = OnboardingStyle.quietButton(title: String(localized: "Skip")) {}
         super.init(nibName: nil, bundle: nil)
         overrideUserInterfaceStyle = .dark
         skipButton.addAction(UIAction { [weak self] _ in self?.finish() }, for: .touchUpInside)
@@ -184,7 +184,7 @@ private final class StepDotsView: UIView {
     required init?(coder: NSCoder) { fatalError() }
 
     func setCurrent(_ index: Int, animated: Bool) {
-        accessibilityLabel = "Step \(index + 1) of \(dots.count)"
+        accessibilityLabel = String(localized: "Step \(index + 1) of \(dots.count)")
         for (i, dot) in dots.enumerated() {
             widths[i].constant = i == index ? 22 : 6
             dot.backgroundColor = i == index ? OnboardingStyle.accent : UIColor.white.withAlphaComponent(0.3)

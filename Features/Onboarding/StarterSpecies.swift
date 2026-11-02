@@ -29,27 +29,27 @@ enum StarterCatalog {
     static let all: [StarterSpecies] = [
         StarterSpecies(
             id: "robin", speciesId: "gbif:2492462", commonName: "European Robin",
-            scientificName: "Erithacus rubecula", realm: .animals, tag: "Songbird",
-            category: "Garden Sentinel", typicalSize: "~14 cm · ~18 g",
-            entry: "A bold garden regular whose rusty-orange breast makes it one of the easiest birds to know, and one of the few that sings through winter.\n\n• Fiercely territorial, even toward its own reflection\n• Follows gardeners to catch turned-up worms\n• Sings at dawn, dusk and under street lamps",
+            scientificName: "Erithacus rubecula", realm: .animals, tag: String(localized: "Songbird"),
+            category: String(localized: "Garden Sentinel"), typicalSize: String(localized: "~14 cm · ~18 g"),
+            entry: String(localized: "A bold garden regular whose rusty-orange breast makes it one of the easiest birds to know, and one of the few that sings through winter.\n\n• Fiercely territorial, even toward its own reflection\n• Follows gardeners to catch turned-up worms\n• Sings at dawn, dusk and under street lamps"),
             photoResource: "sample-robin"),
         StarterSpecies(
             id: "fox", speciesId: "gbif:5219243", commonName: "Red Fox",
-            scientificName: "Vulpes vulpes", realm: .animals, tag: "Mammal",
-            category: "Twilight Prowler", typicalSize: "~70 cm · ~6 kg",
-            entry: "An agile, clever hunter that has made itself at home from forest edges to city streets, most active at dusk and through the night.\n\n• Pounces on mice and voles with a high arcing leap\n• Uses its bushy tail for balance and warmth\n• Digs dens, called earths, in banks and under sheds",
+            scientificName: "Vulpes vulpes", realm: .animals, tag: String(localized: "Mammal"),
+            category: String(localized: "Twilight Prowler"), typicalSize: String(localized: "~70 cm · ~6 kg"),
+            entry: String(localized: "An agile, clever hunter that has made itself at home from forest edges to city streets, most active at dusk and through the night.\n\n• Pounces on mice and voles with a high arcing leap\n• Uses its bushy tail for balance and warmth\n• Digs dens, called earths, in banks and under sheds"),
             photoResource: "sample-red-fox"),
         StarterSpecies(
             id: "agaric", speciesId: "gbif:8168319", commonName: "Fly Agaric",
-            scientificName: "Amanita muscaria", realm: .fungi, tag: "Mushroom",
-            category: "Woodland Enchanter", typicalSize: "~15 cm cap",
-            entry: "The classic red toadstool with white flecks, a fairy-tale icon of birch and pine woods that is beautiful but poisonous.\n\n• Forms a partnership with tree roots\n• Its red cap fades to orange as it ages\n• Never to be eaten, though it features in folklore",
+            scientificName: "Amanita muscaria", realm: .fungi, tag: String(localized: "Mushroom"),
+            category: String(localized: "Woodland Enchanter"), typicalSize: String(localized: "~15 cm cap"),
+            entry: String(localized: "The classic red toadstool with white flecks, a fairy-tale icon of birch and pine woods that is beautiful but poisonous.\n\n• Forms a partnership with tree roots\n• Its red cap fades to orange as it ages\n• Never to be eaten, though it features in folklore"),
             photoResource: "sample-fly-agaric"),
         StarterSpecies(
             id: "anemone", speciesId: "gbif:3033263", commonName: "Wood Anemone",
-            scientificName: "Anemone nemorosa", realm: .plants, tag: "Wildflower",
-            category: "Spring Carpet", typicalSize: "~15 cm tall",
-            entry: "A delicate white woodland flower that carpets the forest floor each spring before the trees above come into leaf.\n\n• Flowers close at night and in dull weather\n• Spreads very slowly through creeping roots\n• A sign of ancient, undisturbed woodland",
+            scientificName: "Anemone nemorosa", realm: .plants, tag: String(localized: "Wildflower"),
+            category: String(localized: "Spring Carpet"), typicalSize: String(localized: "~15 cm tall"),
+            entry: String(localized: "A delicate white woodland flower that carpets the forest floor each spring before the trees above come into leaf.\n\n• Flowers close at night and in dull weather\n• Spreads very slowly through creeping roots\n• A sign of ancient, undisturbed woodland"),
             photoResource: "sample-wood-anemone"),
     ]
 }

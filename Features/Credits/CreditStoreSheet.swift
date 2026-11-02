@@ -15,11 +15,11 @@ struct CreditStoreSheet: View {
     var body: some View {
         NavigationStack {
             MidgarCreditStoreView(credits: source, shortfall: shortfall)
-                .navigationTitle("Get Credits")
+                .navigationTitle(String(localized: "Get Credits"))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .confirmationAction) {
-                        Button("Done") { dismiss() }
+                        Button(String(localized: "Done")) { dismiss() }
                     }
                 }
         }

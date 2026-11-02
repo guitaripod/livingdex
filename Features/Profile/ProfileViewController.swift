@@ -24,14 +24,14 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Profile"
+        title = String(localized: "Profile")
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationItem.rightBarButtonItem = UIBarButtonItem(
             image: UIImage(systemName: "gearshape"),
             primaryAction: UIAction { [weak self] _ in
                 self?.navigationController?.pushViewController(SettingsViewController(), animated: true)
             })
-        navigationItem.rightBarButtonItem?.title = "Settings"
+        navigationItem.rightBarButtonItem?.title = String(localized: "Settings")
         view.backgroundColor = .systemGroupedBackground
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.dataSource = self
@@ -145,9 +145,9 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
         headerView.configure(with: progress, speciesCount: stats.speciesCount)
 
         var collection: [Row] = [
-            .stat(title: "Longest streak", value: progress.longestStreak == 1 ? "1 day" : "\(progress.longestStreak) days"),
-            .stat(title: "Species collected", value: "\(stats.speciesCount)"),
-            .stat(title: "Total catches", value: "\(stats.totalCatches)"),
+            .stat(title: String(localized: "Longest streak"), value: progress.longestStreak == 1 ? String(localized: "1 day") : String(localized: "\(progress.longestStreak) days")),
+            .stat(title: String(localized: "Species collected"), value: "\(stats.speciesCount)"),
+            .stat(title: String(localized: "Total catches"), value: "\(stats.totalCatches)"),
         ]
         collection += Rarity.allCases
             .filter { (stats.byRarity[$0] ?? 0) > 0 }
@@ -155,10 +155,10 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
 
         sections = [
             Section(header: nil, rows: [.guide]),
-            Section(header: "Collection", rows: collection),
-            Section(header: "Identify", rows: [.pro(balance: balance, isPro: pro.isPro)]),
-            Section(header: "Compete", rows: [
-                .action(title: "Leaderboards & achievements", symbol: "trophy.fill") { [weak self] in
+            Section(header: String(localized: "Collection"), rows: collection),
+            Section(header: String(localized: "Identify"), rows: [.pro(balance: balance, isPro: pro.isPro)]),
+            Section(header: String(localized: "Compete"), rows: [
+                .action(title: String(localized: "Leaderboards & achievements"), symbol: "trophy.fill") { [weak self] in
                     guard let self else { return }
                     GameCenterService.shared.presentDashboard(from: self)
                 },
@@ -200,27 +200,27 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
             content.imageProperties.maximumSize = CGSize(width: 12, height: 12)
             cell.contentConfiguration = content
             let badge = UILabel()
-            badge.text = "\(count)"
+            badge.text = String(count)
             badge.font = .preferredFont(forTextStyle: .body)
             badge.textColor = .secondaryLabel
             badge.sizeToFit()
             cell.accessoryView = badge
         case let .pro(balance, isPro):
-            content.text = "Identifications"
+            content.text = String(localized: "Identifications")
             content.image = UIImage(systemName: isPro ? "sparkles.rectangle.stack.fill" : "sparkles")
             content.imageProperties.tintColor = DesignSystem.Color.accent
             if isPro {
-                content.secondaryText = "Pro — unlimited"
+                content.secondaryText = String(localized: "Pro — unlimited")
                 content.secondaryTextProperties.color = DesignSystem.Color.accent
                 content.secondaryTextProperties.font = Self.boldSubheadline
             } else if balance == nil {
-                content.secondaryText = "Connect to see your balance"
+                content.secondaryText = String(localized: "Connect to see your balance")
             } else if let balance, balance <= 0 {
-                content.secondaryText = "Go Pro or get credits"
+                content.secondaryText = String(localized: "Go Pro or get credits")
                 content.secondaryTextProperties.color = DesignSystem.Color.accent
                 content.secondaryTextProperties.font = Self.boldSubheadline
             } else {
-                content.secondaryText = balance == 1 ? "1 left" : "\(balance ?? 0) left"
+                content.secondaryText = balance == 1 ? String(localized: "1 left") : String(localized: "\(balance ?? 0) left")
             }
             cell.contentConfiguration = content
             cell.selectionStyle = .default

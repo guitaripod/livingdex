@@ -143,9 +143,11 @@ private final class RealmChip: UIControl {
         UIView.animate(withDuration: 0.2) {
             self.alpha = filtering && !chosen ? 0.5 : 1
         }
-        accessibilityLabel = "\(RealmArt.displayName(realm)), \(detail)"
+        accessibilityLabel = String(localized: "\(RealmArt.displayName(realm)), \(detail)")
         accessibilityTraits = chosen ? [.button, .selected] : .button
-        accessibilityHint = chosen ? "Shows all realms" : "Shows only \(RealmArt.displayName(realm).lowercased())"
+        accessibilityHint = chosen
+            ? String(localized: "Shows all realms")
+            : String(localized: "Shows only \(RealmArt.displayName(realm).lowercased())")
     }
 
     override var isHighlighted: Bool {

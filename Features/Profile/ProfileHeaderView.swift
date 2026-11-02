@@ -38,7 +38,7 @@ final class ProfileHeaderView: UIView {
             .scaledFont(for: .systemFont(ofSize: 11, weight: .semibold), maximumPointSize: 14)
         levelCaption.adjustsFontForContentSizeCategory = true
         levelCaption.textColor = .secondaryLabel
-        levelCaption.text = "LEVEL"
+        levelCaption.text = String(localized: "LEVEL")
         levelCaption.textAlignment = .center
         let levelStack = UIStackView(arrangedSubviews: [levelCaption, levelLabel])
         levelStack.axis = .vertical
@@ -119,11 +119,11 @@ final class ProfileHeaderView: UIView {
 
     func configure(with progress: PlayerProgress, speciesCount: Int) {
         let lp = Level.progress(for: progress.totalXP)
-        levelLabel.text = "\(lp.level)"
-        speciesTile.configure(value: "\(speciesCount)", label: "SPECIES", symbol: "square.grid.2x2.fill", tint: DesignSystem.Color.accent)
+        levelLabel.text = String(lp.level)
+        speciesTile.configure(value: "\(speciesCount)", label: String(localized: "SPECIES"), symbol: "square.grid.2x2.fill", tint: DesignSystem.Color.accent)
         let streak = progress.currentStreak
-        streakTile.configure(value: "\(streak)", label: "DAY STREAK", symbol: "flame.fill", tint: .systemOrange)
-        xpLabel.text = "\(lp.into) / \(lp.span) XP to level \(lp.level + 1)"
+        streakTile.configure(value: "\(streak)", label: String(localized: "DAY STREAK"), symbol: "flame.fill", tint: .systemOrange)
+        xpLabel.text = String(localized: "\(lp.into) / \(lp.span) XP to level \(lp.level + 1)")
         layoutIfNeeded()
         let ratio = CGFloat(lp.into) / CGFloat(max(1, lp.span))
         let anim = CABasicAnimation(keyPath: "strokeEnd")

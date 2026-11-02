@@ -146,7 +146,7 @@ final class PaywallPlanCard: UIControl {
             ribbon.isHidden = true
             return
         }
-        let text = plan.savings.map { "Best value · \($0)" } ?? "Best value"
+        let text = plan.savings.map { String(localized: "Best value · \($0)") } ?? String(localized: "Best value")
         ribbon.render(text: text)
         column.insertArrangedSubview(ribbon, at: 0)
         column.setCustomSpacing(DesignSystem.Spacing.s, after: ribbon)
@@ -160,7 +160,7 @@ final class PaywallPlanCard: UIControl {
         check.tintColor = selected ? DesignSystem.Color.accent : .secondaryLabel
         accessibilityTraits = selected ? [.button, .selected] : [.button]
         accessibilityLabel = accessibilityCopy()
-        accessibilityHint = selected ? nil : "Selects this plan"
+        accessibilityHint = selected ? nil : String(localized: "Selects this plan")
     }
 
     private func animateHighlight(_ highlighted: Bool) {
@@ -176,13 +176,9 @@ final class PaywallPlanCard: UIControl {
 
     private func accessibilityCopy() -> String {
         var parts: [String] = []
-        if plan.isRecommended { parts.append("Best value") }
-        parts.append("\(plan.headline), \(plan.displayPrice) \(plan.cadenceCaption)")
-        if let equivalent = plan.monthlyEquivalent {
-            parts.append(equivalent
-                .replacingOccurrences(of: "≈", with: "about")
-                .replacingOccurrences(of: "/ mo", with: "per month"))
-        }
+        if plan.isRecommended { parts.append(String(localized: "Best value")) }
+        parts.append(String(localized: "\(plan.headline), \(plan.displayPrice) \(plan.cadenceCaption)"))
+        if let equivalent = plan.monthlyEquivalentSpoken { parts.append(equivalent) }
         if let savings = plan.savings { parts.append(savings) }
         return parts.joined(separator: ", ")
     }
@@ -247,7 +243,7 @@ final class PaywallPlanSkeletonCard: UIView {
         ])
 
         isAccessibilityElement = true
-        accessibilityLabel = "Loading pricing from the App Store"
+        accessibilityLabel = String(localized: "Loading pricing from the App Store")
     }
 
     private func applyBorder() {

@@ -27,8 +27,8 @@ final class FieldViewController: UIViewController {
     private var photoHint: FieldHintView?
     private lazy var photoImporter = PhotoImporter(
         onImage: { [weak self] image in self?.identifyImported(image) },
-        onBegin: { [weak self] in self?.statusChip.setText("Opening photo…") },
-        onFailure: { [weak self] in self?.report("Couldn't open that photo — try another") })
+        onBegin: { [weak self] in self?.statusChip.setText(String(localized: "Opening photo…")) },
+        onFailure: { [weak self] in self?.report(String(localized: "Couldn't open that photo — try another")) })
 
     private var directionMonitor: AnyObject?
     private var tallHUDConstraints: [NSLayoutConstraint] = []
@@ -232,12 +232,11 @@ final class FieldViewController: UIViewController {
 
     // MARK: Setup
 
+    /// Hidden until a live session reveals the preview: on a cold, not-yet-authorized launch these must
+    /// not sit tappable above the loading cover or permission dialog (a tap would run capture against a dead camera).
     private func setupHUD() {
         statusChip.translatesAutoresizingMaskIntoConstraints = false
-        statusChip.setText("Point at anything alive")
-        // Hidden until a live session reveals the preview: on a cold, not-yet-
-        // authorized launch these must not sit tappable above the loading cover /
-        // permission dialog (a tap would run capture against a dead camera).
+        statusChip.setText(String(localized: "Point at anything alive"))
         statusChip.isHidden = true
         view.addSubview(statusChip)
 
@@ -249,15 +248,15 @@ final class FieldViewController: UIViewController {
         torchButton.translatesAutoresizingMaskIntoConstraints = false
         torchButton.isHidden = true
         torchButton.setSymbol("flashlight.off.fill")
-        torchButton.accessibilityLabel = "Torch off"
+        torchButton.accessibilityLabel = String(localized: "Torch off")
         torchButton.addTarget(self, action: #selector(didTapTorch), for: .touchUpInside)
         view.addSubview(torchButton)
 
         photosButton.translatesAutoresizingMaskIntoConstraints = false
         photosButton.isHidden = true
         photosButton.setSymbol("photo.on.rectangle")
-        photosButton.accessibilityLabel = "Identify a photo"
-        photosButton.accessibilityHint = "Choose a photo from your library or try a sample"
+        photosButton.accessibilityLabel = String(localized: "Identify a photo")
+        photosButton.accessibilityHint = String(localized: "Choose a photo from your library or try a sample")
         photosButton.menu = PhotoSourceMenu.make(
             onLibrary: { [weak self] in self?.chooseFromLibrary() },
             onSample: { [weak self] in self?.trySample() })
@@ -404,7 +403,7 @@ final class FieldViewController: UIViewController {
         photosButton.isHidden = true
         creditsButton.isHidden = true
         zoomChip.isHidden = true
-        UIAccessibility.post(notification: .announcement, argument: "Camera loading")
+        UIAccessibility.post(notification: .announcement, argument: String(localized: "Camera loading"))
     }
 
     /// Cross-fades the live preview in and dismisses the loading cover the instant
@@ -430,7 +429,7 @@ final class FieldViewController: UIViewController {
         } completion: { _ in
             self.loadingView.isHidden = true
             self.loadingView.stopBreathing()
-            UIAccessibility.post(notification: .announcement, argument: "Camera ready")
+            UIAccessibility.post(notification: .announcement, argument: String(localized: "Camera ready"))
         }
         Haptics.tap()
         scheduleFirstRunHint()
@@ -443,7 +442,7 @@ final class FieldViewController: UIViewController {
         AppSettings.hasSeenFieldHint = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) { [weak self] in
             guard let self, !self.photosButton.isHidden, self.presentedViewController == nil else { return }
-            let hint = FieldHintView(text: "Nothing to point at? Pick a photo or try a sample.") { [weak self] in
+            let hint = FieldHintView(text: String(localized: "Nothing to point at? Pick a photo or try a sample.")) { [weak self] in
                 self?.photoHint = nil
             }
             hint.translatesAutoresizingMaskIntoConstraints = false
@@ -500,7 +499,7 @@ final class FieldViewController: UIViewController {
         torchOn = false
         torchButton.setActive(false)
         torchButton.setSymbol("flashlight.off.fill")
-        torchButton.accessibilityLabel = "Torch off"
+        torchButton.accessibilityLabel = String(localized: "Torch off")
         torchButton.isHidden = !camera.hasTorch
         pinchGesture.isEnabled = true
         focusTapGesture.isEnabled = true
@@ -568,7 +567,7 @@ final class FieldViewController: UIViewController {
         camera.setTorch(torchOn)
         torchButton.setActive(torchOn)
         torchButton.setSymbol(torchOn ? "flashlight.on.fill" : "flashlight.off.fill")
-        torchButton.accessibilityLabel = torchOn ? "Torch on" : "Torch off"
+        torchButton.accessibilityLabel = torchOn ? String(localized: "Torch on") : String(localized: "Torch off")
     }
 
     private func showZoomChip(_ factor: CGFloat) {
@@ -627,7 +626,7 @@ final class FieldViewController: UIViewController {
             let data = await camera.capture()
             guard let data, let image = UIImage(data: data) else {
                 Haptics.failure()
-                finishCapture(reset: "Couldn't capture — try again")
+                finishCapture(reset: String(localized: "Couldn't capture — try again"))
                 return
             }
             await process(image, context: LocationProvider.shared.currentContext(), persist: true)
@@ -644,7 +643,7 @@ final class FieldViewController: UIViewController {
         photoHint?.dismiss()
         guard !isBusy else { return }
         guard let image = SampleLibrary.next() else {
-            report("Couldn't load the sample — try again")
+            report(String(localized: "Couldn't load the sample — try again"))
             return
         }
         identifyImported(image, persist: false)
@@ -665,7 +664,7 @@ final class FieldViewController: UIViewController {
     private func beginIdentifying() {
         isBusy = true
         captureButton.setCapturing(true)
-        statusChip.setText("Identifying…")
+        statusChip.setText(String(localized: "Identifying…"))
     }
 
     /// Renders the outcome of the capture pipeline. All decisions and side effects
@@ -684,18 +683,18 @@ final class FieldViewController: UIViewController {
             finishCapture(reset: Self.lowConfidenceMessage)
         case .unresolvedSpecies:
             Haptics.failure()
-            finishCapture(reset: "Couldn't confirm that species — try a clearer shot")
+            finishCapture(reset: String(localized: "Couldn't confirm that species — try a clearer shot"))
         case .saveFailed:
             Haptics.failure()
-            finishCapture(reset: "Couldn't save that catch — try again")
+            finishCapture(reset: String(localized: "Couldn't save that catch — try again"))
         case let .minted(capture):
             MidgarLog.info(
                 "captured \(capture.sighting.commonName) new=\(capture.isNew) saved=\(capture.saved)", category: .capture)
             presentCard(
                 for: capture.sighting, image: capture.image, isNew: capture.isNew, progress: capture.progress,
-                caption: capture.saved ? nil : "Sample photo — not added to your Dex",
+                caption: capture.saved ? nil : String(localized: "Sample photo — not added to your Dex"),
                 reportsNewEntry: capture.saved && capture.isNew)
-            finishCapture(reset: "Point at anything alive", isFailure: false)
+            finishCapture(reset: String(localized: "Point at anything alive"), isFailure: false)
             if capture.saved {
                 narrate(capture.candidate, sightingId: capture.sighting.id, grounding: capture.grounding)
             }
@@ -717,27 +716,27 @@ final class FieldViewController: UIViewController {
     private func promptGoProForCredits(shortfall: Int) {
         guard !ProAccess.shared.isPro else { return }
         let alert = UIAlertController(
-            title: "Out of identifications",
-            message: "You've used your free identifications. Go Pro for unlimited identifications, or add credits to keep identifying.",
+            title: String(localized: "Out of identifications"),
+            message: String(localized: "You've used your free identifications. Go Pro for unlimited identifications, or add credits to keep identifying."),
             preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Go Pro", style: .default) { [weak self] _ in
+        alert.addAction(UIAlertAction(title: String(localized: "Go Pro"), style: .default) { [weak self] _ in
             guard let self else { return }
             PaywallPresenter.present(
-                from: self, reason: "You've used your free identifications.", shortfall: shortfall)
+                from: self, reason: String(localized: "You've used your free identifications."), shortfall: shortfall)
         })
-        alert.addAction(UIAlertAction(title: "Not now", style: .cancel))
+        alert.addAction(UIAlertAction(title: String(localized: "Not now"), style: .cancel))
         present(alert, animated: true)
     }
 
-    private static let lowConfidenceMessage = "No clear living thing — get closer"
+    private static let lowConfidenceMessage = String(localized: "No clear living thing — get closer")
 
     /// Distinct, honest recovery copy per identification failure — an offline user
     /// or one out of credits is never told their photo was simply bad.
     private static func message(for error: IdentifyError) -> String {
         switch error {
-        case .offline: return "You're offline — reconnect and try again"
-        case .creditsExhausted: return "Out of identifications — add credits or go Pro"
-        case .serverError: return "Identification hiccup — try again in a moment"
+        case .offline: return String(localized: "You're offline — reconnect and try again")
+        case .creditsExhausted: return String(localized: "Out of identifications — add credits or go Pro")
+        case .serverError: return String(localized: "Identification hiccup — try again in a moment")
         case .noSpecies: return lowConfidenceMessage
         }
     }
@@ -793,7 +792,7 @@ final class FieldViewController: UIViewController {
         }
         guard presentedViewController == nil else { return }
         let alert = UIAlertController(title: nil, message: text, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        alert.addAction(UIAlertAction(title: String(localized: "OK"), style: .default))
         present(alert, animated: true)
     }
 
@@ -823,7 +822,7 @@ final class FieldViewController: UIViewController {
         if ProAccess.shared.isPro {
             UIApplication.shared.open(ProAccess.shared.manageSubscriptionsURL)
         } else {
-            PaywallPresenter.present(from: self, reason: "Every identification uses a credit.")
+            PaywallPresenter.present(from: self, reason: String(localized: "Every identification uses a credit."))
         }
     }
 }

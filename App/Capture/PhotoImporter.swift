@@ -66,8 +66,8 @@ final class PhotoImporter: NSObject, PHPickerViewControllerDelegate {
 enum PhotoSourceMenu {
     static func make(onLibrary: @escaping @MainActor () -> Void, onSample: @escaping @MainActor () -> Void) -> UIMenu {
         UIMenu(children: [
-            UIAction(title: "Choose from Photos", image: UIImage(systemName: "photo.on.rectangle")) { _ in onLibrary() },
-            UIAction(title: "Try a sample photo", image: UIImage(systemName: "sparkles")) { _ in onSample() },
+            UIAction(title: String(localized: "Choose from Photos"), image: UIImage(systemName: "photo.on.rectangle")) { _ in onLibrary() },
+            UIAction(title: String(localized: "Try a sample photo"), image: UIImage(systemName: "sparkles")) { _ in onSample() },
         ])
     }
 }

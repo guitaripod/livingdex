@@ -6,21 +6,21 @@ import UIKit
 /// species recorded around the player, counted up. Declining is fine and costs nothing.
 final class NearbyStepViewController: OnboardingStepViewController {
     private let titleLabel = OnboardingStyle.label(
-        "See what lives near you", style: .largeTitle, weight: .heavy, size: 34)
+        String(localized: "See what lives near you"), style: .largeTitle, weight: .heavy, size: 34)
     private let subtitle = OnboardingStyle.label(
-        "Your Nearby tab lists the wild species recorded around you as locked slots. Catch one to unlock it.",
+        String(localized: "Your Nearby tab lists the wild species recorded around you as locked slots. Catch one to unlock it."),
         style: .callout, color: UIColor.white.withAlphaComponent(0.75))
     private let grid = NearbyPreviewGrid()
     private let countLabel = CountUpLabel()
     private let countCaption = OnboardingStyle.label(
         "", style: .subheadline, weight: .semibold, color: UIColor.white.withAlphaComponent(0.8), alignment: .center)
     private let footnote = OnboardingStyle.label(
-        "Location is used only while the app is open. You can skip this and turn it on later.",
+        String(localized: "Location is used only while the app is open. You can skip this and turn it on later."),
         style: .footnote, color: UIColor.white.withAlphaComponent(0.6), alignment: .center)
-    private lazy var primaryButton = OnboardingStyle.primaryButton(title: "Show what's nearby", symbol: "location.fill") { [weak self] in
+    private lazy var primaryButton = OnboardingStyle.primaryButton(title: String(localized: "Show what's nearby"), symbol: "location.fill") { [weak self] in
         self?.primaryTapped()
     }
-    private lazy var laterButton = OnboardingStyle.quietButton(title: "Not now") { [weak self] in
+    private lazy var laterButton = OnboardingStyle.quietButton(title: String(localized: "Not now")) { [weak self] in
         self?.onAdvance?()
     }
     private let scroll = UIScrollView()
@@ -138,13 +138,13 @@ final class NearbyStepViewController: OnboardingStepViewController {
         phase = .working
         Haptics.tap()
         primaryButton.configuration?.showsActivityIndicator = true
-        primaryButton.configuration?.title = "Looking around…"
+        primaryButton.configuration?.title = String(localized: "Looking around…")
         primaryButton.isEnabled = false
         laterButton.isHidden = true
         Task { @MainActor in
             let status = await requester.request()
             guard status == .authorizedWhenInUse || status == .authorizedAlways else {
-                finish(message: "No problem — turn on location in Settings whenever you want your Nearby list.")
+                finish(message: String(localized: "No problem — turn on location in Settings whenever you want your Nearby list."))
                 return
             }
             LocationProvider.shared.warmUp()
@@ -153,7 +153,7 @@ final class NearbyStepViewController: OnboardingStepViewController {
                   let species = await RegionStore.shared.regionalSpecies(latitude: latitude, longitude: longitude),
                   !species.isEmpty
             else {
-                finish(message: "Couldn't load your Nearby list right now. It will be ready in the Dex tab.")
+                finish(message: String(localized: "Couldn't load your Nearby list right now. It will be ready in the Dex tab."))
                 return
             }
             let caught = (try? CollectionStore.shared.stats().speciesCount) ?? 0
@@ -172,24 +172,25 @@ final class NearbyStepViewController: OnboardingStepViewController {
 
     private func finish(count: Int, caught: Int) {
         Haptics.tap()
-        countCaption.text = caught > 0
-            ? "species live near you — you've caught \(caught)"
-            : "species live near you"
-        countCaption.accessibilityLabel = "\(count) \(countCaption.text ?? "")"
+        let caption = caught > 0
+            ? String(localized: "species live near you — you've caught \(caught)")
+            : String(localized: "species live near you")
+        countCaption.text = caption
+        countCaption.accessibilityLabel = String(localized: "\(count) \(caption)")
         UIView.animate(withDuration: 0.4) {
             self.countLabel.alpha = 1
             self.countCaption.alpha = 1
         }
         countLabel.count(to: count)
         grid.revealCaught()
-        settle(title: "Continue", symbol: "arrow.right")
+        settle(title: String(localized: "Continue"), symbol: "arrow.right")
     }
 
     private func finish(message: String) {
         countCaption.text = message
         countCaption.numberOfLines = 0
         UIView.animate(withDuration: 0.4) { self.countCaption.alpha = 1 }
-        settle(title: "Continue", symbol: "arrow.right")
+        settle(title: String(localized: "Continue"), symbol: "arrow.right")
     }
 
     private func settle(title: String, symbol: String) {
@@ -256,10 +257,10 @@ final class CountUpLabel: UILabel {
             for step in 1...steps {
                 guard !Task.isCancelled else { return }
                 let progress = 1 - pow(1 - Double(step) / Double(steps), 3)
-                self?.text = "\(Int((Double(value) * progress).rounded()))"
+                self?.text = String(Int((Double(value) * progress).rounded()))
                 try? await Task.sleep(nanoseconds: 24_000_000)
             }
-            self?.text = "\(value)"
+            self?.text = String(value)
         }
     }
 }
@@ -277,7 +278,7 @@ final class NearbyPreviewGrid: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         isAccessibilityElement = true
-        accessibilityLabel = "A preview of your Nearby tab with locked species slots"
+        accessibilityLabel = String(localized: "A preview of your Nearby tab with locked species slots")
         for index in 0..<(columns * rows) {
             let tile = PreviewTile(symbol: symbols[index % symbols.count])
             tiles.append(tile)

@@ -68,7 +68,7 @@ final class SpeciesNarrator: Narrator {
 
         Common name: \(c.commonName)
         Scientific name: \(c.scientificName)
-        Kingdom/realm: \(c.realm.rawValue)\(facts)
+        Kingdom/realm: \(c.realm.rawValue)\(facts)\(NarrationLanguage.promptInstruction)
         """
     }
 

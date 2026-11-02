@@ -15,36 +15,46 @@ final class CreditsViewController: UIViewController, UITableViewDataSource, UITa
 
     private let tableView = UITableView(frame: .zero, style: .insetGrouped)
 
+    private static let robin = "European Robin"
+    private static let redFox = "Red Fox"
+    private static let flyAgaric = "Fly Agaric"
+    private static let woodAnemone = "Wood Anemone"
+    private static let gbif = "GBIF"
+    private static let wikipedia = "Wikipedia"
+    private static let wikimediaCommons = "Wikimedia Commons"
+    private static let xenoCanto = "Xeno-canto"
+    private static let grdb = "GRDB.swift"
+
     private let sections: [Section] = [
         Section(
-            header: "Sample photos",
-            footer: "Dedicated to the public domain (CC0) by their photographers.",
+            header: String(localized: "Sample photos"),
+            footer: String(localized: "Dedicated to the public domain (CC0) by their photographers."),
             entries: [
-                .init(title: "European Robin", detail: "sudenkorentoko · iNaturalist", url: URL(string: "https://www.inaturalist.org/observations/203563707")),
-                .init(title: "Red Fox", detail: "terrybb · iNaturalist", url: URL(string: "https://www.inaturalist.org/observations/327531235")),
-                .init(title: "Fly Agaric", detail: "sigridjakob · iNaturalist", url: URL(string: "https://www.inaturalist.org/observations/97332092")),
-                .init(title: "Wood Anemone", detail: "robphippen · iNaturalist", url: URL(string: "https://www.inaturalist.org/observations/203339532")),
+                .init(title: CreditsViewController.robin, detail: "sudenkorentoko · iNaturalist", url: URL(string: "https://www.inaturalist.org/observations/203563707")),
+                .init(title: CreditsViewController.redFox, detail: "terrybb · iNaturalist", url: URL(string: "https://www.inaturalist.org/observations/327531235")),
+                .init(title: CreditsViewController.flyAgaric, detail: "sigridjakob · iNaturalist", url: URL(string: "https://www.inaturalist.org/observations/97332092")),
+                .init(title: CreditsViewController.woodAnemone, detail: "robphippen · iNaturalist", url: URL(string: "https://www.inaturalist.org/observations/203339532")),
             ]),
         Section(
-            header: "Data",
-            footer: "Each species call shows its own recordist and license where it plays.",
+            header: String(localized: "Data"),
+            footer: String(localized: "Each species call shows its own recordist and license where it plays."),
             entries: [
-                .init(title: "GBIF", detail: "Taxonomy, occurrence records, conservation status", url: URL(string: "https://www.gbif.org")),
-                .init(title: "Wikipedia", detail: "Species summaries, CC BY-SA", url: URL(string: "https://www.wikipedia.org")),
-                .init(title: "Wikimedia Commons", detail: "Animal calls, with attribution", url: URL(string: "https://commons.wikimedia.org")),
-                .init(title: "Xeno-canto", detail: "Bird and animal sound recordings, with attribution", url: URL(string: "https://xeno-canto.org")),
+                .init(title: CreditsViewController.gbif, detail: String(localized: "Taxonomy, occurrence records, conservation status"), url: URL(string: "https://www.gbif.org")),
+                .init(title: CreditsViewController.wikipedia, detail: String(localized: "Species summaries, CC BY-SA"), url: URL(string: "https://www.wikipedia.org")),
+                .init(title: CreditsViewController.wikimediaCommons, detail: String(localized: "Animal calls, with attribution"), url: URL(string: "https://commons.wikimedia.org")),
+                .init(title: CreditsViewController.xenoCanto, detail: String(localized: "Bird and animal sound recordings, with attribution"), url: URL(string: "https://xeno-canto.org")),
             ]),
         Section(
-            header: "Open source",
+            header: String(localized: "Open source"),
             footer: nil,
             entries: [
-                .init(title: "GRDB.swift", detail: "Gwendal Roué · MIT", url: URL(string: "https://github.com/groue/GRDB.swift")),
+                .init(title: CreditsViewController.grdb, detail: "Gwendal Roué · MIT", url: URL(string: "https://github.com/groue/GRDB.swift")),
             ]),
     ]
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Credits"
+        title = String(localized: "Credits")
         view.backgroundColor = .systemGroupedBackground
         tableView.frame = view.bounds
         tableView.autoresizingMask = [.flexibleWidth, .flexibleHeight]

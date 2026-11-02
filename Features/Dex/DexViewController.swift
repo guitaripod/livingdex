@@ -11,7 +11,7 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
     private enum Section { case main }
     private enum Mode: Int { case nearby, caught }
 
-    private let segmented = UISegmentedControl(items: ["Nearby", "Caught"])
+    private let segmented = UISegmentedControl(items: [String(localized: "Nearby"), String(localized: "Caught")])
     private var collectionView: UICollectionView!
     private var dataSource: UICollectionViewDiffableDataSource<Section, DexTile>!
     private weak var headerView: DexHeaderView?
@@ -34,14 +34,24 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
     private lazy var locationManager = CLLocationManager()
     private var awaitingRegionFix = false
 
-    private enum Sort: String, CaseIterable { case recent = "Recent", name = "A–Z", rarity = "Rarity" }
+    private enum Sort: String, CaseIterable {
+        case recent = "Recent", name = "A–Z", rarity = "Rarity"
+
+        var displayName: String {
+            switch self {
+            case .recent: return String(localized: "Recent")
+            case .name: return String(localized: "A–Z")
+            case .rarity: return String(localized: "Rarity")
+            }
+        }
+    }
     private enum CaughtFilter: CaseIterable {
         case all, caught, uncaught
         var title: String {
             switch self {
-            case .all: return "All"
-            case .caught: return "Caught"
-            case .uncaught: return "Not caught"
+            case .all: return String(localized: "All")
+            case .caught: return String(localized: "Caught")
+            case .uncaught: return String(localized: "Not caught")
             }
         }
     }
@@ -177,7 +187,7 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         let searchController = UISearchController(searchResultsController: nil)
         searchController.searchResultsUpdater = self
         searchController.obscuresBackgroundDuringPresentation = false
-        searchController.searchBar.placeholder = "Search species"
+        searchController.searchBar.placeholder = String(localized: "Search species")
         navigationItem.searchController = searchController
         navigationItem.preferredSearchBarPlacement = .integrated
     }
@@ -187,7 +197,7 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         let item = UIBarButtonItem(
             image: UIImage(systemName: "line.3.horizontal.decrease.circle"),
             menu: buildFilterMenu())
-        item.title = "Filter"
+        item.title = String(localized: "Filter")
         navigationItem.rightBarButtonItems = [item]
     }
 
@@ -195,25 +205,25 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         var children: [UIMenuElement] = []
         if mode == .caught {
             let sortActions = Sort.allCases.map { s in
-                UIAction(title: s.rawValue, state: sort == s ? .on : .off) { [weak self] _ in
+                UIAction(title: s.displayName, state: sort == s ? .on : .off) { [weak self] _ in
                     self?.sort = s; self?.updateBarButtons(); self?.reload()
                 }
             }
-            children.append(UIMenu(title: "Sort", options: .displayInline, children: sortActions))
+            children.append(UIMenu(title: String(localized: "Sort"), options: .displayInline, children: sortActions))
         }
         let realmActions = ([Realm?.none] + Realm.allCases.map { Optional($0) }).map { r in
-            UIAction(title: r?.rawValue.capitalized ?? "All realms", state: realmFilter == r ? .on : .off) { [weak self] _ in
+            UIAction(title: r.map { RealmArt.displayName($0) } ?? String(localized: "All realms"), state: realmFilter == r ? .on : .off) { [weak self] _ in
                 self?.realmFilter = r; self?.updateBarButtons(); self?.reload()
             }
         }
-        children.append(UIMenu(title: "Realm", options: .displayInline, children: realmActions))
+        children.append(UIMenu(title: String(localized: "Realm"), options: .displayInline, children: realmActions))
         if mode == .nearby {
             let showActions = CaughtFilter.allCases.map { f in
                 UIAction(title: f.title, state: caughtFilter == f ? .on : .off) { [weak self] _ in
                     self?.caughtFilter = f; self?.updateBarButtons(); self?.reload()
                 }
             }
-            children.append(UIMenu(title: "Show", options: .displayInline, children: showActions))
+            children.append(UIMenu(title: String(localized: "Show"), options: .displayInline, children: showActions))
         }
         return UIMenu(children: children)
     }
@@ -298,10 +308,9 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         setNeedsUpdateContentUnavailableConfiguration()
     }
 
+    /// DexTile identity is speciesId; a duplicate id (e.g. a server-sourced Regional payload repeating
+    /// a species) would trip the diffable data source's "identical items" assertion, so dedupe defensively.
     private func applySnapshot(_ tiles: [DexTile], animated: Bool) {
-        // DexTile identity is speciesId; a duplicate id (e.g. a server-sourced
-        // Regional payload repeating a species) would trip the diffable data
-        // source's "identical items" assertion, so dedupe defensively.
         var seen = Set<String>()
         let tiles = tiles.filter { seen.insert($0.speciesId).inserted }
         let previous = dataSource.snapshot()
@@ -376,10 +385,12 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         if mode == .nearby {
             let caughtIds = Set(caught.map { $0.speciesId })
             let owned = regional.filter { caughtIds.contains($0.speciesId) }.count
-            header.showCompletion(caught: owned, total: regional.count, title: "Nearby")
+            header.showCompletion(caught: owned, total: regional.count, title: String(localized: "Nearby"))
         } else {
             let rarePlus = caught.filter { $0.rarity >= .rare }.count
-            header.showSummary(species: caught.count, detail: rarePlus == 0 ? "your collection" : "\(rarePlus) rare or better")
+            header.showSummary(
+                species: caught.count,
+                detail: rarePlus == 0 ? String(localized: "your collection") : String(localized: "\(rarePlus) rare or better"))
         }
         header.showRealms(realmEntries(), selected: realmFilter)
     }
@@ -429,18 +440,18 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
             return .loading()
         case .failed:
             return emptyConfiguration(
-                symbol: "wifi.slash", title: "Can't reach the field guide",
-                subtitle: "Check your connection and try again.",
-                buttonTitle: "Retry", action: UIAction { [weak self] _ in self?.fetchRegion(force: true) })
+                symbol: "wifi.slash", title: String(localized: "Can't reach the field guide"),
+                subtitle: String(localized: "Check your connection and try again."),
+                buttonTitle: String(localized: "Retry"), action: UIAction { [weak self] _ in self?.fetchRegion(force: true) })
         case .loaded:
             if realmFilter != nil || caughtFilter != .all {
                 return emptyConfiguration(
-                    symbol: "line.3.horizontal.decrease.circle", title: "No matches",
-                    subtitle: "No nearby species match the current filters.")
+                    symbol: "line.3.horizontal.decrease.circle", title: String(localized: "No matches"),
+                    subtitle: String(localized: "No nearby species match the current filters."))
             }
             return emptyConfiguration(
-                symbol: "leaf", title: "Nothing catalogued here yet",
-                subtitle: "Catch something nearby to start your Regional Dex.", art: .fungi)
+                symbol: "leaf", title: String(localized: "Nothing catalogued here yet"),
+                subtitle: String(localized: "Catch something nearby to start your Regional Dex."), art: .fungi)
         }
     }
 
@@ -448,20 +459,20 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         if !query.isEmpty { return .search() }
         if realmFilter != nil {
             return emptyConfiguration(
-                symbol: "line.3.horizontal.decrease.circle", title: "No matches",
-                subtitle: "No caught species match the current filters.")
+                symbol: "line.3.horizontal.decrease.circle", title: String(localized: "No matches"),
+                subtitle: String(localized: "No caught species match the current filters."))
         }
         return emptyConfiguration(
-            symbol: "camera.viewfinder", title: "Your dex is empty",
-            subtitle: "Point the camera at anything alive to make your first catch.",
-            buttonTitle: "Go to Field", action: UIAction { [weak self] _ in self?.goToField() }, art: .animals)
+            symbol: "camera.viewfinder", title: String(localized: "Your dex is empty"),
+            subtitle: String(localized: "Point the camera at anything alive to make your first catch."),
+            buttonTitle: String(localized: "Go to Field"), action: UIAction { [weak self] _ in self?.goToField() }, art: .animals)
     }
 
     private func locationAccessConfiguration() -> UIContentUnavailableConfiguration {
         emptyConfiguration(
-            symbol: "location.slash", title: "Location access needed",
-            subtitle: "Turn on location to reveal the species living near you — your Regional Dex.",
-            buttonTitle: "Grant Access", action: UIAction { [weak self] _ in self?.handleLocationAccess() }, art: .plants)
+            symbol: "location.slash", title: String(localized: "Location access needed"),
+            subtitle: String(localized: "Turn on location to reveal the species living near you — your Regional Dex."),
+            buttonTitle: String(localized: "Grant Access"), action: UIAction { [weak self] _ in self?.handleLocationAccess() }, art: .plants)
     }
 
     private func emptyConfiguration(
@@ -488,12 +499,11 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         return config
     }
 
+    /// Event-driven: the retry is fired by the location delegate the moment authorization is granted
+    /// and a fix lands, not on a fixed timer that usually elapses before the user has answered the dialog.
     private func handleLocationAccess() {
         switch locationManager.authorizationStatus {
         case .notDetermined:
-            // Event-driven: the retry is fired by the delegate the moment
-            // authorization is granted and a fix lands, not on a fixed timer
-            // that usually elapses before the user has answered the dialog.
             awaitingRegionFix = true
             LocationProvider.shared.requestAuthorization()
             locationManager.startUpdatingLocation()
@@ -532,7 +542,7 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         guard let indexPath = indexPaths.first,
               let tile = dataSource.itemIdentifier(for: indexPath), !tile.locked else { return nil }
         return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
-            let release = UIAction(title: "Release", image: UIImage(systemName: "trash"), attributes: .destructive) { _ in
+            let release = UIAction(title: String(localized: "Release"), image: UIImage(systemName: "trash"), attributes: .destructive) { _ in
                 self?.confirmRelease(speciesId: tile.speciesId, name: tile.name,
                                      sourceView: collectionView.cellForItem(at: indexPath))
             }
@@ -544,13 +554,13 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
     /// so the grid's long-press action never destroys photos in a single tap.
     private func confirmRelease(speciesId: String, name: String, sourceView: UIView?) {
         let alert = UIAlertController(
-            title: "Release \(name)?",
-            message: "This removes it from your dex, along with your photos. It can't be undone.",
+            title: String(localized: "Release \(name)?"),
+            message: String(localized: "This removes it from your dex, along with your photos. It can't be undone."),
             preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: "Release", style: .destructive) { [weak self] _ in
+        alert.addAction(UIAlertAction(title: String(localized: "Release"), style: .destructive) { [weak self] _ in
             self?.performRelease(speciesId: speciesId)
         })
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: String(localized: "Cancel"), style: .cancel))
         if let popover = alert.popoverPresentationController {
             popover.sourceView = sourceView ?? view
             popover.sourceRect = sourceView?.bounds ?? CGRect(x: view.bounds.midX, y: view.bounds.midY, width: 0, height: 0)
@@ -565,33 +575,35 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
         } catch {
             MidgarLog.error("release failed: \(error.localizedDescription)", category: .persistence)
             let alert = UIAlertController(
-                title: "Couldn't release",
-                message: "Something went wrong releasing that species. Please try again.",
+                title: String(localized: "Couldn't release"),
+                message: String(localized: "Something went wrong releasing that species. Please try again."),
                 preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            alert.addAction(UIAlertAction(title: String(localized: "OK"), style: .default))
             present(alert, animated: true)
         }
     }
 
     private func showLockedPeek(_ tile: DexTile) {
         let alert = UIAlertController(
-            title: "Not yet caught",
-            message: "A \(tile.rarity.title.lowercased()) \(realmNoun(tile.realm)) lives near you. Find it in the field to add it to your dex.",
+            title: String(localized: "Not yet caught"),
+            message: lockedPeekMessage(for: tile),
             preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "To the Field", style: .default) { [weak self] _ in
+        alert.addAction(UIAlertAction(title: String(localized: "To the Field"), style: .default) { [weak self] _ in
             self?.goToField()
         })
-        alert.addAction(UIAlertAction(title: "OK", style: .cancel))
+        alert.addAction(UIAlertAction(title: String(localized: "OK"), style: .cancel))
         present(alert, animated: true)
     }
 
-    private func realmNoun(_ realm: Realm) -> String {
-        switch realm {
-        case .animals: return "animal"
-        case .plants: return "plant"
-        case .fungi: return "fungus"
-        case .protists: return "protist"
-        case .other: return "organism"
+    /// One full sentence per realm, so each translation can phrase the realm noun in context.
+    private func lockedPeekMessage(for tile: DexTile) -> String {
+        let rarity = tile.rarity.title.lowercased()
+        switch tile.realm {
+        case .animals: return String(localized: "A \(rarity) animal lives near you. Find it in the field to add it to your dex.")
+        case .plants: return String(localized: "A \(rarity) plant lives near you. Find it in the field to add it to your dex.")
+        case .fungi: return String(localized: "A \(rarity) fungus lives near you. Find it in the field to add it to your dex.")
+        case .protists: return String(localized: "A \(rarity) protist lives near you. Find it in the field to add it to your dex.")
+        case .other: return String(localized: "A \(rarity) organism lives near you. Find it in the field to add it to your dex.")
         }
     }
 }

@@ -3,11 +3,11 @@ import UIKit
 /// Step 4: the three ways in, the free allowance and the consent promise, then the camera.
 final class ReadyStepViewController: OnboardingStepViewController {
     private let titleLabel = OnboardingStyle.label(
-        "Now find your second", style: .largeTitle, weight: .heavy, size: 36)
+        String(localized: "Now find your second"), style: .largeTitle, weight: .heavy, size: 36)
     private let subtitle = OnboardingStyle.label(
-        "Everything you catch from here is the real thing, rated by how rare it is where you are.",
+        String(localized: "Everything you catch from here is the real thing, rated by how rare it is where you are."),
         style: .callout, color: UIColor.white.withAlphaComponent(0.75))
-    private lazy var openButton = OnboardingStyle.primaryButton(title: "Open the camera", symbol: "camera.fill") { [weak self] in
+    private lazy var openButton = OnboardingStyle.primaryButton(title: String(localized: "Open the camera"), symbol: "camera.fill") { [weak self] in
         Haptics.tap()
         self?.onAdvance?()
     }
@@ -22,9 +22,9 @@ final class ReadyStepViewController: OnboardingStepViewController {
         titleLabel.accessibilityTraits = .header
 
         let options: [(String, String, String)] = [
-            ("camera.viewfinder", "Point the camera", "Tap the shutter at anything alive: a bird, a bug, a mushroom, a flower."),
-            ("photo.on.rectangle", "Nothing in reach?", "Choose a nature photo from your library with the photo button on the Field tab."),
-            ("sparkles", "Just curious?", "Try a sample photo to watch a real identification, no creature needed."),
+            ("camera.viewfinder", String(localized: "Point the camera"), String(localized: "Tap the shutter at anything alive: a bird, a bug, a mushroom, a flower.")),
+            ("photo.on.rectangle", String(localized: "Nothing in reach?"), String(localized: "Choose a nature photo from your library with the photo button on the Field tab.")),
+            ("sparkles", String(localized: "Just curious?"), String(localized: "Try a sample photo to watch a real identification, no creature needed.")),
         ]
         rows = options.map(optionRow)
 
@@ -34,7 +34,7 @@ final class ReadyStepViewController: OnboardingStepViewController {
         allowanceIcon.contentMode = .scaleAspectFit
         allowanceIcon.setContentHuggingPriority(.required, for: .horizontal)
         let allowanceText = OnboardingStyle.label(
-            "You start with 30 free identifications. A photo is sent to cloud AI only after you say yes, and never before.",
+            String(localized: "You start with 30 free identifications. A photo is sent to cloud AI only after you say yes, and never before."),
             style: .footnote, color: UIColor.white.withAlphaComponent(0.8))
         let allowanceRow = UIStackView(arrangedSubviews: [allowanceIcon, allowanceText])
         allowanceRow.axis = .horizontal
@@ -130,7 +130,7 @@ final class ReadyStepViewController: OnboardingStepViewController {
         row.spacing = DesignSystem.Spacing.m
         row.alignment = .center
         row.isAccessibilityElement = true
-        row.accessibilityLabel = "\(option.title). \(option.detail)"
+        row.accessibilityLabel = String(localized: "\(option.title). \(option.detail)")
         return row
     }
 }

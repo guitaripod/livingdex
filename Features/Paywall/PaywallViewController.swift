@@ -35,7 +35,7 @@ final class PaywallViewController: UIViewController {
         config.baseForegroundColor = .black
         config.cornerStyle = .large
         config.buttonSize = .large
-        config.title = "Go Pro"
+        config.title = String(localized: "Go Pro")
         return config
     }())
     private let trialNoteLabel = UILabel()
@@ -45,13 +45,13 @@ final class PaywallViewController: UIViewController {
     private var isPurchasing = false
     private var isRestoring = false
     private lazy var restoreBarItem = UIBarButtonItem(
-        primaryAction: UIAction(title: "Restore", image: UIImage(systemName: "arrow.clockwise")) { [weak self] _ in
+        primaryAction: UIAction(title: String(localized: "Restore"), image: UIImage(systemName: "arrow.clockwise")) { [weak self] _ in
             self?.restore()
         })
 
     init(
         access: ProAccess = .shared,
-        reason: String = "Identify without limits, anywhere life turns up.",
+        reason: String = String(localized: "Identify without limits, anywhere life turns up."),
         shortfall: Int? = nil,
         fixedPlans: [PaywallPlan]? = nil
     ) {
@@ -72,7 +72,7 @@ final class PaywallViewController: UIViewController {
         navigationItem.leftBarButtonItem = UIBarButtonItem(
             systemItem: .close,
             primaryAction: UIAction { [weak self] _ in self?.dismissPaywall() })
-        restoreBarItem.accessibilityHint = "Restores a previous Living Dex Pro purchase on this Apple ID"
+        restoreBarItem.accessibilityHint = String(localized: "Restores a previous Living Dex Pro purchase on this Apple ID")
         navigationItem.rightBarButtonItem = restoreBarItem
 
         layoutContent()
@@ -131,7 +131,8 @@ final class PaywallViewController: UIViewController {
         eyebrow.font = .preferredFont(forTextStyle: .caption1)
         eyebrow.adjustsFontForContentSizeCategory = true
         eyebrow.textColor = DesignSystem.Color.accent
-        eyebrow.attributedText = NSAttributedString(string: "LIVING DEX PRO", attributes: [.kern: 1.4])
+        let brand = "LIVING DEX PRO"
+        eyebrow.attributedText = NSAttributedString(string: brand, attributes: [.kern: 1.4])
 
         let title = UILabel()
         title.font = {
@@ -142,14 +143,14 @@ final class PaywallViewController: UIViewController {
         title.adjustsFontForContentSizeCategory = true
         title.textColor = .label
         title.numberOfLines = 0
-        title.text = "Identify without limits."
+        title.text = String(localized: "Identify without limits.")
 
         let subtitle = UILabel()
         subtitle.font = .preferredFont(forTextStyle: .body)
         subtitle.adjustsFontForContentSizeCategory = true
         subtitle.textColor = .secondaryLabel
         subtitle.numberOfLines = 0
-        subtitle.text = "\(reason) Pro makes every identification unlimited — no credits to count, no meter to watch."
+        subtitle.text = String(localized: "\(reason) Pro makes every identification unlimited — no credits to count, no meter to watch.")
 
         let stack = UIStackView(arrangedSubviews: [eyebrow, title, subtitle])
         stack.axis = .vertical
@@ -160,10 +161,10 @@ final class PaywallViewController: UIViewController {
 
     private func makeBenefits() -> UIView {
         let rows: [(String, String, String)] = [
-            ("sparkles", "Unlimited identifications",
-             "Point at anything alive and identify it as often as you like — no credit balance to top up."),
-            ("square.grid.2x2.fill", "Your Dex is always free",
-             "Browsing your collection, the Nearby list, field entries and Game Center never need Pro."),
+            ("sparkles", String(localized: "Unlimited identifications"),
+             String(localized: "Point at anything alive and identify it as often as you like — no credit balance to top up.")),
+            ("square.grid.2x2.fill", String(localized: "Your Dex is always free"),
+             String(localized: "Browsing your collection, the Nearby list, field entries and Game Center never need Pro.")),
         ]
         let stack = UIStackView(arrangedSubviews: rows.map(benefitRow))
         stack.axis = .vertical
@@ -204,7 +205,7 @@ final class PaywallViewController: UIViewController {
         row.alignment = .top
         row.spacing = DesignSystem.Spacing.m
         row.isAccessibilityElement = true
-        row.accessibilityLabel = "\(title). \(detail)"
+        row.accessibilityLabel = String(localized: "\(title). \(detail)")
         return row
     }
 
@@ -220,7 +221,7 @@ final class PaywallViewController: UIViewController {
         label.adjustsFontForContentSizeCategory = true
         label.textColor = .secondaryLabel
         label.numberOfLines = 0
-        label.text = "Every device starts with 30 free identifications. Pro is for people who identify a lot — everything you collect stays yours either way."
+        label.text = String(localized: "Every device starts with 30 free identifications. Pro is for people who identify a lot — everything you collect stays yours either way.")
 
         let row = UIStackView(arrangedSubviews: [glyph, label])
         row.axis = .horizontal
@@ -335,7 +336,7 @@ final class PaywallViewController: UIViewController {
 
     private func updateCTA() {
         guard plans.indices.contains(selectedIndex) else {
-            ctaButton.configuration?.title = "Go Pro"
+            ctaButton.configuration?.title = String(localized: "Go Pro")
             ctaButton.isEnabled = false
             trialNoteLabel.text = nil
             return
@@ -347,20 +348,20 @@ final class PaywallViewController: UIViewController {
     }
 
     private func ctaTitle(for plan: PaywallPlan) -> String {
-        if let days = plan.trialDays { return "Start \(days)-day free trial" }
-        return "Go Pro"
+        if let days = plan.trialDays { return String(localized: "Start \(days)-day free trial") }
+        return String(localized: "Go Pro")
     }
 
     private func trialNote(for plan: PaywallPlan) -> String {
         switch plan.billing {
         case .annual where plan.trialDays != nil:
-            return "No payment due now. \(plan.trialDays!) days free, then \(plan.displayPrice)/year. Cancel anytime."
+            return String(localized: "No payment due now. \(plan.trialDays!) days free, then \(plan.displayPrice)/year. Cancel anytime.")
         case .annual:
-            return "\(plan.displayPrice)/year, billed annually. Cancel anytime."
+            return String(localized: "\(plan.displayPrice)/year, billed annually. Cancel anytime.")
         case .monthly where plan.trialDays != nil:
-            return "No payment due now. \(plan.trialDays!) days free, then \(plan.displayPrice)/month. Cancel anytime."
+            return String(localized: "No payment due now. \(plan.trialDays!) days free, then \(plan.displayPrice)/month. Cancel anytime.")
         case .monthly:
-            return "\(plan.displayPrice)/month. Cancel anytime."
+            return String(localized: "\(plan.displayPrice)/month. Cancel anytime.")
         }
     }
 
@@ -371,7 +372,7 @@ final class PaywallViewController: UIViewController {
         label.textColor = .secondaryLabel
         label.numberOfLines = 0
         label.textAlignment = .center
-        label.text = "Subscriptions auto-renew unless cancelled at least 24h before the period ends. Manage in your Apple ID settings."
+        label.text = String(localized: "Subscriptions auto-renew unless cancelled at least 24h before the period ends. Manage in your Apple ID settings.")
         return label
     }
 
@@ -379,7 +380,7 @@ final class PaywallViewController: UIViewController {
     /// cloud-ID credit packs instead of subscribing.
     private func makeCreditsLink() -> UIView {
         let button = UIButton(type: .system)
-        button.setTitle("Prefer to pay per use? Buy identification credits", for: .normal)
+        button.setTitle(String(localized: "Prefer to pay per use? Buy identification credits"), for: .normal)
         button.titleLabel?.font = .preferredFont(forTextStyle: .footnote)
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.titleLabel?.numberOfLines = 0
@@ -401,9 +402,9 @@ final class PaywallViewController: UIViewController {
         links.alignment = .center
         links.distribution = .fillEqually
         for (title, url) in [
-            ("Terms", LegalLinks.terms.absoluteString),
-            ("Privacy", LegalLinks.privacy.absoluteString),
-            ("Restore", ""),
+            (String(localized: "Terms"), LegalLinks.terms.absoluteString),
+            (String(localized: "Privacy"), LegalLinks.privacy.absoluteString),
+            (String(localized: "Restore"), ""),
         ] {
             let button = UIButton(type: .system)
             button.setTitle(title, for: .normal)
@@ -431,16 +432,16 @@ final class PaywallViewController: UIViewController {
                 self.setPurchasing(false)
                 if PaywallPurchaseEffect.of(result) == .waitForApproval {
                     self.presentAlert(
-                        "Waiting for approval",
-                        message: "Your purchase is waiting for approval. Living Dex Pro unlocks by itself once it is approved.")
+                        String(localized: "Waiting for approval"),
+                        message: String(localized: "Your purchase is waiting for approval. Living Dex Pro unlocks by itself once it is approved."))
                 }
             } catch {
                 self.setPurchasing(false)
                 MidgarLog.error("purchase failed \(plan.product.rawValue): \(error)", category: .credits)
                 ReviewPrompt.notePurchaseFailure()
                 self.presentAlert(
-                    "Purchase didn't complete",
-                    message: "You were not charged. Check your connection and try again.")
+                    String(localized: "Purchase didn't complete"),
+                    message: String(localized: "You were not charged. Check your connection and try again."))
             }
         }
     }
@@ -455,15 +456,14 @@ final class PaywallViewController: UIViewController {
                 self.setRestoring(false)
                 guard !self.access.isPro else { return }
                 self.presentAlert(
-                    "Nothing to restore",
-                    message: "No active Living Dex Pro purchase was found on this Apple ID. "
-                        + "If you subscribed on another device, sign in with the same Apple ID and try again.")
+                    String(localized: "Nothing to restore"),
+                    message: String(localized: "No active Living Dex Pro purchase was found on this Apple ID. If you subscribed on another device, sign in with the same Apple ID and try again."))
             } catch {
                 self.setRestoring(false)
                 MidgarLog.error("restore failed: \(error)", category: .credits)
                 self.presentAlert(
-                    "Couldn't reach the App Store",
-                    message: "Check your connection and try again.")
+                    String(localized: "Couldn't reach the App Store"),
+                    message: String(localized: "Check your connection and try again."))
             }
         }
     }
@@ -497,15 +497,15 @@ final class PaywallViewController: UIViewController {
         message.textColor = .secondaryLabel
         message.numberOfLines = 0
         message.textAlignment = .center
-        message.text = "Pricing unavailable — check your connection."
+        message.text = String(localized: "Pricing unavailable — check your connection.")
 
         let retry = UIButton(type: .system)
-        retry.setTitle("Retry", for: .normal)
+        retry.setTitle(String(localized: "Retry"), for: .normal)
         retry.titleLabel?.font = .preferredFont(forTextStyle: .callout)
         retry.titleLabel?.adjustsFontForContentSizeCategory = true
         retry.tintColor = DesignSystem.Color.accent
         retry.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
-        retry.accessibilityHint = "Loads Living Dex Pro pricing from the App Store again"
+        retry.accessibilityHint = String(localized: "Loads Living Dex Pro pricing from the App Store again")
         retry.addAction(UIAction { [weak self] _ in self?.retryLoadPlans() }, for: .touchUpInside)
 
         let stack = UIStackView(arrangedSubviews: [message, retry])
@@ -541,14 +541,14 @@ final class PaywallViewController: UIViewController {
 
     private func presentAlert(_ title: String, message: String) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        alert.addAction(UIAlertAction(title: String(localized: "OK"), style: .default))
         present(alert, animated: true)
     }
 
     private func open(_ url: URL) {
         UIApplication.shared.open(url, options: [:]) { [weak self] success in
             guard !success else { return }
-            self?.presentAlert("Couldn't open link", message: "Please try again in a moment.")
+            self?.presentAlert(String(localized: "Couldn't open link"), message: String(localized: "Please try again in a moment."))
         }
     }
 

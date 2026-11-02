@@ -9,23 +9,23 @@ extension SettingsViewController {
 
         var errorDescription: String? {
             switch self {
-            case .nothingToRestore: return "There were no previous purchases to restore for this Apple ID."
-            case .failed: return "We couldn't restore your purchases. Check your connection and try again."
+            case .nothingToRestore: return String(localized: "There were no previous purchases to restore for this Apple ID.")
+            case .failed: return String(localized: "We couldn't restore your purchases. Check your connection and try again.")
             }
         }
     }
 
     func presentAppearance() {
-        let alert = UIAlertController(title: "Theme", message: nil, preferredStyle: .actionSheet)
+        let alert = UIAlertController(title: String(localized: "Theme"), message: nil, preferredStyle: .actionSheet)
         for (title, style) in [
-            ("System", UIUserInterfaceStyle.unspecified), ("Light", .light), ("Dark", .dark),
+            (String(localized: "System"), UIUserInterfaceStyle.unspecified), (String(localized: "Light"), .light), (String(localized: "Dark"), .dark),
         ] {
             alert.addAction(UIAlertAction(title: title, style: .default) { [weak self] _ in
                 AppSettings.appearance = style
                 self?.refreshList()
             })
         }
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: String(localized: "Cancel"), style: .cancel))
         alert.popoverPresentationController?.sourceView = view
         present(alert, animated: true)
     }
@@ -59,7 +59,7 @@ extension SettingsViewController {
 
     func exportLogs() {
         guard let log = MidgarLog.logFileURLs.first else {
-            presentAlert(title: "No logs yet", message: "Diagnostics appear here after you use the app.")
+            presentAlert(title: String(localized: "No logs yet"), message: String(localized: "Diagnostics appear here after you use the app."))
             return
         }
         let share = UIActivityViewController(activityItems: [log], applicationActivities: nil)
@@ -72,7 +72,7 @@ extension SettingsViewController {
     /// can retry. A local cleanup that fails after the server account is gone is told to the player, then the app
     /// returns to first run anyway.
     func deleteAccount() async throws {
-        let overlay = BusyOverlay(message: "Deleting…")
+        let overlay = BusyOverlay(message: String(localized: "Deleting…"))
         overlay.show(in: view.window ?? view)
         let leftovers: Bool
         do {
@@ -100,8 +100,8 @@ extension SettingsViewController {
             return
         }
         presentAlert(
-            title: "Account deleted",
-            message: "Your account was deleted from our servers, but some data couldn't be removed from this device. Deleting the app removes the rest.",
+            title: String(localized: "Account deleted"),
+            message: String(localized: "Your account was deleted from our servers, but some data couldn't be removed from this device. Deleting the app removes the rest."),
             then: { [weak self] in self?.returnToFirstRun() })
     }
 
@@ -111,7 +111,7 @@ extension SettingsViewController {
 
     private func presentAlert(title: String, message: String, then handler: (() -> Void)? = nil) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in handler?() })
+        alert.addAction(UIAlertAction(title: String(localized: "OK"), style: .default) { _ in handler?() })
         present(alert, animated: true)
     }
 }

@@ -31,7 +31,7 @@ enum ShareCardRenderer {
 
     /// The items handed to the share sheet: the card image and a line with the store link.
     static func shareItems(for model: ShareCardModel) -> [Any] {
-        [render(model), "\(model.commonName), caught in Living Dex \(LegalLinks.appStore.absoluteString)"]
+        [render(model), String(localized: "\(model.commonName), caught in Living Dex \(LegalLinks.appStore.absoluteString)")]
     }
 
     // MARK: Drawing
@@ -74,7 +74,7 @@ enum ShareCardRenderer {
             model.scientificName, in: CGRect(x: textX, y: y, width: textWidth, height: 56),
             maxSize: 40, minSize: 26, weight: .regular, italic: true, color: UIColor.white.withAlphaComponent(0.72)) + 10
         _ = drawFitting(
-            "\(model.realm.rawValue.capitalized) · Caught \(dateText(model.caughtAt))",
+            String(localized: "\(RealmArt.displayName(model.realm)) · Caught \(dateText(model.caughtAt))"),
             in: CGRect(x: textX, y: y, width: textWidth, height: 44),
             maxSize: 32, minSize: 22, weight: .medium, italic: false, color: UIColor.white.withAlphaComponent(0.5))
 
@@ -147,7 +147,7 @@ enum ShareCardRenderer {
             .font: UIFont.systemFont(ofSize: 38, weight: .heavy), .foregroundColor: accent,
         ]
         ("Living Dex" as NSString).draw(at: CGPoint(x: rect.minX + 64, y: rect.minY + 6), withAttributes: name)
-        let tagline = "Catch the real world" as NSString
+        let tagline = String(localized: "Catch the real world") as NSString
         let taglineAttributes: [NSAttributedString.Key: Any] = [
             .font: UIFont.systemFont(ofSize: 28, weight: .medium),
             .foregroundColor: UIColor.white.withAlphaComponent(0.5),

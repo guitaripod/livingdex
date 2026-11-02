@@ -23,9 +23,9 @@ enum ConfidenceLevel {
 
     var label: String {
         switch self {
-        case .high: return "Confident"
-        case .medium: return "Likely"
-        case .low: return "Best guess"
+        case .high: return String(localized: "Confident")
+        case .medium: return String(localized: "Likely")
+        case .low: return String(localized: "Best guess")
         }
     }
 }

@@ -24,12 +24,12 @@ final class RootViewController: UITabBarController, UITabBarControllerDelegate {
 
         let field = FieldViewController()
         field.tabBarItem = UITabBarItem(
-            title: "Field", image: UIImage(systemName: "camera.viewfinder"), selectedImage: nil)
+            title: String(localized: "Field"), image: UIImage(systemName: "camera.viewfinder"), selectedImage: nil)
 
         viewControllers = [
             field,
-            wrap(DexViewController(), title: "Dex", symbol: "square.grid.2x2.fill"),
-            wrap(ProfileViewController(), title: "Profile", symbol: "person.crop.circle.fill"),
+            wrap(DexViewController(), title: String(localized: "Dex"), symbol: "square.grid.2x2.fill"),
+            wrap(ProfileViewController(), title: String(localized: "Profile"), symbol: "person.crop.circle.fill"),
         ]
     }
 

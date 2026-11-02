@@ -11,9 +11,9 @@ enum AccountDeletionError: Error, Equatable {
 extension AccountDeletionError: LocalizedError {
     var errorDescription: String? {
         switch self {
-        case .offline: return "You appear to be offline. Nothing was deleted, so reconnect and try again."
-        case .server: return "Something went wrong on our side. Nothing was deleted, so try again in a moment."
-        case .localCleanup: return "Some data couldn't be removed from this device. Deleting the app removes the rest."
+        case .offline: return String(localized: "You appear to be offline. Nothing was deleted, so reconnect and try again.")
+        case .server: return String(localized: "Something went wrong on our side. Nothing was deleted, so try again in a moment.")
+        case .localCleanup: return String(localized: "Some data couldn't be removed from this device. Deleting the app removes the rest.")
         }
     }
 }

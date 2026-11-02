@@ -13,7 +13,7 @@ final class CameraLoadingView: UIView {
         super.init(frame: frame)
         backgroundColor = UIColor(red: 0.05, green: 0.06, blue: 0.055, alpha: 1)
         isUserInteractionEnabled = false
-        accessibilityLabel = "Camera loading"
+        accessibilityLabel = String(localized: "Camera loading")
 
         let config = UIImage.SymbolConfiguration(pointSize: 44, weight: .thin)
         glyph.image = UIImage(systemName: "camera.viewfinder", withConfiguration: config)

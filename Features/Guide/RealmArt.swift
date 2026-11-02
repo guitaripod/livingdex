@@ -44,13 +44,13 @@ enum RealmArt {
         return image
     }
 
-    static func displayName(_ realm: Realm) -> String {
+    nonisolated static func displayName(_ realm: Realm) -> String {
         switch realm {
-        case .animals: return "Animals"
-        case .plants: return "Plants"
-        case .fungi: return "Fungi"
-        case .protists: return "Protists"
-        case .other: return "Other"
+        case .animals: return String(localized: "Animals")
+        case .plants: return String(localized: "Plants")
+        case .fungi: return String(localized: "Fungi")
+        case .protists: return String(localized: "Protists")
+        case .other: return String(localized: "Other")
         }
     }
 }

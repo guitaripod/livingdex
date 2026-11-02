@@ -80,15 +80,19 @@ final class DexHeaderView: UICollectionReusableView {
 
     func showCompletion(caught: Int, total: Int, title: String) {
         let pct = total > 0 ? Int((Double(caught) / Double(total) * 100).rounded()) : 0
-        countLabel.text = "\(caught) / \(total)"
-        captionLabel.text = total > 0 ? "\(title) species · \(pct)% complete" : "\(title) species"
+        let fraction = "\(caught) / \(total)"
+        countLabel.text = fraction
+        captionLabel.text = total > 0
+            ? String(localized: "\(title) species · \(pct)% complete")
+            : String(localized: "\(title) species")
         track.isHidden = false
         setFill(total > 0 ? CGFloat(caught) / CGFloat(total) : 0)
     }
 
     func showSummary(species: Int, detail: String) {
-        countLabel.text = "\(species)"
-        captionLabel.text = "species · \(detail)"
+        let count = "\(species)"
+        countLabel.text = count
+        captionLabel.text = String(localized: "species · \(detail)")
         track.isHidden = true
         setFill(0)
     }

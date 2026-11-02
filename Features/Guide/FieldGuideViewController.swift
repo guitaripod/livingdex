@@ -14,7 +14,7 @@ final class FieldGuideViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Field Guide"
+        title = String(localized: "Field Guide")
         view.backgroundColor = .systemGroupedBackground
         navigationItem.largeTitleDisplayMode = .never
 
@@ -65,24 +65,24 @@ final class FieldGuideViewController: UIViewController {
     private func buildContent() {
         stack.addArrangedSubview(heroHeader())
 
-        stack.addArrangedSubview(sectionHeader("How it works"))
+        stack.addArrangedSubview(sectionHeader(String(localized: "How it works")))
         for (index, step) in FieldGuide.steps.enumerated() {
             stack.addArrangedSubview(stepRow(step, number: index + 1))
         }
 
-        stack.addArrangedSubview(sectionHeader("The realms of life"))
-        stack.addArrangedSubview(captionLabel("Every living thing belongs to one of these great branches. Here's what makes each one what it is."))
+        stack.addArrangedSubview(sectionHeader(String(localized: "The realms of life")))
+        stack.addArrangedSubview(captionLabel(String(localized: "Every living thing belongs to one of these great branches. Here's what makes each one what it is.")))
         let flow = ColumnFlow(
             items: FieldGuide.realms.map(realmCard),
             spacing: DesignSystem.Spacing.m, columnGap: AdaptiveLayout.foldGap)
         realmFlow = flow
         stack.addArrangedSubview(flow)
 
-        stack.addArrangedSubview(sectionHeader("Rarity"))
+        stack.addArrangedSubview(sectionHeader(String(localized: "Rarity")))
         stack.addArrangedSubview(bodyLabel(FieldGuide.rarityIntro))
         stack.addArrangedSubview(rarityCard())
 
-        stack.addArrangedSubview(sectionHeader("Good to know"))
+        stack.addArrangedSubview(sectionHeader(String(localized: "Good to know")))
         stack.addArrangedSubview(conceptsCard())
 
         stack.setCustomSpacing(DesignSystem.Spacing.l, after: stack.arrangedSubviews[0])
@@ -126,7 +126,7 @@ final class FieldGuideViewController: UIViewController {
         ])
 
         let title = UILabel()
-        title.text = "\(number). \(step.title)"
+        title.text = String(localized: "\(number). \(step.title)")
         title.font = boldFont(.headline)
         title.numberOfLines = 0
 
@@ -186,7 +186,7 @@ final class FieldGuideViewController: UIViewController {
         glyph.translatesAutoresizingMaskIntoConstraints = false
 
         let whatIsIt = bodyLabel(info.whatIsIt)
-        let examplesTitle = miniHeader("You might catch")
+        let examplesTitle = miniHeader(String(localized: "You might catch"))
         let examples = UIStackView(arrangedSubviews: info.examples.map(bulletRow))
         examples.axis = .vertical
         examples.spacing = 6

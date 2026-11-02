@@ -41,8 +41,6 @@ final class CardRevealViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Always a dark dim backdrop — keep semantic label colors light-on-dark
-        // in both appearances.
         overrideUserInterfaceStyle = .dark
         view.backgroundColor = UIColor.black.withAlphaComponent(0.55)
         let tap = UITapGestureRecognizer(target: self, action: #selector(dismissCard))
@@ -160,10 +158,11 @@ final class CardRevealViewController: UIViewController {
     }
 
     private func announce() {
-        let prefix = isNewDexEntry ? "New dex entry. " : "Caught. "
-        UIAccessibility.post(
-            notification: .announcement,
-            argument: "\(prefix)\(sighting.commonName), \(sighting.rarity.title), \(Int(sighting.confidence * 100)) percent match.")
+        let percent = Int(sighting.confidence * 100)
+        let announcement = isNewDexEntry
+            ? String(localized: "New dex entry. \(sighting.commonName), \(sighting.rarity.title), \(percent) percent match.")
+            : String(localized: "Caught. \(sighting.commonName), \(sighting.rarity.title), \(percent) percent match.")
+        UIAccessibility.post(notification: .announcement, argument: announcement)
     }
 
     // MARK: Layout
@@ -186,7 +185,7 @@ final class CardRevealViewController: UIViewController {
         photo.layer.borderWidth = 3
         photo.layer.borderColor = ConfidenceLevel(sighting.confidence).color.cgColor
         photo.isAccessibilityElement = true
-        photo.accessibilityLabel = "Photo of \(sighting.commonName)"
+        photo.accessibilityLabel = String(localized: "Photo of \(sighting.commonName)")
 
         let rarity = RarityBadge()
         rarity.translatesAutoresizingMaskIntoConstraints = false
@@ -203,7 +202,7 @@ final class CardRevealViewController: UIViewController {
         common.numberOfLines = 2
         let scientific = scalingLabel(sighting.scientificName, style: .subheadline, italic: true, color: .secondaryLabel)
         let meta = scalingLabel(
-            "\(sighting.realm.rawValue.capitalized) · \(ConfidenceLevel(sighting.confidence).label) (\(Int(sighting.confidence * 100))%)",
+            String(localized: "\(RealmArt.displayName(sighting.realm)) · \(ConfidenceLevel(sighting.confidence).label) (\(Int(sighting.confidence * 100))%)"),
             style: .footnote, weight: .medium, color: .tertiaryLabel)
 
         let stack = textStack
@@ -273,7 +272,7 @@ final class CardRevealViewController: UIViewController {
         config.baseForegroundColor = .white
         let button = UIButton(configuration: config)
         button.translatesAutoresizingMaskIntoConstraints = false
-        button.accessibilityLabel = "Share"
+        button.accessibilityLabel = String(localized: "Share")
         button.addAction(UIAction { [weak self] _ in self?.shareCatch() }, for: .touchUpInside)
         card.contentView.addSubview(button)
         NSLayoutConstraint.activate([
@@ -297,14 +296,14 @@ final class CardRevealViewController: UIViewController {
     /// A compact "+40 XP · 🔥 3 · Level 4!" progress line under the card meta.
     private func progressRow() -> UIView? {
         guard let progress else { return nil }
-        var parts: [String] = ["+\(progress.xpGained) XP"]
+        var parts: [String] = [String(localized: "+\(progress.xpGained) XP")]
         if progress.streak > 1 { parts.append("🔥 \(progress.streak)") }
-        if let level = progress.leveledUpTo { parts.append("Level \(level)!") }
+        if let level = progress.leveledUpTo { parts.append(String(localized: "Level \(level)!")) }
         let label = scalingLabel(parts.joined(separator: "  ·  "), style: .subheadline, weight: .semibold, color: .white)
         label.isAccessibilityElement = true
-        var a11y = "Gained \(progress.xpGained) experience."
-        if progress.streak > 1 { a11y += " \(progress.streak) day streak." }
-        if let level = progress.leveledUpTo { a11y += " Reached level \(level)." }
+        var a11y = String(localized: "Gained \(progress.xpGained) experience.")
+        if progress.streak > 1 { a11y += " " + String(localized: "\(progress.streak) day streak.") }
+        if let level = progress.leveledUpTo { a11y += " " + String(localized: "Reached level \(level).") }
         label.accessibilityLabel = a11y
         return label
     }
@@ -324,7 +323,7 @@ final class CardRevealViewController: UIViewController {
         chip.spacing = 5
         chip.alignment = .center
         chip.isAccessibilityElement = true
-        chip.accessibilityLabel = "\(level.label), \(Int(sighting.confidence * 100)) percent"
+        chip.accessibilityLabel = String(localized: "\(level.label), \(Int(sighting.confidence * 100)) percent")
         return chip
     }
 
@@ -349,7 +348,7 @@ final class CardRevealViewController: UIViewController {
 
     private func addNewBanner() {
         let banner = PaddedLabel()
-        banner.text = "NEW DEX ENTRY"
+        banner.text = String(localized: "NEW DEX ENTRY")
         banner.font = .systemFont(ofSize: 13, weight: .heavy)
         banner.textColor = .black
         banner.backgroundColor = DesignSystem.Color.accent

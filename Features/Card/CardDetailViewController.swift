@@ -49,17 +49,17 @@ final class CardDetailViewController: UIViewController {
         let shareItem = UIBarButtonItem(
             image: UIImage(systemName: "square.and.arrow.up"),
             primaryAction: UIAction { [weak self] _ in self?.shareCatch() })
-        shareItem.title = "Share"
-        shareItem.accessibilityLabel = "Share"
+        shareItem.title = String(localized: "Share")
+        shareItem.accessibilityLabel = String(localized: "Share")
         let releaseAction = UIAction(
-            title: "Release",
+            title: String(localized: "Release"),
             image: UIImage(systemName: "trash"),
             attributes: .destructive) { [weak self] _ in self?.confirmRelease() }
         let overflowItem = UIBarButtonItem(
             image: UIImage(systemName: "ellipsis.circle"),
             menu: UIMenu(children: [releaseAction]))
-        overflowItem.title = "More"
-        overflowItem.accessibilityLabel = "More"
+        overflowItem.title = String(localized: "More")
+        overflowItem.accessibilityLabel = String(localized: "More")
         navigationItem.rightBarButtonItems = [shareItem, overflowItem]
     }
 
@@ -174,7 +174,6 @@ final class CardDetailViewController: UIViewController {
         rarityRow.axis = .horizontal
         stack.addArrangedSubview(rarityRow)
 
-        // Evocative category ("the ___") — hidden until narrated.
         categoryLabel.font = .systemFont(ofSize: 17, weight: .bold)
         categoryLabel.textColor = DesignSystem.Color.accent
         categoryLabel.adjustsFontForContentSizeCategory = true
@@ -199,12 +198,11 @@ final class CardDetailViewController: UIViewController {
         narrationLabel.adjustsFontForContentSizeCategory = true
         narrationLabel.textColor = .label
         narrationLabel.numberOfLines = 0
-        narrationLabel.text = "Writing this creature's dex entry…"
+        narrationLabel.text = String(localized: "Writing this creature's dex entry…")
         stack.addArrangedSubview(narrationLabel)
 
-        // Call ("cry") — hidden until a safe recording is found.
         var callConfig = UIButton.Configuration.tinted()
-        callConfig.title = "Play call"
+        callConfig.title = String(localized: "Play call")
         callConfig.image = UIImage(systemName: "speaker.wave.2.fill")
         callConfig.imagePadding = 8
         callConfig.baseForegroundColor = DesignSystem.Color.accent
@@ -233,7 +231,7 @@ final class CardDetailViewController: UIViewController {
     }
 
     private func setMeta(size: String?) {
-        var parts = ["\(entry.realm.rawValue.capitalized)", "caught ×\(entry.sightingCount)"]
+        var parts = [RealmArt.displayName(entry.realm), String(localized: "caught ×\(entry.sightingCount)")]
         if let size, !size.isEmpty { parts.insert(size, at: 1) }
         sizeLabel.text = parts.joined(separator: "  ·  ")
     }
@@ -246,12 +244,12 @@ final class CardDetailViewController: UIViewController {
                 narrationLabel.text = text
                 narrationLabel.textColor = .label
             } else {
-                narrationLabel.text = "No field entry is available for this species yet."
+                narrationLabel.text = String(localized: "No field entry is available for this species yet.")
                 narrationLabel.textColor = .secondaryLabel
                 if let sighting { fillMissingEntry(for: sighting) }
             }
             if let category = sighting?.category, !category.isEmpty {
-                categoryLabel.text = "The \(category)"
+                categoryLabel.text = String(localized: "The \(category)")
                 categoryLabel.isHidden = false
             }
             setMeta(size: sighting?.typicalSize)
@@ -282,7 +280,7 @@ final class CardDetailViewController: UIViewController {
             guard let call = await detailService.call(scientificName: name) else { return }
             self.call = call
             callButton.isHidden = false
-            attributionLabel.text = "Call: \(call.attribution)"
+            attributionLabel.text = String(localized: "Call: \(call.attribution)")
             attributionLabel.isHidden = false
         }
     }
@@ -295,16 +293,16 @@ final class CardDetailViewController: UIViewController {
 
     private func confirmRelease() {
         let alert = UIAlertController(
-            title: "Release \(entry.commonName)?",
-            message: "This removes it from your dex, along with your photos of it. This can't be undone.",
+            title: String(localized: "Release \(entry.commonName)?"),
+            message: String(localized: "This removes it from your dex, along with your photos of it. This can't be undone."),
             preferredStyle: .actionSheet)
-        alert.addAction(UIAlertAction(title: "Release", style: .destructive) { [weak self] _ in
+        alert.addAction(UIAlertAction(title: String(localized: "Release"), style: .destructive) { [weak self] _ in
             guard let self else { return }
             try? CollectionStore.shared.release(speciesId: self.entry.speciesId)
             Haptics.tap()
             self.navigationController?.popViewController(animated: true)
         })
-        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: String(localized: "Cancel"), style: .cancel))
         alert.popoverPresentationController?.barButtonItem = navigationItem.rightBarButtonItems?.last
         present(alert, animated: true)
     }

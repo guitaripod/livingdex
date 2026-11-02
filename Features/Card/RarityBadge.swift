@@ -12,7 +12,15 @@ extension Rarity {
         }
     }
 
-    var title: String { rawValue.capitalized }
+    var title: String {
+        switch self {
+        case .common: return String(localized: "Common")
+        case .uncommon: return String(localized: "Uncommon")
+        case .rare: return String(localized: "Rare")
+        case .epic: return String(localized: "Epic")
+        case .legendary: return String(localized: "Legendary")
+        }
+    }
 }
 
 /// A small colored pill naming a rarity tier.

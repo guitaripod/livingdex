@@ -61,8 +61,6 @@ final class GlassChipView: UIView {
         label.textColor = .white
         label.textAlignment = .center
         label.numberOfLines = 0
-        // A subtle shadow keeps the status readable over a bright sky (glass over
-        // a live camera can drop contrast below legibility).
         label.layer.shadowColor = UIColor.black.cgColor
         label.layer.shadowOpacity = 0.5
         label.layer.shadowRadius = 3
@@ -153,14 +151,16 @@ final class GlassCreditsButton: UIControl {
         let spoken: String
         if isPro {
             tint = DesignSystem.Color.accent
-            text = "Pro"
-            spoken = "Living Dex Pro, unlimited identifications"
+            text = String(localized: "Pro")
+            spoken = String(localized: "Living Dex Pro, unlimited identifications")
             accessibilityHint = nil
         } else {
             tint = balance <= 0 ? .systemRed : (balance <= 3 ? .systemOrange : .white)
-            text = balance <= 0 ? "Get more" : "\(balance) left"
-            spoken = balance <= 0 ? "No identifications left" : (balance == 1 ? "1 identification left" : "\(balance) identifications left")
-            accessibilityHint = "Shows ways to get more identifications"
+            text = balance <= 0 ? String(localized: "Get more") : String(localized: "\(balance) left")
+            spoken = balance <= 0
+                ? String(localized: "No identifications left")
+                : (balance == 1 ? String(localized: "1 identification left") : String(localized: "\(balance) identifications left"))
+            accessibilityHint = String(localized: "Shows ways to get more identifications")
         }
         let config = UIImage.SymbolConfiguration(pointSize: 13, weight: .bold)
         iconView.image = UIImage(systemName: isPro ? "infinity" : "sparkles", withConfiguration: config)
@@ -277,8 +277,8 @@ final class CaptureButton: UIControl {
     override init(frame: CGRect) {
         super.init(frame: frame)
         isAccessibilityElement = true
-        accessibilityLabel = "Capture"
-        accessibilityHint = "Identifies and collects what the camera is pointed at"
+        accessibilityLabel = String(localized: "Capture")
+        accessibilityHint = String(localized: "Identifies and collects what the camera is pointed at")
         accessibilityTraits = .button
 
         ring.translatesAutoresizingMaskIntoConstraints = false

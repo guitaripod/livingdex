@@ -10,7 +10,7 @@ import UIKit
 /// Rows read their values when built, so a change is shown by building them again with ``refreshList()``.
 final class SettingsViewController: UIViewController {
     private lazy var list = MidgarSettingsViewController(
-        title: "Settings",
+        title: String(localized: "Settings"),
         sections: makeSections(),
         portalCardView: MidgarEntryView(config: LivingDexMidgar.shared.portalConfig),
         theme: .livingDex
@@ -18,7 +18,7 @@ final class SettingsViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Settings"
+        title = String(localized: "Settings")
         view.backgroundColor = .systemGroupedBackground
         embedList()
     }
