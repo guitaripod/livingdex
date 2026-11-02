@@ -24,6 +24,8 @@ final class PaywallViewController: UIViewController {
     private let access: ProAccess
     private let reason: String
     private let fixedPlans: [PaywallPlan]?
+    private let placement: MidgarSignal.Placement
+    private var hasNotedShown = false
     private var cancellables = Set<AnyCancellable>()
 
     private let scrollView = UIScrollView()
@@ -53,13 +55,27 @@ final class PaywallViewController: UIViewController {
         access: ProAccess = .shared,
         reason: String = String(localized: "Identify without limits, anywhere life turns up."),
         shortfall: Int? = nil,
-        fixedPlans: [PaywallPlan]? = nil
+        fixedPlans: [PaywallPlan]? = nil,
+        placement: MidgarSignal.Placement = .feature
     ) {
         self.access = access
         self.reason = reason
         self.shortfall = shortfall
         self.fixedPlans = fixedPlans
+        self.placement = placement
         super.init(nibName: nil, bundle: nil)
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        noteShownOnce()
+    }
+
+    /// Reports the paywall once per presentation, not again when a sheet over it closes.
+    private func noteShownOnce() {
+        guard !hasNotedShown else { return }
+        hasNotedShown = true
+        MidgarPaywallMoments.noteShown(placement: placement)
     }
 
     @available(*, unavailable)

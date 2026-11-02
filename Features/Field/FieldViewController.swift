@@ -722,7 +722,7 @@ final class FieldViewController: UIViewController {
         alert.addAction(UIAlertAction(title: String(localized: "Go Pro"), style: .default) { [weak self] _ in
             guard let self else { return }
             PaywallPresenter.present(
-                from: self, reason: String(localized: "You've used your free identifications."), shortfall: shortfall)
+                from: self, reason: String(localized: "You've used your free identifications."), shortfall: shortfall, placement: .limit)
         })
         alert.addAction(UIAlertAction(title: String(localized: "Not now"), style: .cancel))
         present(alert, animated: true)

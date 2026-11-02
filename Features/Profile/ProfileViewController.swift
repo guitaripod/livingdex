@@ -264,7 +264,7 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
             if isPro {
                 UIApplication.shared.open(pro.manageSubscriptionsURL)
             } else {
-                PaywallPresenter.present(from: self)
+                PaywallPresenter.present(from: self, placement: .settings)
             }
         default:
             break

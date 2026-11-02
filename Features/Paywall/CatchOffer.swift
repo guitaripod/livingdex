@@ -15,7 +15,8 @@ enum CatchOffer {
             guard host.presentedViewController == nil, host.view.window != nil else { return }
             policy.noteOffered()
             PaywallPresenter.present(
-                from: host, reason: String(localized: "Your Dex is growing. Pro keeps you identifying without limits, anywhere life turns up."))
+                from: host, reason: String(localized: "Your Dex is growing. Pro keeps you identifying without limits, anywhere life turns up."),
+                placement: .moment)
         }
     }
 }
