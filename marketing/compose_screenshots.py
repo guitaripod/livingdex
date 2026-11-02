@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Composes the App Store screenshots: raw simulator captures -> `frames` bezel ->
 realm-illustration backdrop, headline, sub-caption and shadow.
-Usage: compose_screenshots.py RAW_DIR OUT_DIR
+Usage: compose_screenshots.py RAW_DIR OUT_DIR [LOCALE]
 
-RAW_DIR holds the phone captures (field, starter, reveal, caught, nearby, guide, card, profile .png at
+LOCALE is an App Store locale (default en-US); its captions come from marketing/captions.json and its
+typeface from FACES. RAW_DIR holds the phone captures (field, starter, reveal, caught, nearby, guide, card, profile .png at
 1320x2868, from scripts/capture-demo-screens.sh) and cards/<name>.png, the trading cards rendered
 by the `sharecards` demo route. The bezel always comes from the `frames` CLI; this script only
 adds the artwork background, captions and shadow around the framed result.
@@ -17,28 +18,41 @@ from pathlib import Path
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 
 CANVAS = (1320, 2868)
-FONT_FILE = "/System/Library/Fonts/Avenir Next.ttc"
-HEAVY, DEMI, MEDIUM = 8, 2, 5
-ART_DIR = Path(__file__).resolve().parent.parent / "Resources/Assets.xcassets"
+FONTS = Path("/System/Library/Fonts")
+FACES = {
+    "default": {"heavy": (FONTS / "Avenir Next.ttc", 8), "medium": (FONTS / "Avenir Next.ttc", 5)},
+    "ja": {"heavy": (FONTS / "ヒラギノ角ゴシック W8.ttc", 0), "medium": (FONTS / "ヒラギノ角ゴシック W5.ttc", 0)},
+    "ko": {"heavy": (FONTS / "AppleSDGothicNeo.ttc", 14), "medium": (FONTS / "AppleSDGothicNeo.ttc", 2)},
+    "zh-Hans": {"heavy": (FONTS / "Hiragino Sans GB.ttc", 2), "medium": (FONTS / "Hiragino Sans GB.ttc", 0)},
+    "zh-Hant": {"heavy": (FONTS / "STHeiti Medium.ttc", 0), "medium": (FONTS / "STHeiti Light.ttc", 0)},
+}
+MARKETING = Path(__file__).resolve().parent
+ART_DIR = MARKETING.parent / "Resources/Assets.xcassets"
 
 PHONE_SHOTS = [
-    ("field", "animals", (255, 176, 70), ["Point at", "anything alive"], "Birds, plants, bugs and fungi, named in seconds"),
-    ("starter", "fungi", (60, 214, 170), ["Nothing nearby?", "Pick a starter"], "Every Dex begins with one real species"),
-    ("reveal", "animals", (255, 140, 40), ["Every catch", "is a card"], "A real rarity, from Common to Legendary"),
-    ("caught", "plants", (110, 220, 120), ["Build your", "Dex"], "Sort your finds across the realms of life"),
-    ("nearby", "fungi", (70, 200, 200), ["Find what lives", "near you"], "Locked slots show what to hunt next"),
-    ("guide", "protists", (80, 190, 230), ["Meet the realms", "of life"], "An illustrated Field Guide, free to read"),
-    ("card", "animals", (230, 160, 70), ["Learn what", "you found"], "Field entries, calls and conservation status"),
+    ("field", "animals", (255, 176, 70)),
+    ("starter", "fungi", (60, 214, 170)),
+    ("reveal", "animals", (255, 140, 40)),
+    ("caught", "plants", (110, 220, 120)),
+    ("nearby", "fungi", (70, 200, 200)),
+    ("guide", "protists", (80, 190, 230)),
+    ("card", "animals", (230, 160, 70)),
 ]
-CARD_SHOT = ("cards", "plants", (150, 120, 230), ["Share a", "collectible"], "Trading cards worth showing off")
-PROFILE_SHOT = ("profile", "protists", (60, 200, 150), ["Level up", "outdoors"], "Streaks, XP and a collection that grows with you")
+CARD_SHOT = ("cards", "plants", (150, 120, 230))
+PROFILE_SHOT = ("profile", "protists", (60, 200, 150))
 ORDER = [
     "field", "starter", "reveal", "caught", "nearby", "guide", "card", "cards", "profile",
 ]
 
 
-def font(index: int, size: int) -> ImageFont.FreeTypeFont:
-    return ImageFont.truetype(FONT_FILE, size, index=index)
+def font(face: tuple[Path, int], size: int) -> ImageFont.FreeTypeFont:
+    return ImageFont.truetype(str(face[0]), size, index=face[1])
+
+
+def captions(locale: str) -> dict:
+    """The headline lines and sub-caption of every shot in the locale, from marketing/captions.json."""
+    table = json.loads((MARKETING / "captions.json").read_text(encoding="utf-8"))
+    return table[locale]
 
 
 def frame(raw: Path, out_dir: Path) -> Path:
@@ -63,25 +77,26 @@ def backdrop(realm: str, tint: tuple[int, int, int]) -> Image.Image:
     return ImageChops.screen(art, wash)
 
 
-def fitted(text_lines: list[str], index: int, size: int, width: int) -> ImageFont.FreeTypeFont:
+def fitted(text_lines: list[str], face: tuple[Path, int], size: int, width: int) -> ImageFont.FreeTypeFont:
     """The largest font up to `size` whose widest line fits in `width`."""
     probe = ImageDraw.Draw(Image.new("RGB", (1, 1)))
-    chosen = font(index, size)
+    chosen = font(face, size)
     while max(probe.textlength(line, font=chosen) for line in text_lines) > width and chosen.size > 40:
-        chosen = font(index, chosen.size - 2)
+        chosen = font(face, chosen.size - 2)
     return chosen
 
 
-def caption(canvas: Image.Image, lines: list[str], sub: str) -> int:
+def caption(canvas: Image.Image, text: dict, faces: dict) -> int:
+    lines, sub = text["headline"], text["sub"]
     draw = ImageDraw.Draw(canvas)
-    head = fitted(lines, HEAVY, 134, CANVAS[0] - 150)
+    head = fitted(lines, faces["heavy"], 134, CANVAS[0] - 150)
     y = 150
     for line in lines:
         width = draw.textlength(line, font=head)
         draw.text(((CANVAS[0] - width) / 2 + 3, y + 5), line, font=head, fill=(0, 0, 0, 120))
         draw.text(((CANVAS[0] - width) / 2, y), line, font=head, fill=(255, 255, 255))
         y += round(head.size * 1.13)
-    small = fitted([sub], MEDIUM, 54, CANVAS[0] - 140)
+    small = fitted([sub], faces["medium"], 54, CANVAS[0] - 140)
     width = draw.textlength(sub, font=small)
     draw.text(((CANVAS[0] - width) / 2, y + 22), sub, font=small, fill=(255, 255, 255, 215))
     return y + 22 + small.size
@@ -94,10 +109,10 @@ def drop_shadow(canvas: Image.Image, layer: Image.Image, position: tuple[int, in
     return Image.alpha_composite(canvas, shadow.filter(ImageFilter.GaussianBlur(blur)))
 
 
-def compose_phone(raw: Path, spec: tuple, out: Path, work: Path) -> None:
-    _, realm, tint, lines, sub = spec
+def compose_phone(raw: Path, spec: tuple, text: dict, faces: dict, out: Path, work: Path) -> None:
+    _, realm, tint = spec
     canvas = backdrop(realm, tint).convert("RGBA")
-    bottom = caption(canvas, lines, sub)
+    bottom = caption(canvas, text, faces)
     framed = Image.open(frame(raw, work)).convert("RGBA")
     top = bottom + 70
     scale = min(1110 / framed.width, (CANVAS[1] - top - 40) / framed.height)
@@ -117,11 +132,11 @@ def rounded_card(path: Path, width: int, angle: float) -> Image.Image:
     return card.rotate(angle, resample=Image.BICUBIC, expand=True)
 
 
-def compose_cards(raw_dir: Path, spec: tuple, out: Path) -> None:
+def compose_cards(raw_dir: Path, spec: tuple, text: dict, faces: dict, out: Path) -> None:
     """Three trading cards fanned like a hand, the legendary one in front."""
-    _, realm, tint, lines, sub = spec
+    _, realm, tint = spec
     canvas = backdrop(realm, tint).convert("RGBA")
-    bottom = caption(canvas, lines, sub)
+    bottom = caption(canvas, text, faces)
     centre = CANVAS[0] // 2
     stack = [("fly-agaric", -9.0, 700, (centre - 185, bottom + 560)),
              ("european-robin", 8.0, 700, (centre + 185, bottom + 540)),
@@ -136,15 +151,18 @@ def compose_cards(raw_dir: Path, spec: tuple, out: Path) -> None:
 
 def main() -> None:
     raw_dir, out_dir = Path(sys.argv[1]), Path(sys.argv[2])
+    locale = sys.argv[3] if len(sys.argv) > 3 else "en-US"
+    text = captions(locale)
+    faces = FACES.get(locale, FACES["default"])
     out_dir.mkdir(parents=True, exist_ok=True)
     specs = {s[0]: s for s in PHONE_SHOTS + [PROFILE_SHOT]}
     with tempfile.TemporaryDirectory() as work:
         for index, name in enumerate(ORDER, start=1):
-            out = out_dir / f"{index}-{name}.png"
+            out = out_dir / f"{index:02d}-{name}.png"
             if name == "cards":
-                compose_cards(raw_dir, CARD_SHOT, out)
+                compose_cards(raw_dir, CARD_SHOT, text[name], faces, out)
             else:
-                compose_phone(raw_dir / f"{name}.png", specs[name], out, Path(work))
+                compose_phone(raw_dir / f"{name}.png", specs[name], text[name], faces, out, Path(work))
             print(f"composed {out.name}")
 
 

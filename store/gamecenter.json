@@ -1,7 +1,17 @@
 {
   "app": "6787688416",
   "locales": [
-    "en-US"
+    "en-US",
+    "de-DE",
+    "es-ES",
+    "fr-FR",
+    "it",
+    "ja",
+    "ko",
+    "pl",
+    "pt-BR",
+    "zh-Hans",
+    "zh-Hant"
   ],
   "leaderboards": [
     {
@@ -10,14 +20,40 @@
       "formatter": "INTEGER",
       "sort": "DESC",
       "submission": "BEST_SCORE",
-      "image": {
-        "remote": {
-          "en-US": "52d22563-2212-40c8-ad39-b3c17f7f61fa"
-        }
-      },
+      "image": "gamecenter/leaderboards/com.guitaripod.livingdex.lb.species.png",
       "localizations": {
         "en-US": {
           "name": "Species Collected"
+        },
+        "de-DE": {
+          "name": "Gesammelte Arten"
+        },
+        "es-ES": {
+          "name": "Especies capturadas"
+        },
+        "fr-FR": {
+          "name": "Espèces capturées"
+        },
+        "it": {
+          "name": "Specie catturate"
+        },
+        "ja": {
+          "name": "収集した種数"
+        },
+        "ko": {
+          "name": "수집한 종 수"
+        },
+        "pl": {
+          "name": "Zebrane gatunki"
+        },
+        "pt-BR": {
+          "name": "Espécies coletadas"
+        },
+        "zh-Hans": {
+          "name": "收集物种数"
+        },
+        "zh-Hant": {
+          "name": "收集物種數"
         }
       }
     }
@@ -29,16 +65,62 @@
       "points": 5,
       "showBeforeEarned": true,
       "repeatable": false,
-      "image": {
-        "remote": {
-          "en-US": "6c9f940a-8141-4878-9c3e-0975ed5a9680"
-        }
-      },
+      "image": "gamecenter/achievements/com.guitaripod.livingdex.ach.first_catch.png",
       "localizations": {
         "en-US": {
           "name": "First Catch",
           "before": "Collect your very first species.",
           "after": "Your Living Dex has begun. One down, millions to go."
+        },
+        "de-DE": {
+          "name": "Erster Fang",
+          "before": "Fang deine allererste Art.",
+          "after": "Dein Living Dex hat begonnen. Eins geschafft, Millionen warten noch."
+        },
+        "es-ES": {
+          "name": "Primera captura",
+          "before": "Captura tu primera especie.",
+          "after": "Tu Living Dex ha empezado. Una menos, millones por delante."
+        },
+        "fr-FR": {
+          "name": "Première prise",
+          "before": "Capture ta toute première espèce.",
+          "after": "Ton Living Dex a commencé. Une de faite, des millions à venir."
+        },
+        "it": {
+          "name": "Prima cattura",
+          "before": "Cattura la tua prima specie.",
+          "after": "Il tuo Living Dex è iniziato. Una in meno, milioni da fare."
+        },
+        "ja": {
+          "name": "はじめての捕獲",
+          "before": "はじめての生き物を捕まえよう。",
+          "after": "あなたのLiving Dexが始まった。まずは1種、先は長い。"
+        },
+        "ko": {
+          "name": "첫 포획",
+          "before": "처음으로 생물 한 종을 잡아보세요.",
+          "after": "당신의 Living Dex가 시작됐어요. 한 마리 완료, 아직 수백만 종이 남았네요."
+        },
+        "pl": {
+          "name": "Pierwszy połów",
+          "before": "Złap swój pierwszy gatunek.",
+          "after": "Twoje Living Dex się zaczęło. Jeden za nami, miliony przed nami."
+        },
+        "pt-BR": {
+          "name": "Primeira captura",
+          "before": "Capture sua primeira espécie.",
+          "after": "Seu Living Dex começou. Uma a menos, milhões pela frente."
+        },
+        "zh-Hans": {
+          "name": "初次捕获",
+          "before": "捕获你的第一个物种。",
+          "after": "你的 Living Dex 已经开始了。搞定一个，还有数百万个等着你。"
+        },
+        "zh-Hant": {
+          "name": "初次捕捉",
+          "before": "捕捉你的第一個物種。",
+          "after": "你的 Living Dex 已經開始了。搞定一隻，還有數百萬隻等著你。"
         }
       }
     },
@@ -48,16 +130,62 @@
       "points": 10,
       "showBeforeEarned": true,
       "repeatable": false,
-      "image": {
-        "remote": {
-          "en-US": "05a4c69f-f2f0-4789-af1e-74a643f466c0"
-        }
-      },
+      "image": "gamecenter/achievements/com.guitaripod.livingdex.ach.species_10.png",
       "localizations": {
         "en-US": {
           "name": "Ten Species",
           "before": "Collect 10 different species.",
           "after": "Ten species in the book. You are getting the hang of this."
+        },
+        "de-DE": {
+          "name": "Zehn Arten",
+          "before": "Sammle 10 verschiedene Arten.",
+          "after": "Zehn Arten im Buch. Du hast den Dreh langsam raus."
+        },
+        "es-ES": {
+          "name": "Diez especies",
+          "before": "Captura 10 especies diferentes.",
+          "after": "Diez especies en el libro. Le estás cogiendo el truco."
+        },
+        "fr-FR": {
+          "name": "Dix espèces",
+          "before": "Capture 10 espèces différentes.",
+          "after": "Dix espèces dans le carnet. Tu prends le coup de main."
+        },
+        "it": {
+          "name": "Dieci specie",
+          "before": "Cattura 10 specie diverse.",
+          "after": "Dieci specie nel libro. Ci stai prendendo la mano."
+        },
+        "ja": {
+          "name": "10種発見",
+          "before": "異なる種を10種類集めよう。",
+          "after": "図鑑に10種。だんだんコツがつかめてきた。"
+        },
+        "ko": {
+          "name": "열 종 달성",
+          "before": "서로 다른 생물 10종을 모으세요.",
+          "after": "도감에 10종이 담겼어요. 요령이 생기고 있네요."
+        },
+        "pl": {
+          "name": "Dziesięć gatunków",
+          "before": "Zbierz 10 różnych gatunków.",
+          "after": "Dziesięć gatunków w księdze. Wpadasz w rytm."
+        },
+        "pt-BR": {
+          "name": "Dez espécies",
+          "before": "Capture 10 espécies diferentes.",
+          "after": "Dez espécies no livro. Você está pegando o jeito."
+        },
+        "zh-Hans": {
+          "name": "十种物种",
+          "before": "收集 10 种不同的物种。",
+          "after": "图鉴里已有十种了。你越来越上手了。"
+        },
+        "zh-Hant": {
+          "name": "十種物種",
+          "before": "收集 10 種不同的物種。",
+          "after": "圖鑑裡已經有十種了。你越來越上手了。"
         }
       }
     },
@@ -67,16 +195,62 @@
       "points": 25,
       "showBeforeEarned": true,
       "repeatable": false,
-      "image": {
-        "remote": {
-          "en-US": "5debd430-6d51-45d4-bad4-c9a5a9cb0491"
-        }
-      },
+      "image": "gamecenter/achievements/com.guitaripod.livingdex.ach.species_50.png",
       "localizations": {
         "en-US": {
           "name": "Fifty Species",
           "before": "Collect 50 different species.",
           "after": "Fifty species. Your Dex is starting to look like a real field guide."
+        },
+        "de-DE": {
+          "name": "Fünfzig Arten",
+          "before": "Sammle 50 verschiedene Arten.",
+          "after": "Fünfzig Arten. Dein Dex sieht langsam aus wie ein echter Feldführer."
+        },
+        "es-ES": {
+          "name": "Cincuenta especies",
+          "before": "Captura 50 especies diferentes.",
+          "after": "Cincuenta especies. Tu Dex empieza a parecer una auténtica guía de campo."
+        },
+        "fr-FR": {
+          "name": "Cinquante espèces",
+          "before": "Capture 50 espèces différentes.",
+          "after": "Cinquante espèces. Ton Dex ressemble enfin à un vrai guide de terrain."
+        },
+        "it": {
+          "name": "Cinquanta specie",
+          "before": "Cattura 50 specie diverse.",
+          "after": "Cinquanta specie. Il tuo Dex inizia a sembrare una vera guida sul campo."
+        },
+        "ja": {
+          "name": "50種発見",
+          "before": "異なる種を50種類集めよう。",
+          "after": "50種。Dexが本格的な図鑑らしくなってきた。"
+        },
+        "ko": {
+          "name": "쉰 종 달성",
+          "before": "서로 다른 생물 50종을 모으세요.",
+          "after": "50종이에요. 이제 제법 진짜 도감 같아 보여요."
+        },
+        "pl": {
+          "name": "Pięćdziesiąt gatunków",
+          "before": "Zbierz 50 różnych gatunków.",
+          "after": "Pięćdziesiąt gatunków. Twój Dex zaczyna wyglądać jak prawdziwy przewodnik terenowy."
+        },
+        "pt-BR": {
+          "name": "Cinquenta espécies",
+          "before": "Capture 50 espécies diferentes.",
+          "after": "Cinquenta espécies. Seu Dex já tem cara de guia de campo de verdade."
+        },
+        "zh-Hans": {
+          "name": "五十种物种",
+          "before": "收集 50 种不同的物种。",
+          "after": "五十种了。你的图鉴开始像一本真正的野外图鉴了。"
+        },
+        "zh-Hant": {
+          "name": "五十種物種",
+          "before": "收集 50 種不同的物種。",
+          "after": "五十種了。你的圖鑑開始像一本真正的野外圖鑑了。"
         }
       }
     },
@@ -86,16 +260,62 @@
       "points": 50,
       "showBeforeEarned": true,
       "repeatable": false,
-      "image": {
-        "remote": {
-          "en-US": "f6b2e6c5-95c6-46ac-8445-aab54b66c19e"
-        }
-      },
+      "image": "gamecenter/achievements/com.guitaripod.livingdex.ach.species_100.png",
       "localizations": {
         "en-US": {
           "name": "Centurion",
           "before": "Collect 100 different species.",
           "after": "One hundred species. Nature should be asking you for tips."
+        },
+        "de-DE": {
+          "name": "Centurion",
+          "before": "Sammle 100 verschiedene Arten.",
+          "after": "Hundert Arten. Die Natur sollte dich bald nach Tipps fragen."
+        },
+        "es-ES": {
+          "name": "Centurión",
+          "before": "Captura 100 especies diferentes.",
+          "after": "Cien especies. La naturaleza debería empezar a pedirte consejos."
+        },
+        "fr-FR": {
+          "name": "Centurion",
+          "before": "Capture 100 espèces différentes.",
+          "after": "Cent espèces. La nature devrait bientôt te demander des conseils."
+        },
+        "it": {
+          "name": "Centurione",
+          "before": "Cattura 100 specie diverse.",
+          "after": "Cento specie. La natura dovrebbe iniziare a chiederti consigli."
+        },
+        "ja": {
+          "name": "センチュリオン",
+          "before": "異なる種を100種類集めよう。",
+          "after": "100種。そろそろ自然界から攻略法を聞かれてもおかしくない。"
+        },
+        "ko": {
+          "name": "센추리온",
+          "before": "서로 다른 생물 100종을 모으세요.",
+          "after": "100종이에요. 이제 자연이 당신에게 팁을 물어볼 차례예요."
+        },
+        "pl": {
+          "name": "Centurion",
+          "before": "Zbierz 100 różnych gatunków.",
+          "after": "Sto gatunków. Natura powinna zacząć pytać cię o porady."
+        },
+        "pt-BR": {
+          "name": "Centurião",
+          "before": "Capture 100 espécies diferentes.",
+          "after": "Cem espécies. A natureza devia estar pedindo suas dicas."
+        },
+        "zh-Hans": {
+          "name": "百种达人",
+          "before": "收集 100 种不同的物种。",
+          "after": "一百种！大自然都该来向你请教了。"
+        },
+        "zh-Hant": {
+          "name": "百種達人",
+          "before": "收集 100 種不同的物種。",
+          "after": "一百種！大自然都該來向你請教了。"
         }
       }
     },
@@ -105,16 +325,62 @@
       "points": 25,
       "showBeforeEarned": true,
       "repeatable": false,
-      "image": {
-        "remote": {
-          "en-US": "6262aca3-1c08-4f22-a905-043a1c409bb4"
-        }
-      },
+      "image": "gamecenter/achievements/com.guitaripod.livingdex.ach.all_realms.png",
       "localizations": {
         "en-US": {
           "name": "All Realms",
           "before": "Catch an animal, a plant and a fungus.",
           "after": "Animal, plant and fungus: all three realms are in your Dex."
+        },
+        "de-DE": {
+          "name": "Alle Reiche",
+          "before": "Fang ein Tier, eine Pflanze und einen Pilz.",
+          "after": "Tier, Pflanze und Pilz: Alle drei Reiche stecken in deinem Dex."
+        },
+        "es-ES": {
+          "name": "Todos los reinos",
+          "before": "Captura un animal, una planta y un hongo.",
+          "after": "Animal, planta y hongo: los tres reinos están en tu Dex."
+        },
+        "fr-FR": {
+          "name": "Tous les règnes",
+          "before": "Capture un animal, une plante et un champignon.",
+          "after": "Animal, plante et champignon : les trois règnes sont dans ton Dex."
+        },
+        "it": {
+          "name": "Tutti i regni",
+          "before": "Cattura un animale, una pianta e un fungo.",
+          "after": "Animale, pianta e fungo: tutti e tre i regni sono nel tuo Dex."
+        },
+        "ja": {
+          "name": "全界制覇",
+          "before": "動物、植物、菌類をそれぞれ1つずつ捕まえよう。",
+          "after": "動物、植物、菌類。3つの界がすべてDexに揃った。"
+        },
+        "ko": {
+          "name": "모든 계 탐험",
+          "before": "동물, 식물, 균류를 하나씩 잡아보세요.",
+          "after": "동물, 식물, 균류. 세 개의 계가 모두 도감에 들어왔어요."
+        },
+        "pl": {
+          "name": "Wszystkie królestwa",
+          "before": "Złap zwierzę, roślinę i grzyba.",
+          "after": "Zwierzę, roślina i grzyb: wszystkie trzy królestwa są w twoim Dex."
+        },
+        "pt-BR": {
+          "name": "Todos os reinos",
+          "before": "Capture um animal, uma planta e um fungo.",
+          "after": "Animal, planta e fungo: os três reinos estão no seu Dex."
+        },
+        "zh-Hans": {
+          "name": "全界收集",
+          "before": "捕获一种动物、一种植物和一种真菌。",
+          "after": "动物、植物、真菌，三界都已收入你的图鉴。"
+        },
+        "zh-Hant": {
+          "name": "全界收集",
+          "before": "捕捉一種動物、一種植物和一種真菌。",
+          "after": "動物、植物、真菌，三界都已收進你的圖鑑。"
         }
       }
     },
@@ -124,16 +390,62 @@
       "points": 15,
       "showBeforeEarned": true,
       "repeatable": false,
-      "image": {
-        "remote": {
-          "en-US": "f0cf5285-59f7-43c2-b762-e56788a9d0e7"
-        }
-      },
+      "image": "gamecenter/achievements/com.guitaripod.livingdex.ach.first_rare.png",
       "localizations": {
         "en-US": {
           "name": "Rare Find",
           "before": "Find your first Rare or better species.",
           "after": "A Rare find. Not everyone spots one of those."
+        },
+        "de-DE": {
+          "name": "Seltener Fund",
+          "before": "Finde deine erste seltene oder bessere Art.",
+          "after": "Ein seltener Fund. Nicht jeder entdeckt so etwas."
+        },
+        "es-ES": {
+          "name": "Hallazgo raro",
+          "before": "Encuentra tu primera especie Rara o superior.",
+          "after": "Un hallazgo Raro. No todo el mundo se topa con uno de esos."
+        },
+        "fr-FR": {
+          "name": "Trouvaille rare",
+          "before": "Trouve ta première espèce Rare ou plus.",
+          "after": "Une trouvaille Rare. Tout le monde n'en déniche pas une."
+        },
+        "it": {
+          "name": "Ritrovamento raro",
+          "before": "Trova la tua prima specie Rara o superiore.",
+          "after": "Un ritrovamento Raro. Non capita a tutti."
+        },
+        "ja": {
+          "name": "レアの発見",
+          "before": "初めてレア以上の種を見つけよう。",
+          "after": "レアな発見。誰もが出会えるものではない。"
+        },
+        "ko": {
+          "name": "희귀 발견",
+          "before": "레어 이상 등급의 생물을 처음 찾아보세요.",
+          "after": "희귀 발견이에요. 아무나 만나는 건 아니거든요."
+        },
+        "pl": {
+          "name": "Rzadkie znalezisko",
+          "before": "Znajdź pierwszy gatunek o rzadkości Rzadki lub wyższej.",
+          "after": "Rzadkie znalezisko! Nie każdy na takie trafia."
+        },
+        "pt-BR": {
+          "name": "Achado raro",
+          "before": "Encontre sua primeira espécie Rara ou superior.",
+          "after": "Um achado Raro. Nem todo mundo encontra um desses."
+        },
+        "zh-Hans": {
+          "name": "稀有发现",
+          "before": "发现你的第一个稀有或更高级别的物种。",
+          "after": "一次稀有发现。不是每个人都能遇到。"
+        },
+        "zh-Hant": {
+          "name": "稀有發現",
+          "before": "發現你的第一個稀有或更高級別的物種。",
+          "after": "一次稀有發現。不是每個人都遇得到。"
         }
       }
     },
@@ -143,16 +455,62 @@
       "points": 40,
       "showBeforeEarned": true,
       "repeatable": false,
-      "image": {
-        "remote": {
-          "en-US": "50f7207f-9cdc-4602-9b7f-404976678766"
-        }
-      },
+      "image": "gamecenter/achievements/com.guitaripod.livingdex.ach.first_legendary.png",
       "localizations": {
         "en-US": {
           "name": "Legendary Find",
           "before": "Find your first Legendary species.",
           "after": "A Legendary find. Go tell somebody, they will not believe you."
+        },
+        "de-DE": {
+          "name": "Legendärer Fund",
+          "before": "Finde deine erste legendäre Art.",
+          "after": "Ein legendärer Fund. Erzähl es jemandem, er glaubt dir eh nicht."
+        },
+        "es-ES": {
+          "name": "Hallazgo legendario",
+          "before": "Encuentra tu primera especie Legendaria.",
+          "after": "Un hallazgo Legendario. Ve a contárselo a alguien, no te va a creer."
+        },
+        "fr-FR": {
+          "name": "Trouvaille légendaire",
+          "before": "Trouve ta première espèce Légendaire.",
+          "after": "Une trouvaille Légendaire. Va le dire à quelqu'un, il ne te croira pas."
+        },
+        "it": {
+          "name": "Ritrovamento leggendario",
+          "before": "Trova la tua prima specie Leggendaria.",
+          "after": "Un ritrovamento Leggendario. Vai a dirlo a qualcuno, non ti crederà."
+        },
+        "ja": {
+          "name": "レジェンドの発見",
+          "before": "初めてレジェンダリーの種を見つけよう。",
+          "after": "伝説級の発見。誰かに自慢しよう、きっと信じてもらえない。"
+        },
+        "ko": {
+          "name": "전설 발견",
+          "before": "레전더리 등급의 생물을 처음 찾아보세요.",
+          "after": "전설급 발견이에요. 누군가에게 자랑해 보세요, 아마 안 믿을 거예요."
+        },
+        "pl": {
+          "name": "Legendarne znalezisko",
+          "before": "Znajdź pierwszy gatunek o rzadkości Legendarny.",
+          "after": "Legendarne znalezisko! Leć komuś powiedzieć, i tak nie uwierzy."
+        },
+        "pt-BR": {
+          "name": "Achado lendário",
+          "before": "Encontre sua primeira espécie Lendária.",
+          "after": "Um achado Lendário! Vai contar pra alguém, ninguém vai acreditar."
+        },
+        "zh-Hans": {
+          "name": "传说发现",
+          "before": "发现你的第一个传说级物种。",
+          "after": "传说级发现！快去告诉别人，他们肯定不信。"
+        },
+        "zh-Hant": {
+          "name": "傳說發現",
+          "before": "發現你的第一個傳說級物種。",
+          "after": "傳說級發現！快去告訴別人，他們肯定不信。"
         }
       }
     },
@@ -162,16 +520,62 @@
       "points": 25,
       "showBeforeEarned": true,
       "repeatable": false,
-      "image": {
-        "remote": {
-          "en-US": "e262ba89-c8ee-4b45-83d6-45ec8c337ff1"
-        }
-      },
+      "image": "gamecenter/achievements/com.guitaripod.livingdex.ach.streak_7.png",
       "localizations": {
         "en-US": {
           "name": "Week Streak",
           "before": "Catch something every day for 7 days in a row.",
           "after": "Seven days in a row. The wild never sleeps and neither do you."
+        },
+        "de-DE": {
+          "name": "Wochenserie",
+          "before": "Fang sieben Tage in Folge jeden Tag etwas.",
+          "after": "Sieben Tage am Stück. Die Wildnis schläft nie, und du auch nicht."
+        },
+        "es-ES": {
+          "name": "Racha semanal",
+          "before": "Captura algo cada día durante 7 días seguidos.",
+          "after": "Siete días seguidos. La naturaleza no duerme y tú tampoco."
+        },
+        "fr-FR": {
+          "name": "Série hebdomadaire",
+          "before": "Capture quelque chose chaque jour pendant 7 jours d'affilée.",
+          "after": "Sept jours d'affilée. La nature ne dort jamais, et toi non plus."
+        },
+        "it": {
+          "name": "Serie settimanale",
+          "before": "Cattura qualcosa ogni giorno per 7 giorni di fila.",
+          "after": "Sette giorni di fila. La natura non dorme mai, e nemmeno tu."
+        },
+        "ja": {
+          "name": "週間連続",
+          "before": "7日間連続で毎日何かを捕まえよう。",
+          "after": "7日連続。野生は眠らないし、あなたも眠らない。"
+        },
+        "ko": {
+          "name": "주간 연속",
+          "before": "7일 연속으로 매일 무언가를 잡아보세요.",
+          "after": "7일 연속이에요. 야생은 잠들지 않고, 당신도 그렇네요."
+        },
+        "pl": {
+          "name": "Tygodniowa seria",
+          "before": "Łap coś każdego dnia przez 7 dni z rzędu.",
+          "after": "Siedem dni z rzędu. Dzicz nigdy nie śpi i ty też nie."
+        },
+        "pt-BR": {
+          "name": "Sequência semanal",
+          "before": "Capture algo todo dia por 7 dias seguidos.",
+          "after": "Sete dias seguidos. A natureza não dorme, e você também não."
+        },
+        "zh-Hans": {
+          "name": "连续一周",
+          "before": "连续 7 天每天都捕获到东西。",
+          "after": "连续七天。野外从不休息，你也没有。"
+        },
+        "zh-Hant": {
+          "name": "連續一週",
+          "before": "連續 7 天每天都捕捉到東西。",
+          "after": "連續七天。野外從不休息，你也沒有。"
         }
       }
     }

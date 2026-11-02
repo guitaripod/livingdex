@@ -1,0 +1,447 @@
+{
+  "version": 1,
+  "subscriptionGroups": [
+    {
+      "referenceName": "Living Dex Pro",
+      "localizations": {
+        "de-DE": {
+          "name": "Living Dex Pro",
+          "customAppName": "Living Dex"
+        },
+        "en-US": {
+          "name": "Living Dex Pro",
+          "customAppName": "Living Dex"
+        },
+        "es-ES": {
+          "name": "Living Dex Pro",
+          "customAppName": "Living Dex"
+        },
+        "fr-FR": {
+          "name": "Living Dex Pro",
+          "customAppName": "Living Dex"
+        },
+        "it": {
+          "name": "Living Dex Pro",
+          "customAppName": "Living Dex"
+        },
+        "ja": {
+          "name": "Living Dex Pro",
+          "customAppName": "Living Dex"
+        },
+        "ko": {
+          "name": "Living Dex Pro",
+          "customAppName": "Living Dex"
+        },
+        "pl": {
+          "name": "Living Dex Pro",
+          "customAppName": "Living Dex"
+        },
+        "pt-BR": {
+          "name": "Living Dex Pro",
+          "customAppName": "Living Dex"
+        },
+        "zh-Hans": {
+          "name": "Living Dex Pro",
+          "customAppName": "Living Dex"
+        },
+        "zh-Hant": {
+          "name": "Living Dex Pro",
+          "customAppName": "Living Dex"
+        }
+      },
+      "subscriptions": [
+        {
+          "productId": "com.guitaripod.livingdex.pro.annual",
+          "referenceName": "Living Dex Pro Annual",
+          "duration": "ONE_YEAR",
+          "groupLevel": 1,
+          "familySharable": false,
+          "price": {
+            "territory": "USA",
+            "amount": "29.99"
+          },
+          "introductoryOffers": [],
+          "localizations": {
+            "de-DE": {
+              "name": "Living Dex Pro Jährlich",
+              "description": "Unbegrenzte Cloud-Bestimmungen, jährliche Abrechnung"
+            },
+            "en-US": {
+              "name": "Living Dex Pro Annual",
+              "description": "Unlimited cloud identifications, billed yearly"
+            },
+            "es-ES": {
+              "name": "Living Dex Pro Anual",
+              "description": "Identificaciones ilimitadas, facturación anual"
+            },
+            "fr-FR": {
+              "name": "Living Dex Pro Annuel",
+              "description": "Identifications illimitées, facturation annuelle"
+            },
+            "it": {
+              "name": "Living Dex Pro Annuale",
+              "description": "Identificazioni illimitate, fatturazione annuale"
+            },
+            "ja": {
+              "name": "Living Dex Pro 年額",
+              "description": "クラウド判定が無制限、年払い"
+            },
+            "ko": {
+              "name": "Living Dex Pro 연간",
+              "description": "클라우드 식별 무제한, 연간 결제"
+            },
+            "pl": {
+              "name": "Living Dex Pro Rocznie",
+              "description": "Bez limitu identyfikacji, płatność roczna"
+            },
+            "pt-BR": {
+              "name": "Living Dex Pro Anual",
+              "description": "Identificações ilimitadas, cobrança anual"
+            },
+            "zh-Hans": {
+              "name": "Living Dex Pro 年度",
+              "description": "无限次云端识别，按年计费"
+            },
+            "zh-Hant": {
+              "name": "Living Dex Pro 年度",
+              "description": "無限次雲端辨識，按年計費"
+            }
+          },
+          "reviewScreenshotMd5": "508bb04cabaa06b5bdf056c0c15f538b",
+          "reviewNote": ""
+        },
+        {
+          "productId": "com.guitaripod.livingdex.pro.monthly",
+          "referenceName": "Living Dex Pro Monthly",
+          "duration": "ONE_MONTH",
+          "groupLevel": 1,
+          "familySharable": false,
+          "price": {
+            "territory": "USA",
+            "amount": "4.99"
+          },
+          "introductoryOffers": [],
+          "localizations": {
+            "de-DE": {
+              "name": "Living Dex Pro Monatlich",
+              "description": "Unbegrenzte Cloud-Bestimmungen, monatliche Abrechnung"
+            },
+            "en-US": {
+              "name": "Living Dex Pro Monthly",
+              "description": "Unlimited cloud identifications, billed monthly"
+            },
+            "es-ES": {
+              "name": "Living Dex Pro Mensual",
+              "description": "Identificaciones ilimitadas, facturación mensual"
+            },
+            "fr-FR": {
+              "name": "Living Dex Pro Mensuel",
+              "description": "Identifications illimitées, facturation mensuelle"
+            },
+            "it": {
+              "name": "Living Dex Pro Mensile",
+              "description": "Identificazioni illimitate, fatturazione mensile"
+            },
+            "ja": {
+              "name": "Living Dex Pro 月額",
+              "description": "クラウド判定が無制限、月払い"
+            },
+            "ko": {
+              "name": "Living Dex Pro 월간",
+              "description": "클라우드 식별 무제한, 월간 결제"
+            },
+            "pl": {
+              "name": "Living Dex Pro Miesięcznie",
+              "description": "Bez limitu identyfikacji, płatność miesięczna"
+            },
+            "pt-BR": {
+              "name": "Living Dex Pro Mensal",
+              "description": "Identificações ilimitadas, cobrança mensal"
+            },
+            "zh-Hans": {
+              "name": "Living Dex Pro 月度",
+              "description": "无限次云端识别，按月计费"
+            },
+            "zh-Hant": {
+              "name": "Living Dex Pro 月度",
+              "description": "無限次雲端辨識，按月計費"
+            }
+          },
+          "reviewScreenshotMd5": "508bb04cabaa06b5bdf056c0c15f538b",
+          "reviewNote": ""
+        }
+      ]
+    }
+  ],
+  "inAppPurchases": [
+    {
+      "productId": "com.guitaripod.livingdex.credits.propack",
+      "type": "CONSUMABLE",
+      "referenceName": "Credits Explorer 1200",
+      "price": {
+        "territory": "USA",
+        "amount": "24.99"
+      },
+      "localizations": {
+        "de-DE": {
+          "name": "Entdecker · 1200 Credits",
+          "description": "1.200 Bestimmungen für unermüdliche Sammler."
+        },
+        "en-US": {
+          "name": "Explorer · 1200 Credits",
+          "description": "1,200 identifications for the relentless collector."
+        },
+        "es-ES": {
+          "name": "Explorador · 1200 créditos",
+          "description": "1200 identificaciones para coleccionistas incansables."
+        },
+        "fr-FR": {
+          "name": "Explorateur · 1200 crédits",
+          "description": "1 200 identifications pour collectionneurs acharnés."
+        },
+        "it": {
+          "name": "Esploratore · 1200 crediti",
+          "description": "1.200 identificazioni per collezionisti instancabili."
+        },
+        "ja": {
+          "name": "エクスプローラー · 1200 クレジット",
+          "description": "飽くなきコレクターのための 1,200 回の判定。"
+        },
+        "ko": {
+          "name": "탐험가 · 1200 크레딧",
+          "description": "지칠 줄 모르는 수집가를 위한 1,200회 식별."
+        },
+        "pl": {
+          "name": "Odkrywca · 1200 kredytów",
+          "description": "1200 identyfikacji dla niestrudzonych kolekcjonerów."
+        },
+        "pt-BR": {
+          "name": "Explorador · 1200 créditos",
+          "description": "1.200 identificações para colecionadores incansáveis."
+        },
+        "zh-Hans": {
+          "name": "探险家 · 1200 点数",
+          "description": "1,200 次识别，献给执着的收藏家。"
+        },
+        "zh-Hant": {
+          "name": "探險家 · 1200 點數",
+          "description": "1,200 次辨識，獻給執著的收藏家。"
+        }
+      },
+      "reviewScreenshotMd5": "324a609b6e34bd3bdac08b22f522fcc6"
+    },
+    {
+      "productId": "com.guitaripod.livingdex.credits.regular",
+      "type": "CONSUMABLE",
+      "referenceName": "Credits Regular 400",
+      "price": {
+        "territory": "USA",
+        "amount": "9.99"
+      },
+      "localizations": {
+        "de-DE": {
+          "name": "Regulär · 400 Credits",
+          "description": "400 Bestimmungen, eine Saison voller Entdeckungen."
+        },
+        "en-US": {
+          "name": "Regular · 400 Credits",
+          "description": "400 identifications, a season of discovery."
+        },
+        "es-ES": {
+          "name": "Habitual · 400 créditos",
+          "description": "400 identificaciones, una temporada de hallazgos."
+        },
+        "fr-FR": {
+          "name": "Régulier · 400 crédits",
+          "description": "400 identifications, une saison de découvertes."
+        },
+        "it": {
+          "name": "Regolare · 400 crediti",
+          "description": "400 identificazioni, una stagione di scoperte."
+        },
+        "ja": {
+          "name": "レギュラー · 400 クレジット",
+          "description": "400 回の判定で、季節まるごと発見を。"
+        },
+        "ko": {
+          "name": "레귤러 · 400 크레딧",
+          "description": "400회 식별, 한 계절의 발견."
+        },
+        "pl": {
+          "name": "Regularny · 400 kredytów",
+          "description": "400 identyfikacji, cały sezon odkryć."
+        },
+        "pt-BR": {
+          "name": "Regular · 400 créditos",
+          "description": "400 identificações, uma temporada de descobertas."
+        },
+        "zh-Hans": {
+          "name": "常规 · 400 点数",
+          "description": "400 次识别，一整季的发现。"
+        },
+        "zh-Hant": {
+          "name": "常規 · 400 點數",
+          "description": "400 次辨識，一整季的發現。"
+        }
+      },
+      "reviewScreenshotMd5": "324a609b6e34bd3bdac08b22f522fcc6"
+    },
+    {
+      "productId": "com.guitaripod.livingdex.credits.science",
+      "type": "CONSUMABLE",
+      "referenceName": "Credits Naturalist 2600",
+      "price": {
+        "territory": "USA",
+        "amount": "49.99"
+      },
+      "localizations": {
+        "de-DE": {
+          "name": "Naturforscher · 2600 Credits",
+          "description": "2.600 Bestimmungen: Bestimme einfach alles."
+        },
+        "en-US": {
+          "name": "Naturalist · 2600 Credits",
+          "description": "2,600 identifications: identify everything."
+        },
+        "es-ES": {
+          "name": "Naturalista · 2600 créditos",
+          "description": "2600 identificaciones: identifícalo todo."
+        },
+        "fr-FR": {
+          "name": "Naturaliste · 2600 crédits",
+          "description": "2 600 identifications : identifiez tout."
+        },
+        "it": {
+          "name": "Naturalista · 2600 crediti",
+          "description": "2.600 identificazioni: identifica tutto."
+        },
+        "ja": {
+          "name": "ナチュラリスト · 2600 クレジット",
+          "description": "2,600 回の判定で、すべてを調べよう。"
+        },
+        "ko": {
+          "name": "박물학자 · 2600 크레딧",
+          "description": "2,600회 식별: 무엇이든 식별하세요."
+        },
+        "pl": {
+          "name": "Przyrodnik · 2600 kredytów",
+          "description": "2600 identyfikacji: rozpoznaj wszystko."
+        },
+        "pt-BR": {
+          "name": "Naturalista · 2600 créditos",
+          "description": "2.600 identificações: identifique tudo."
+        },
+        "zh-Hans": {
+          "name": "博物学家 · 2600 点数",
+          "description": "2,600 次识别：万物皆可识别。"
+        },
+        "zh-Hant": {
+          "name": "博物學家 · 2600 點數",
+          "description": "2,600 次辨識：萬物皆可辨識。"
+        }
+      },
+      "reviewScreenshotMd5": "324a609b6e34bd3bdac08b22f522fcc6"
+    },
+    {
+      "productId": "com.guitaripod.livingdex.credits.starter",
+      "type": "CONSUMABLE",
+      "referenceName": "Credits Starter 100",
+      "price": {
+        "territory": "USA",
+        "amount": "2.99"
+      },
+      "localizations": {
+        "de-DE": {
+          "name": "Starter · 100 Credits",
+          "description": "100 Bestimmungen."
+        },
+        "en-US": {
+          "name": "Starter · 100 Credits",
+          "description": "100 identifications."
+        },
+        "es-ES": {
+          "name": "Inicial · 100 créditos",
+          "description": "100 identificaciones."
+        },
+        "fr-FR": {
+          "name": "Débutant · 100 crédits",
+          "description": "100 identifications."
+        },
+        "it": {
+          "name": "Base · 100 crediti",
+          "description": "100 identificazioni."
+        },
+        "ja": {
+          "name": "スターター · 100 クレジット",
+          "description": "100 回の判定。"
+        },
+        "ko": {
+          "name": "스타터 · 100 크레딧",
+          "description": "100회 식별."
+        },
+        "pl": {
+          "name": "Starter · 100 kredytów",
+          "description": "100 identyfikacji."
+        },
+        "pt-BR": {
+          "name": "Inicial · 100 créditos",
+          "description": "100 identificações."
+        },
+        "zh-Hans": {
+          "name": "入门 · 100 点数",
+          "description": "100 次识别。"
+        },
+        "zh-Hant": {
+          "name": "入門 · 100 點數",
+          "description": "100 次辨識。"
+        }
+      },
+      "reviewScreenshotMd5": "324a609b6e34bd3bdac08b22f522fcc6"
+    }
+  ],
+  "revenueCat": {
+    "project": "proj9bb7bd93",
+    "secretEnv": "RC_SECRET_LIVINGDEX",
+    "entitlements": [
+      {
+        "lookupKey": "pro",
+        "productIds": [
+          "com.guitaripod.livingdex.pro.annual",
+          "com.guitaripod.livingdex.pro.monthly"
+        ]
+      }
+    ],
+    "offerings": [
+      {
+        "lookupKey": "default",
+        "isCurrent": true,
+        "packages": [
+          {
+            "lookupKey": "$rc_annual",
+            "productId": "com.guitaripod.livingdex.pro.annual"
+          },
+          {
+            "lookupKey": "$rc_monthly",
+            "productId": "com.guitaripod.livingdex.pro.monthly"
+          },
+          {
+            "lookupKey": "propack",
+            "productId": "com.guitaripod.livingdex.credits.propack"
+          },
+          {
+            "lookupKey": "regular",
+            "productId": "com.guitaripod.livingdex.credits.regular"
+          },
+          {
+            "lookupKey": "science",
+            "productId": "com.guitaripod.livingdex.credits.science"
+          },
+          {
+            "lookupKey": "starter",
+            "productId": "com.guitaripod.livingdex.credits.starter"
+          }
+        ]
+      }
+    ]
+  }
+}

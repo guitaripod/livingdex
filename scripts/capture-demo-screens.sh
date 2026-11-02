@@ -8,6 +8,7 @@ SIM=$1; APP=$2; PHOTOS=$3; OUT=$4; shift 4
 BUNDLE=com.guitaripod.livingdex
 SIMCTL=/Library/Developer/PrivateFrameworks/CoreSimulator.framework/Versions/A/Resources/bin/simctl
 SETTLE=${SETTLE:-16}
+# APP_LANGUAGE (e.g. de) and APP_LOCALE (e.g. de_DE) pick the interface language; English by default.
 
 mkdir -p "$OUT"
 "$SIMCTL" status_bar "$SIM" override --time 9:41 --batteryState charged --batteryLevel 100 \
@@ -26,7 +27,7 @@ for spec in "$@"; do
   "$SIMCTL" privacy "$SIM" grant location "$BUNDLE"
   "$SIMCTL" privacy "$SIM" grant camera "$BUNDLE"
   SIMCTL_CHILD_LIVINGDEX_DEMO="$route" SIMCTL_CHILD_LIVINGDEX_DEMO_STEP="$step" SIMCTL_CHILD_LIVINGDEX_DEMO_PHOTOS="$PHOTOS" \
-    "$SIMCTL" launch "$SIM" "$BUNDLE" -AppleLanguages "(en)" -AppleLocale en_US >/dev/null
+    "$SIMCTL" launch "$SIM" "$BUNDLE" -AppleLanguages "(${APP_LANGUAGE:-en})" -AppleLocale "${APP_LOCALE:-en_US}" >/dev/null
   sleep "$SETTLE"
   "$SIMCTL" io "$SIM" screenshot "$OUT/$name.png" >/dev/null
   echo "captured $name"

@@ -1,0 +1,717 @@
+{
+  "en-US": {
+    "field": {
+      "headline": [
+        "Point at",
+        "anything alive"
+      ],
+      "sub": "Birds, plants, bugs and fungi, named in seconds"
+    },
+    "starter": {
+      "headline": [
+        "Nothing nearby?",
+        "Pick a starter"
+      ],
+      "sub": "Every Dex begins with one real species"
+    },
+    "reveal": {
+      "headline": [
+        "Every catch",
+        "is a card"
+      ],
+      "sub": "A real rarity, from Common to Legendary"
+    },
+    "caught": {
+      "headline": [
+        "Build your",
+        "Dex"
+      ],
+      "sub": "Sort your finds across the realms of life"
+    },
+    "nearby": {
+      "headline": [
+        "Find what lives",
+        "near you"
+      ],
+      "sub": "Locked slots show what to hunt next"
+    },
+    "guide": {
+      "headline": [
+        "Meet the realms",
+        "of life"
+      ],
+      "sub": "An illustrated Field Guide, free to read"
+    },
+    "card": {
+      "headline": [
+        "Learn what",
+        "you found"
+      ],
+      "sub": "Field entries, calls and conservation status"
+    },
+    "cards": {
+      "headline": [
+        "Share a",
+        "collectible"
+      ],
+      "sub": "Trading cards worth showing off"
+    },
+    "profile": {
+      "headline": [
+        "Level up",
+        "outdoors"
+      ],
+      "sub": "Streaks, XP and a collection that grows with you"
+    }
+  },
+  "de-DE": {
+    "field": {
+      "headline": [
+        "Richte auf",
+        "alles Lebende"
+      ],
+      "sub": "Vögel, Pflanzen, Käfer, Pilze: in Sekunden benannt"
+    },
+    "starter": {
+      "headline": [
+        "Nichts in Sicht?",
+        "Starter wählen"
+      ],
+      "sub": "Jede Dex beginnt mit einer echten Art"
+    },
+    "reveal": {
+      "headline": [
+        "Jeder Fang",
+        "wird zur Karte"
+      ],
+      "sub": "Echte Seltenheit, von Häufig bis Legendär"
+    },
+    "caught": {
+      "headline": [
+        "Baue deine",
+        "Dex auf"
+      ],
+      "sub": "Sortiere deine Funde nach Reichen des Lebens"
+    },
+    "nearby": {
+      "headline": [
+        "Entdecke, was",
+        "dir nahe lebt"
+      ],
+      "sub": "Gesperrte Felder zeigen dein nächstes Ziel"
+    },
+    "guide": {
+      "headline": [
+        "Lerne die",
+        "Reiche kennen"
+      ],
+      "sub": "Illustrierter Feldführer, im Paket enthalten"
+    },
+    "card": {
+      "headline": [
+        "Erfahre, was",
+        "du entdeckt hast"
+      ],
+      "sub": "Steckbriefe, Rufe und Schutzstatus"
+    },
+    "cards": {
+      "headline": [
+        "Sammeln und",
+        "angeben"
+      ],
+      "sub": "Handelskarten, mit denen man gern angibt"
+    },
+    "profile": {
+      "headline": [
+        "Steige auf",
+        "in der Natur"
+      ],
+      "sub": "Serien, XP und eine Sammlung, die mit dir wächst"
+    }
+  },
+  "es-ES": {
+    "field": {
+      "headline": [
+        "Apunta a",
+        "todo lo vivo"
+      ],
+      "sub": "Aves, plantas, insectos y hongos, al instante"
+    },
+    "starter": {
+      "headline": [
+        "¿Nada cerca?",
+        "Elige un inicial"
+      ],
+      "sub": "Cada Dex empieza con una especie real"
+    },
+    "reveal": {
+      "headline": [
+        "Cada captura",
+        "es una carta"
+      ],
+      "sub": "Rareza real, de Común a Legendario"
+    },
+    "caught": {
+      "headline": [
+        "Completa tu",
+        "Dex"
+      ],
+      "sub": "Ordena tus hallazgos por los reinos de la vida"
+    },
+    "nearby": {
+      "headline": [
+        "Descubre qué vive",
+        "cerca de ti"
+      ],
+      "sub": "Las casillas bloqueadas muestran qué buscar después"
+    },
+    "guide": {
+      "headline": [
+        "Conoce los",
+        "reinos de la vida"
+      ],
+      "sub": "Guía de campo ilustrada, incluida"
+    },
+    "card": {
+      "headline": [
+        "Aprende qué",
+        "encontraste"
+      ],
+      "sub": "Fichas, cantos y estado de conservación"
+    },
+    "cards": {
+      "headline": [
+        "Presume de",
+        "tu coleccionable"
+      ],
+      "sub": "Cartas de colección dignas de presumir"
+    },
+    "profile": {
+      "headline": [
+        "Sube de nivel",
+        "al aire libre"
+      ],
+      "sub": "Rachas, XP y una colección que crece contigo"
+    }
+  },
+  "fr-FR": {
+    "field": {
+      "headline": [
+        "Pointez sur",
+        "tout ce qui vit"
+      ],
+      "sub": "Oiseaux, plantes, insectes, champignons, identifiés"
+    },
+    "starter": {
+      "headline": [
+        "Rien autour ?",
+        "Choisis un starter"
+      ],
+      "sub": "Chaque Dex commence par une vraie espèce"
+    },
+    "reveal": {
+      "headline": [
+        "Chaque capture",
+        "devient une carte"
+      ],
+      "sub": "Une vraie rareté, de Commune à Légendaire"
+    },
+    "caught": {
+      "headline": [
+        "Constitue ton",
+        "Dex"
+      ],
+      "sub": "Trie tes trouvailles par règnes du vivant"
+    },
+    "nearby": {
+      "headline": [
+        "Trouve ce qui vit",
+        "près de toi"
+      ],
+      "sub": "Les cases verrouillées indiquent la prochaine cible"
+    },
+    "guide": {
+      "headline": [
+        "Découvre les",
+        "règnes du vivant"
+      ],
+      "sub": "Guide de terrain illustré, inclus"
+    },
+    "card": {
+      "headline": [
+        "Apprends ce que",
+        "tu as trouvé"
+      ],
+      "sub": "Fiches, chants et statut de conservation"
+    },
+    "cards": {
+      "headline": [
+        "Collectionne",
+        "et partage"
+      ],
+      "sub": "Des cartes à collectionner qui valent le détour"
+    },
+    "profile": {
+      "headline": [
+        "Gagne en niveau",
+        "dehors"
+      ],
+      "sub": "Séries, XP et une collection qui grandit avec toi"
+    }
+  },
+  "it": {
+    "field": {
+      "headline": [
+        "Punta su",
+        "tutto ciò che vive"
+      ],
+      "sub": "Uccelli, piante, insetti, funghi: nomi in un attimo"
+    },
+    "starter": {
+      "headline": [
+        "Niente intorno?",
+        "Scegli uno starter"
+      ],
+      "sub": "Ogni Dex inizia con una specie vera"
+    },
+    "reveal": {
+      "headline": [
+        "Ogni cattura",
+        "diventa una carta"
+      ],
+      "sub": "Rarità vera, da Comune a Leggendaria"
+    },
+    "caught": {
+      "headline": [
+        "Costruisci la",
+        "tua Dex"
+      ],
+      "sub": "Ordina le scoperte tra i regni della vita"
+    },
+    "nearby": {
+      "headline": [
+        "Scopri cosa vive",
+        "vicino a te"
+      ],
+      "sub": "Gli slot bloccati mostrano la prossima caccia"
+    },
+    "guide": {
+      "headline": [
+        "Conosci i",
+        "regni della vita"
+      ],
+      "sub": "Guida sul campo illustrata, inclusa"
+    },
+    "card": {
+      "headline": [
+        "Scopri cosa",
+        "hai trovato"
+      ],
+      "sub": "Schede, versi e stato di conservazione"
+    },
+    "cards": {
+      "headline": [
+        "Collezionabili",
+        "da sfoggiare"
+      ],
+      "sub": "Carte da collezione che vale la pena mostrare"
+    },
+    "profile": {
+      "headline": [
+        "Sali di livello",
+        "all'aperto"
+      ],
+      "sub": "Serie, XP e una collezione che cresce con te"
+    }
+  },
+  "ja": {
+    "field": {
+      "headline": [
+        "生きものに",
+        "向けるだけ"
+      ],
+      "sub": "鳥、植物、虫、きのこを数秒で判定"
+    },
+    "starter": {
+      "headline": [
+        "近くに何も？",
+        "スターターを選ぼう"
+      ],
+      "sub": "すべてのDexは本物の一種から始まる"
+    },
+    "reveal": {
+      "headline": [
+        "捕まえるたび",
+        "カードになる"
+      ],
+      "sub": "本物のレア度、コモンからレジェンダリーまで"
+    },
+    "caught": {
+      "headline": [
+        "Dexを",
+        "集めよう"
+      ],
+      "sub": "発見したものを生命の界ごとに整理"
+    },
+    "nearby": {
+      "headline": [
+        "近くの生きものを",
+        "見つけよう"
+      ],
+      "sub": "空いた枠が次に狙う目標を教えてくれる"
+    },
+    "guide": {
+      "headline": [
+        "生命の界を",
+        "学ぼう"
+      ],
+      "sub": "イラスト付きのフィールドガイドも付属"
+    },
+    "card": {
+      "headline": [
+        "見つけたものを",
+        "知ろう"
+      ],
+      "sub": "図鑑解説、鳴き声、保全状況"
+    },
+    "cards": {
+      "headline": [
+        "集めて",
+        "自慢しよう"
+      ],
+      "sub": "見せびらかしたくなるトレーディングカード"
+    },
+    "profile": {
+      "headline": [
+        "外で",
+        "レベルアップ"
+      ],
+      "sub": "連続記録、XP、育っていくコレクション"
+    }
+  },
+  "ko": {
+    "field": {
+      "headline": [
+        "살아 있는 것을",
+        "겨눠 보세요"
+      ],
+      "sub": "새, 식물, 벌레, 버섯을 몇 초 만에 알아봐요"
+    },
+    "starter": {
+      "headline": [
+        "근처에 아무것도?",
+        "스타터를 고르세요"
+      ],
+      "sub": "모든 Dex는 실제 종 하나에서 시작해요"
+    },
+    "reveal": {
+      "headline": [
+        "잡을 때마다",
+        "카드가 돼요"
+      ],
+      "sub": "진짜 희귀도, 커먼에서 레전더리까지"
+    },
+    "caught": {
+      "headline": [
+        "나만의",
+        "Dex 완성"
+      ],
+      "sub": "발견한 것을 생명의 영역별로 정리해요"
+    },
+    "nearby": {
+      "headline": [
+        "가까운 생명을",
+        "찾아보세요"
+      ],
+      "sub": "잠긴 칸이 다음 사냥감을 알려줘요"
+    },
+    "guide": {
+      "headline": [
+        "생명의 영역을",
+        "알아보세요"
+      ],
+      "sub": "일러스트 야외 도감도 함께 제공돼요"
+    },
+    "card": {
+      "headline": [
+        "발견한 것을",
+        "알아보세요"
+      ],
+      "sub": "도감 설명, 울음소리, 보전 상태"
+    },
+    "cards": {
+      "headline": [
+        "수집하고",
+        "자랑하세요"
+      ],
+      "sub": "자랑할 만한 수집용 트레이딩 카드"
+    },
+    "profile": {
+      "headline": [
+        "밖에서",
+        "레벨 업"
+      ],
+      "sub": "연속 기록, XP, 함께 자라는 컬렉션"
+    }
+  },
+  "pl": {
+    "field": {
+      "headline": [
+        "Celuj w",
+        "wszystko, co żyje"
+      ],
+      "sub": "Ptaki, rośliny, owady i grzyby, nazwane w sekundy"
+    },
+    "starter": {
+      "headline": [
+        "Nic w pobliżu?",
+        "Wybierz startera"
+      ],
+      "sub": "Każde Dex zaczyna się od prawdziwego gatunku"
+    },
+    "reveal": {
+      "headline": [
+        "Każde złowienie",
+        "to karta"
+      ],
+      "sub": "Prawdziwa rzadkość, od Pospolitego po Legendarny"
+    },
+    "caught": {
+      "headline": [
+        "Zbuduj swoje",
+        "Dex"
+      ],
+      "sub": "Sortuj znaleziska według królestw życia"
+    },
+    "nearby": {
+      "headline": [
+        "Znajdź, co żyje",
+        "obok ciebie"
+      ],
+      "sub": "Zablokowane miejsca pokazują, na co polować"
+    },
+    "guide": {
+      "headline": [
+        "Poznaj królestwa",
+        "życia"
+      ],
+      "sub": "Ilustrowany przewodnik terenowy w zestawie"
+    },
+    "card": {
+      "headline": [
+        "Dowiedz się",
+        "co znalazłeś"
+      ],
+      "sub": "Opisy, głosy i status ochrony gatunku"
+    },
+    "cards": {
+      "headline": [
+        "Zbieraj karty",
+        "i chwal się"
+      ],
+      "sub": "Karty kolekcjonerskie warte pokazania"
+    },
+    "profile": {
+      "headline": [
+        "Awansuj",
+        "w terenie"
+      ],
+      "sub": "Serie, XP i kolekcja, która rośnie z tobą"
+    }
+  },
+  "pt-BR": {
+    "field": {
+      "headline": [
+        "Aponte para",
+        "tudo que vive"
+      ],
+      "sub": "Pássaros, plantas, insetos e fungos, em segundos"
+    },
+    "starter": {
+      "headline": [
+        "Nada por perto?",
+        "Escolha um inicial"
+      ],
+      "sub": "Cada Dex começa com uma espécie real"
+    },
+    "reveal": {
+      "headline": [
+        "Cada captura",
+        "vira uma carta"
+      ],
+      "sub": "Raridade real, de Comum a Lendário"
+    },
+    "caught": {
+      "headline": [
+        "Monte sua",
+        "Dex"
+      ],
+      "sub": "Organize seus achados pelos reinos da vida"
+    },
+    "nearby": {
+      "headline": [
+        "Descubra quem vive",
+        "perto de você"
+      ],
+      "sub": "Slots trancados mostram o que procurar a seguir"
+    },
+    "guide": {
+      "headline": [
+        "Conheça os",
+        "reinos da vida"
+      ],
+      "sub": "Guia de campo ilustrado, já incluso"
+    },
+    "card": {
+      "headline": [
+        "Saiba o que",
+        "você encontrou"
+      ],
+      "sub": "Fichas, cantos e status de conservação"
+    },
+    "cards": {
+      "headline": [
+        "Colecione e",
+        "exiba suas cartas"
+      ],
+      "sub": "Cartas colecionáveis que dão orgulho de mostrar"
+    },
+    "profile": {
+      "headline": [
+        "Suba de nível",
+        "lá fora"
+      ],
+      "sub": "Sequências, XP e uma coleção que cresce com você"
+    }
+  },
+  "zh-Hans": {
+    "field": {
+      "headline": [
+        "对准身边",
+        "一切生灵"
+      ],
+      "sub": "鸟类、植物、昆虫与菌类，数秒即可识别"
+    },
+    "starter": {
+      "headline": [
+        "附近没有？",
+        "选一个起始物种"
+      ],
+      "sub": "每个图鉴都从一个真实物种开始"
+    },
+    "reveal": {
+      "headline": [
+        "每次捕获",
+        "都是一张卡"
+      ],
+      "sub": "真实稀有度，从普通到传说"
+    },
+    "caught": {
+      "headline": [
+        "打造你的",
+        "Dex"
+      ],
+      "sub": "按生命王国整理你的发现"
+    },
+    "nearby": {
+      "headline": [
+        "发现身边",
+        "的生灵"
+      ],
+      "sub": "未解锁的格子提示下一个目标"
+    },
+    "guide": {
+      "headline": [
+        "认识生命",
+        "的各大王国"
+      ],
+      "sub": "图文并茂的野外图鉴，已包含在内"
+    },
+    "card": {
+      "headline": [
+        "了解你的",
+        "每项发现"
+      ],
+      "sub": "图鉴详情、叫声与保护状态"
+    },
+    "cards": {
+      "headline": [
+        "收藏卡牌",
+        "炫耀分享"
+      ],
+      "sub": "值得炫耀的收藏卡牌"
+    },
+    "profile": {
+      "headline": [
+        "在户外",
+        "升级成长"
+      ],
+      "sub": "连续记录、经验值与日益丰富的收藏"
+    }
+  },
+  "zh-Hant": {
+    "field": {
+      "headline": [
+        "對準身邊",
+        "所有生命"
+      ],
+      "sub": "鳥類、植物、昆蟲與菌類，數秒內辨識"
+    },
+    "starter": {
+      "headline": [
+        "附近沒有？",
+        "選一個起始物種"
+      ],
+      "sub": "每本圖鑑都從一個真實物種開始"
+    },
+    "reveal": {
+      "headline": [
+        "每次捕獲",
+        "都是一張卡"
+      ],
+      "sub": "真實稀有度，從普通到傳說"
+    },
+    "caught": {
+      "headline": [
+        "打造你的",
+        "Dex"
+      ],
+      "sub": "依生命六界整理你的發現"
+    },
+    "nearby": {
+      "headline": [
+        "發現身邊",
+        "的生命"
+      ],
+      "sub": "未解鎖的格子，提示下一個目標"
+    },
+    "guide": {
+      "headline": [
+        "認識生命",
+        "的各大界"
+      ],
+      "sub": "圖文並茂的野外圖鑑，已含在內"
+    },
+    "card": {
+      "headline": [
+        "了解你的",
+        "每項發現"
+      ],
+      "sub": "圖鑑說明、叫聲與保育狀態"
+    },
+    "cards": {
+      "headline": [
+        "收藏卡牌",
+        "炫耀分享"
+      ],
+      "sub": "值得炫耀的收藏卡牌"
+    },
+    "profile": {
+      "headline": [
+        "在戶外",
+        "升級成長"
+      ],
+      "sub": "連續紀錄、經驗值與日益豐富的收藏"
+    }
+  }
+}
