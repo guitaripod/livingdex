@@ -1,3 +1,4 @@
+import MidgarCore
 import UIKit
 
 /// Presents the Living Dex Pro paywall. The paywall never blocks the free Dex, so it is
@@ -12,11 +13,12 @@ enum PaywallPresenter {
         access: ProAccess = .shared,
         reason: String = "Identify without limits, anywhere life turns up.",
         shortfall: Int? = nil,
-        fixedPlans: [PaywallPlan]? = nil
+        fixedPlans: [PaywallPlan]? = nil,
+        placement: MidgarSignal.Placement = .feature
     ) {
         guard !access.isPro else { return }
         let paywall = PaywallViewController(
-            access: access, reason: reason, shortfall: shortfall, fixedPlans: fixedPlans)
+            access: access, reason: reason, shortfall: shortfall, fixedPlans: fixedPlans, placement: placement)
         let nav = UINavigationController(rootViewController: paywall)
         nav.navigationBar.tintColor = DesignSystem.Color.accent
         nav.modalPresentationStyle = .pageSheet
