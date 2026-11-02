@@ -58,7 +58,7 @@ def read_catalog(path):
 
 
 def write_catalog(path, data, ends_with_newline):
-    text = json.dumps(data, indent=2, ensure_ascii=False, separators=(",", ": "))
+    text = json.dumps(data, indent=2, ensure_ascii=False, separators=(",", " : "))
     path.write_text(text + ("\n" if ends_with_newline else ""), encoding="utf-8")
 
 
@@ -91,7 +91,16 @@ def is_complete(entry, locale):
         plural = localization.get("variations", {}).get("plural", {})
         needed = PLURAL_CATEGORIES[locale] + extra_categories(source)
         return all(plural.get(category, {}).get("stringUnit", {}).get("value", "").strip() for category in needed)
+    if has_plural_forms(localization):
+        return True
     return bool(localization.get("stringUnit", {}).get("value", "").strip())
+
+
+def has_plural_forms(localization):
+    """Whether a locale already carries its own plural forms for a key whose English is plain, which a plain
+    translation must never replace."""
+    plural = localization.get("variations", {}).get("plural", {})
+    return bool(plural) and all(inner.get("stringUnit", {}).get("value", "").strip() for inner in plural.values())
 
 
 def export(locale, arguments):
@@ -110,7 +119,9 @@ def export(locale, arguments):
 
 
 def placeholders(text):
-    return sorted(PLACEHOLDER.findall(text))
+    """The format placeholders of a string, with positions (%2$@) read as their plain form, since a translation may
+    reorder its arguments by position."""
+    return sorted(re.sub(r"^%\d+\$", "%", item) for item in PLACEHOLDER.findall(text))
 
 
 def text_problems(text, source_text, where, plural):
