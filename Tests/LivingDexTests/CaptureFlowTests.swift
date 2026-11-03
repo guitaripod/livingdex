@@ -92,6 +92,23 @@ final class CaptureFlowTests: XCTestCase {
         XCTAssertEqual(reporter.reportCount.value, 0)
     }
 
+    func testASampleIsAnsweredWithItsKnownSpeciesWhenTheCloudIsDown() async throws {
+        let sightingStore = MockSightingStore(isNew: true)
+        let flow = makeFlow(
+            identify: IdentificationResult(candidates: [], error: .serverError),
+            enrich: .resolved(enrichment()), sightingStore: sightingStore)
+        let sample = try XCTUnwrap(SampleLibrary.sample(at: 1))
+
+        let outcome = await flow.identifying(with: KnownSpeciesIdentifier(candidate: sample.species.candidate))
+            .run(image: sample.image, context: CaptureContext(), persist: false)
+
+        guard case let .minted(minted) = outcome else { return XCTFail("expected a reveal, got \(outcome)") }
+        XCTAssertEqual(minted.sighting.scientificName, "Vulpes vulpes")
+        XCTAssertEqual(minted.sighting.rarity, .rare)
+        XCTAssertFalse(minted.saved)
+        XCTAssertEqual(sightingStore.saved.value.count, 0)
+    }
+
     func testASampleStillStopsAtTheConfidenceGate() async {
         let flow = makeFlow(
             identify: IdentificationResult(candidates: [candidate(confidence: 0.1)]),

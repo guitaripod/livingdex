@@ -24,7 +24,7 @@ final class ReadyStepViewController: OnboardingStepViewController {
         let options: [(String, String, String)] = [
             ("camera.viewfinder", String(localized: "Point the camera"), String(localized: "Tap the shutter at anything alive: a bird, a bug, a mushroom, a flower.")),
             ("photo.on.rectangle", String(localized: "Nothing in reach?"), String(localized: "Choose a nature photo from your library with the photo button on the Field tab.")),
-            ("sparkles", String(localized: "Just curious?"), String(localized: "Try a sample photo to watch a real identification, no creature needed.")),
+            ("sparkles", String(localized: "Just curious?"), String(localized: "Try a sample photo to see how a catch works, no creature needed.")),
         ]
         rows = options.map(optionRow)
 

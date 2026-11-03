@@ -28,6 +28,14 @@ struct OnDeviceNarrator: Narrator {
         #endif
     }
 
+    /// True when this device runs the on-device model, so every player gets written field entries without Pro.
+    static var isAvailable: Bool {
+        #if canImport(FoundationModels)
+        if case .available = SystemLanguageModel.default.availability { return true }
+        #endif
+        return false
+    }
+
     func entry(for candidate: SpeciesCandidate, grounding: String?) async -> PokedexEntry? {
         #if canImport(FoundationModels)
         guard case .available = SystemLanguageModel.default.availability else { return nil }

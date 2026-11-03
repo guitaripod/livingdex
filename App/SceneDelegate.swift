@@ -62,8 +62,12 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             onboarding.onFinish = { [weak onboarding] in
                 AppSettings.hasOnboarded = true
                 guard let window = onboarding?.view.window else { return }
+                let root = RootViewController()
+                WelcomeOffer.hold()
                 UIView.transition(with: window, duration: 0.3, options: .transitionCrossDissolve) {
-                    window.rootViewController = RootViewController()
+                    window.rootViewController = root
+                } completion: { _ in
+                    WelcomeOffer.present(over: root)
                 }
             }
             return onboarding

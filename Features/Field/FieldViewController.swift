@@ -149,13 +149,15 @@ final class FieldViewController: UIViewController {
         #endif
         guard !didRequestPermission else { return }
         didRequestPermission = true
-        switch CameraController.authorizationStatus() {
-        case .authorized:
-            LocationProvider.shared.requestAuthorization()
-        case .notDetermined:
-            requestCameraAccess()
-        default:
-            showPermissionGate()
+        WelcomeOffer.afterOffer { [weak self] in
+            switch CameraController.authorizationStatus() {
+            case .authorized:
+                LocationProvider.shared.requestAuthorization()
+            case .notDetermined:
+                self?.requestCameraAccess()
+            default:
+                self?.showPermissionGate()
+            }
         }
     }
 
@@ -642,22 +644,30 @@ final class FieldViewController: UIViewController {
     private func trySample() {
         photoHint?.dismiss()
         guard !isBusy else { return }
-        guard let image = SampleLibrary.next() else {
+        guard let sample = SampleLibrary.next() else {
             report(String(localized: "Couldn't load the sample — try again"))
             return
         }
-        identifyImported(image, persist: false)
+        beginIdentifying()
+        Task { @MainActor in
+            let flow = captureFlow.identifying(with: KnownSpeciesIdentifier(candidate: sample.species.candidate))
+            async let outcome = flow.run(image: sample.image, context: CaptureContext(), persist: false)
+            try? await Task.sleep(for: Self.sampleBeat)
+            await render(outcome, spentCredit: false)
+        }
     }
 
-    /// Runs a library or sample photo through the same pipeline as a live capture. It
-    /// carries no location, so its rarity is judged against worldwide sightings. A sample
-    /// is shown but never saved, so it can't count as a catch.
-    private func identifyImported(_ image: UIImage, persist: Bool = true) {
+    /// The least time a sample spends identifying, so the scan reads as a scan even when its answer is already known.
+    private static let sampleBeat: Duration = .milliseconds(1100)
+
+    /// Runs a library photo through the same pipeline as a live capture. It carries no
+    /// location, so its rarity is judged against worldwide sightings.
+    private func identifyImported(_ image: UIImage) {
         guard !isBusy else { return }
         CloudConsent.ensure(from: self) { [weak self] in
             guard let self, !self.isBusy else { return }
             self.beginIdentifying()
-            Task { @MainActor in await self.process(image, context: CaptureContext(), persist: persist) }
+            Task { @MainActor in await self.process(image, context: CaptureContext(), persist: true) }
         }
     }
 
@@ -670,8 +680,13 @@ final class FieldViewController: UIViewController {
     /// Renders the outcome of the capture pipeline. All decisions and side effects
     /// happen inside `CaptureFlow.run`; the view controller only surfaces state.
     private func process(_ image: UIImage, context: CaptureContext, persist: Bool) async {
-        let outcome = await captureFlow.run(image: image, context: context, persist: persist)
-        await refreshCredits(after: outcome)
+        await render(await captureFlow.run(image: image, context: context, persist: persist), spentCredit: true)
+    }
+
+    /// Shows what a capture came to. `spentCredit` is false for a sample, which never reaches mako, so the meter
+    /// needs no new read.
+    private func render(_ outcome: CaptureOutcome, spentCredit: Bool) async {
+        if spentCredit { await refreshCredits(after: outcome) }
         switch outcome {
         case let .identifyFailed(error):
             Haptics.failure()
@@ -708,24 +723,15 @@ final class FieldViewController: UIViewController {
         await CreditsModel.shared.refresh()
     }
 
-    /// Offers the way out of the metered cap the instant an identification is refused for
-    /// want of credits: go Pro for unlimited identifications, or top up consumable credits
-    /// (the paywall passes the shortfall on to the credit store).
-    /// Silent for a user who already holds Pro (they should never hit this) — the alert
-    /// would be noise.
+    /// Opens the paywall the instant an identification is refused for want of credits: Pro for unlimited
+    /// identifications, or credits from the store it links to (the paywall passes the shortfall on). No alert in
+    /// between, which only cost a tap at the moment the player wants to keep going. Silent for a Pro player, who
+    /// should never hit this.
     private func promptGoProForCredits(shortfall: Int) {
-        guard !ProAccess.shared.isPro else { return }
-        let alert = UIAlertController(
-            title: String(localized: "Out of identifications"),
-            message: String(localized: "You've used your free identifications. Go Pro for unlimited identifications, or add credits to keep identifying."),
-            preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: String(localized: "Go Pro"), style: .default) { [weak self] _ in
-            guard let self else { return }
-            PaywallPresenter.present(
-                from: self, reason: String(localized: "You've used your free identifications."), shortfall: shortfall, placement: .limit)
-        })
-        alert.addAction(UIAlertAction(title: String(localized: "Not now"), style: .cancel))
-        present(alert, animated: true)
+        guard !ProAccess.shared.isPro, presentedViewController == nil else { return }
+        PaywallPresenter.present(
+            from: self, reason: String(localized: "You've used your free identifications."), shortfall: shortfall,
+            placement: .limit)
     }
 
     private static let lowConfidenceMessage = String(localized: "No clear living thing — get closer")

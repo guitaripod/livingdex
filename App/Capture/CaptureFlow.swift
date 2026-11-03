@@ -38,6 +38,13 @@ struct CaptureFlow: Sendable {
         self.clock = clock
     }
 
+    /// The same flow with another identifier, as a sample photo whose species is already known uses it.
+    func identifying(with identifier: any SpeciesIdentifier) -> CaptureFlow {
+        CaptureFlow(
+            identifier: identifier, enricher: enricher, imageStore: imageStore, sightingStore: sightingStore,
+            progress: progress, reporter: reporter, clock: clock)
+    }
+
     /// Runs the full loop for a captured frame and returns exactly what happened.
     /// With `persist` false (the bundled sample photos) the species is still identified and
     /// grounded for a real reveal, but nothing is saved and no XP, streak or Game Center

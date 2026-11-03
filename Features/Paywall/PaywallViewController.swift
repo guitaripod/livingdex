@@ -3,11 +3,11 @@ import MidgarCommerce
 import MidgarCore
 import UIKit
 
-/// Living Dex Pro's paywall — the naturalist's field companion tier. Shown from the
-/// Profile "Identifications" row and from the credits-exhausted capture path. Selectable plan
-/// cards where the billed price dominates, the annual default-selected, a single dynamic
-/// CTA, honest live pricing with a loading/unavailable state, and Restore / Terms /
-/// Privacy in the first screenful.
+/// Living Dex Pro's paywall — the naturalist's field companion tier, in the dark illustrated look of the first run.
+/// Shown at the end of the first run, from the Profile "Identifications" row, the Field credits meter, a growing Dex
+/// and the credits-exhausted capture path. The card fan and what Pro changes on top, selectable plan cards where the
+/// billed price dominates, the annual default-selected, a single dynamic CTA pinned with its price line, honest live
+/// pricing with a loading/unavailable state, and Restore in the bar and the footer.
 ///
 /// EDITORIAL INVARIANT: this sells exactly what Pro does — unlimited identifications.
 /// Browsing the Dex, field entries and Nearby stay free
@@ -41,6 +41,7 @@ final class PaywallViewController: UIViewController {
         return config
     }())
     private let trialNoteLabel = UILabel()
+    private lazy var hero = PaywallHeroView(reason: reason)
     private var cards: [PaywallPlanCard] = []
     private var plans: [PaywallPlan] = []
     private var selectedIndex = 0
@@ -53,7 +54,7 @@ final class PaywallViewController: UIViewController {
 
     init(
         access: ProAccess = .shared,
-        reason: String = String(localized: "Identify without limits, anywhere life turns up."),
+        reason: String = PaywallPresenter.defaultReason,
         shortfall: Int? = nil,
         fixedPlans: [PaywallPlan]? = nil,
         placement: MidgarSignal.Placement = .feature
@@ -68,6 +69,7 @@ final class PaywallViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        hero.playEntrance()
         noteShownOnce()
     }
 
@@ -83,8 +85,14 @@ final class PaywallViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemGroupedBackground
-        title = "Living Dex Pro"
+        overrideUserInterfaceStyle = .dark
+        view.backgroundColor = OnboardingStyle.ink
+        navigationItem.title = nil
+        navigationItem.backButtonTitle = "Living Dex Pro"
+        let bar = UINavigationBarAppearance()
+        bar.configureWithTransparentBackground()
+        navigationItem.standardAppearance = bar
+        navigationItem.scrollEdgeAppearance = bar
         navigationItem.leftBarButtonItem = UIBarButtonItem(
             systemItem: .close,
             primaryAction: UIAction { [weak self] _ in self?.dismissPaywall() })
@@ -97,172 +105,95 @@ final class PaywallViewController: UIViewController {
         MidgarLog.info("paywall shown reason=\(reason)", category: .credits)
     }
 
+    /// The illustrated backdrop of the first run, a scrolling column (the hero, the plans and the fine print) and,
+    /// pinned beneath it, the purchase bar, so the button and its price line are on screen at every scroll position.
     private func layoutContent() {
+        let backdrop = OnboardingBackdropView()
+        view.addSubview(backdrop)
+        backdrop.pinEdges(to: view)
+        backdrop.show(art: "realm-animals", animated: false)
+
         scrollView.alwaysBounceVertical = true
+        scrollView.contentInsetAdjustmentBehavior = .never
         view.addSubview(scrollView)
 
         cardsStack.axis = .vertical
         cardsStack.alignment = .fill
         cardsStack.spacing = DesignSystem.Spacing.s
 
-        ctaButton.addTarget(self, action: #selector(didTapCTA), for: .touchUpInside)
-        ctaButton.titleLabel?.adjustsFontForContentSizeCategory = true
-
-        trialNoteLabel.font = .preferredFont(forTextStyle: .footnote)
-        trialNoteLabel.adjustsFontForContentSizeCategory = true
-        trialNoteLabel.textColor = .secondaryLabel
-        trialNoteLabel.numberOfLines = 0
-        trialNoteLabel.textAlignment = .center
-
         let column = UIStackView(arrangedSubviews: [
-            makeHeader(),
-            makeBenefits(),
-            makeFreeCoreNote(),
+            hero,
             cardsStack,
-            ctaButton,
-            trialNoteLabel,
+            makeFreeCoreNote(),
             makeAutoRenewDisclosure(),
             makeCreditsLink(),
             makeLegalFooter(),
         ])
         column.axis = .vertical
         column.alignment = .fill
-        column.spacing = DesignSystem.Spacing.l
-        column.setCustomSpacing(DesignSystem.Spacing.m, after: cardsStack)
-        column.setCustomSpacing(DesignSystem.Spacing.m, after: ctaButton)
-        column.setCustomSpacing(DesignSystem.Spacing.s, after: trialNoteLabel)
+        column.spacing = DesignSystem.Spacing.m
+        column.setCustomSpacing(DesignSystem.Spacing.l, after: hero)
         scrollView.addSubview(column)
+
+        let purchaseBar = makePurchaseBar()
+        view.addSubview(purchaseBar)
 
         _ = ScrollColumn(
             content: column, in: scrollView, of: view, margin: DesignSystem.Spacing.l,
-            maxWidth: Self.columnWidth, top: DesignSystem.Spacing.l, bottom: DesignSystem.Spacing.l)
+            maxWidth: Self.columnWidth, top: DesignSystem.Spacing.s, bottom: DesignSystem.Spacing.l)
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            scrollView.bottomAnchor.constraint(equalTo: purchaseBar.topAnchor),
+            purchaseBar.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            purchaseBar.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            purchaseBar.bottomAnchor.constraint(equalTo: view.bottomAnchor),
         ])
     }
 
-    private func makeHeader() -> UIView {
-        let eyebrow = UILabel()
-        eyebrow.font = .preferredFont(forTextStyle: .caption1)
-        eyebrow.adjustsFontForContentSizeCategory = true
-        eyebrow.textColor = DesignSystem.Color.accent
-        let brand = "LIVING DEX PRO"
-        eyebrow.attributedText = NSAttributedString(string: brand, attributes: [.kern: 1.4])
+    /// The button and the price line it commits to, over a fade into the ink so the column scrolls out beneath it.
+    private func makePurchaseBar() -> UIView {
+        ctaButton.addTarget(self, action: #selector(didTapCTA), for: .touchUpInside)
+        ctaButton.titleLabel?.adjustsFontForContentSizeCategory = true
+        ctaButton.configuration?.cornerStyle = .capsule
+        ctaButton.configuration?.baseBackgroundColor = OnboardingStyle.accent
+        ctaButton.configuration?.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
+            var attributes = attributes
+            attributes.font = OnboardingStyle.font(.headline, weight: .bold)
+            return attributes
+        }
 
-        let title = UILabel()
-        title.font = {
-            let base = UIFont.preferredFont(forTextStyle: .largeTitle)
-            let d = base.fontDescriptor.withSymbolicTraits(.traitBold) ?? base.fontDescriptor
-            return UIFont(descriptor: d, size: 0)
-        }()
-        title.adjustsFontForContentSizeCategory = true
-        title.textColor = .label
-        title.numberOfLines = 0
-        title.text = String(localized: "Identify without limits.")
+        trialNoteLabel.font = OnboardingStyle.font(.footnote)
+        trialNoteLabel.adjustsFontForContentSizeCategory = true
+        trialNoteLabel.textColor = UIColor.white.withAlphaComponent(0.7)
+        trialNoteLabel.numberOfLines = 0
+        trialNoteLabel.textAlignment = .center
 
-        let subtitle = UILabel()
-        subtitle.font = .preferredFont(forTextStyle: .body)
-        subtitle.adjustsFontForContentSizeCategory = true
-        subtitle.textColor = .secondaryLabel
-        subtitle.numberOfLines = 0
-        subtitle.text = String(localized: "\(reason) Pro makes every identification unlimited — no credits to count, no meter to watch.")
-
-        let stack = UIStackView(arrangedSubviews: [eyebrow, title, subtitle])
+        let stack = UIStackView(arrangedSubviews: [ctaButton, trialNoteLabel])
         stack.axis = .vertical
-        stack.alignment = .fill
         stack.spacing = DesignSystem.Spacing.s
-        return stack
-    }
+        stack.translatesAutoresizingMaskIntoConstraints = false
 
-    private func makeBenefits() -> UIView {
-        let rows: [(String, String, String)] = [
-            ("sparkles", String(localized: "Unlimited identifications"),
-             String(localized: "Point at anything alive and identify it as often as you like — no credit balance to top up.")),
-            ("square.grid.2x2.fill", String(localized: "Your Dex is always free"),
-             String(localized: "Browsing your collection, the Nearby list, field entries and Game Center never need Pro.")),
-        ]
-        let stack = UIStackView(arrangedSubviews: rows.map(benefitRow))
-        stack.axis = .vertical
-        stack.alignment = .fill
-        stack.spacing = DesignSystem.Spacing.m
-        return stack
-    }
-
-    private func benefitRow(symbol: String, title: String, detail: String) -> UIView {
-        let glyph = UIImageView(image: UIImage(systemName: symbol))
-        glyph.tintColor = DesignSystem.Color.accent
-        glyph.contentMode = .scaleAspectFit
-        glyph.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 18, weight: .semibold)
-        glyph.setContentHuggingPriority(.required, for: .horizontal)
-        glyph.widthAnchor.constraint(equalToConstant: 28).isActive = true
-
-        let titleLabel = UILabel()
-        titleLabel.font = .preferredFont(forTextStyle: .callout)
-        titleLabel.adjustsFontForContentSizeCategory = true
-        titleLabel.textColor = .label
-        titleLabel.numberOfLines = 0
-        titleLabel.text = title
-
-        let detailLabel = UILabel()
-        detailLabel.font = .preferredFont(forTextStyle: .footnote)
-        detailLabel.adjustsFontForContentSizeCategory = true
-        detailLabel.textColor = .secondaryLabel
-        detailLabel.numberOfLines = 0
-        detailLabel.text = detail
-
-        let text = UIStackView(arrangedSubviews: [titleLabel, detailLabel])
-        text.axis = .vertical
-        text.alignment = .leading
-        text.spacing = 2
-
-        let row = UIStackView(arrangedSubviews: [glyph, text])
-        row.axis = .horizontal
-        row.alignment = .top
-        row.spacing = DesignSystem.Spacing.m
-        row.isAccessibilityElement = true
-        row.accessibilityLabel = String(localized: "\(title). \(detail)")
-        return row
-    }
-
-    private func makeFreeCoreNote() -> UIView {
-        let glyph = UIImageView(image: UIImage(systemName: "checkmark.seal.fill"))
-        glyph.tintColor = DesignSystem.Color.accent
-        glyph.contentMode = .scaleAspectFit
-        glyph.preferredSymbolConfiguration = UIImage.SymbolConfiguration(pointSize: 18, weight: .semibold)
-        glyph.setContentHuggingPriority(.required, for: .horizontal)
-
-        let label = UILabel()
-        label.font = .preferredFont(forTextStyle: .footnote)
-        label.adjustsFontForContentSizeCategory = true
-        label.textColor = .secondaryLabel
-        label.numberOfLines = 0
-        label.text = String(localized: "Every device starts with 30 free identifications. Pro is for people who identify a lot — everything you collect stays yours either way.")
-
-        let row = UIStackView(arrangedSubviews: [glyph, label])
-        row.axis = .horizontal
-        row.alignment = .top
-        row.spacing = DesignSystem.Spacing.s
-        row.isLayoutMarginsRelativeArrangement = true
-        row.layoutMargins = UIEdgeInsets(
-            top: DesignSystem.Spacing.m, left: DesignSystem.Spacing.m,
-            bottom: DesignSystem.Spacing.m, right: DesignSystem.Spacing.m)
-        row.isAccessibilityElement = true
-        row.accessibilityLabel = label.text
-
-        let container = UIView()
-        container.backgroundColor = .secondarySystemGroupedBackground
-        container.layer.cornerRadius = DesignSystem.Radius.control
-        container.layer.cornerCurve = .continuous
-        row.translatesAutoresizingMaskIntoConstraints = false
-        container.addSubview(row)
+        let bar = PurchaseBarView()
+        bar.translatesAutoresizingMaskIntoConstraints = false
+        bar.addSubview(stack)
+        let width = stack.widthAnchor.constraint(equalTo: bar.widthAnchor, constant: -DesignSystem.Spacing.l * 2)
+        width.priority = .defaultHigh
         NSLayoutConstraint.activate([
-            row.topAnchor.constraint(equalTo: container.topAnchor),
-            row.bottomAnchor.constraint(equalTo: container.bottomAnchor),
-            row.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            row.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            stack.topAnchor.constraint(equalTo: bar.topAnchor, constant: DesignSystem.Spacing.m),
+            stack.centerXAnchor.constraint(equalTo: bar.centerXAnchor),
+            stack.widthAnchor.constraint(lessThanOrEqualToConstant: Self.columnWidth),
+            width,
+            stack.bottomAnchor.constraint(equalTo: bar.safeAreaLayoutGuide.bottomAnchor, constant: -DesignSystem.Spacing.s),
         ])
-        return container
+        return bar
+    }
+
+    /// The reassurance beside the price: what stays free, and the free allowance every device starts with.
+    private func makeFreeCoreNote() -> UIView {
+        let label = OnboardingStyle.label(
+            String(localized: "Your Dex, Nearby and field entries stay free. Every device starts with 30 free identifications, and everything you catch stays yours."),
+            style: .footnote, color: UIColor.white.withAlphaComponent(0.6), alignment: .center)
+        return label
     }
 
     /// Loads the plans from StoreKit. A failure, or a store that sells none, is the honest unavailable state with a
@@ -586,4 +517,23 @@ final class PaywallViewController: UIViewController {
             dismiss(animated: true)
         }
     }
+}
+
+/// The pinned purchase bar's ground: the ink fading in over the column that scrolls beneath it.
+private final class PurchaseBarView: UIView {
+    override class var layerClass: AnyClass { CAGradientLayer.self }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        guard let gradient = layer as? CAGradientLayer else { return }
+        gradient.colors = [
+            OnboardingStyle.ink.withAlphaComponent(0).cgColor,
+            OnboardingStyle.ink.withAlphaComponent(0.94).cgColor,
+            OnboardingStyle.ink.cgColor,
+        ]
+        gradient.locations = [0, 0.22, 1]
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError() }
 }

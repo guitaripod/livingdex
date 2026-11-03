@@ -183,12 +183,12 @@ final class FloatingCardView: UIView {
         plate.font = OnboardingStyle.font(.subheadline, weight: .heavy)
         plate.textColor = .white
         plate.adjustsFontSizeToFitWidth = true
-        plate.minimumScaleFactor = 0.7
+        plate.minimumScaleFactor = 0.45
         plate.translatesAutoresizingMaskIntoConstraints = false
         addSubview(plate)
         NSLayoutConstraint.activate([
-            plate.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
-            plate.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
+            plate.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
+            plate.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
             plate.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -12),
         ])
     }

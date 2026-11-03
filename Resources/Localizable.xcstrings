@@ -65,70 +65,6 @@
         }
       }
     },
-    "%@ Pro makes every identification unlimited — no credits to count, no meter to watch." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Pro macht jede Identifizierung unbegrenzt: keine Credits zählen, kein Zähler im Blick."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Con %@ Pro, todas las identificaciones son ilimitadas: sin créditos que contar ni contador que vigilar."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Pro rend chaque identification illimitée : plus de crédits à compter, plus de compteur à surveiller."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Con %@ Pro ogni identificazione è illimitata: niente crediti da contare, nessun contatore da controllare."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Pro なら識別し放題です。数えるクレジットも、気にするメーターもありません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Pro를 쓰면 모든 식별이 무제한이에요. 셀 크레딧도, 확인할 잔량도 없어요."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Pro sprawia, że każda identyfikacja jest nieograniczona, bez liczenia kredytów i pilnowania licznika."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Pro torna cada identificação ilimitada, sem créditos para contar nem medidor para acompanhar."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Pro 让每次识别都不受限制，无需计算积分，也无需留意余额。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ Pro 讓每次識別都不受限制，不必計算點數，也不必留意餘額。"
-          }
-        }
-      }
-    },
     "%@ species" : {
       "localizations" : {
         "de" : {
@@ -2349,6 +2285,70 @@
         }
       }
     },
+    "A blur or a bird that flew off? Just shoot again." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwackelt oder der Vogel ist weggeflogen? Einfach noch mal auslösen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Salió borrosa o el pájaro se fue volando? Dispara otra vez."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photo floue ou oiseau envolé ? Reprenez simplement la photo."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foto mossa o l'uccello è volato via? Scatta di nuovo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ブレた？鳥が飛んでいった？もう一度撮るだけです。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "흔들렸거나 새가 날아갔나요? 다시 찍으면 돼요."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rozmazane albo ptak odleciał? Po prostu zrób zdjęcie jeszcze raz."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ficou tremida ou o pássaro voou? É só fotografar de novo."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拍糊了，或者鸟飞走了？再拍一张就好。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拍糊了，或是鳥飛走了？再拍一張就好。"
+          }
+        }
+      }
+    },
     "A bold black-capped songbird with a bright yellow breast, quick to find a feeder and famous for its two-note teacher-teacher call.\n\n• Learns new feeding tricks from other birds\n• Stores seeds for the lean winter months\n• Nests in tree holes and nest boxes" : {
       "localizations" : {
         "de" : {
@@ -2729,6 +2729,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "窗臺上的蕨類或室內植物"
+          }
+        }
+      }
+    },
+    "A field entry for every catch" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein Feldeintrag für jeden Fang"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una ficha de campo para cada captura"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Une fiche de terrain pour chaque capture"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una scheda sul campo per ogni cattura"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "すべての捕獲にフィールドの記録"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "모든 포획에 필드 기록"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wpis terenowy dla każdego złapanego okazu"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uma entrada de campo para cada captura"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次捕获都有野外条目"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次捕獲都有野外條目"
           }
         }
       }
@@ -5225,70 +5289,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "樹幹上的多孔菌（層孔菌）"
-          }
-        }
-      }
-    },
-    "Browsing your collection, the Nearby list, field entries and Game Center never need Pro." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Das Durchsehen deiner Sammlung, des Reiters „In der Nähe“, der Feldeinträge und von Game Center benötigt nie Pro."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Explorar tu colección, la lista Cercanos, las fichas de campo y Game Center nunca requieren Pro."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Parcourir votre collection, l'onglet « À proximité », les fiches de terrain et Game Center n'exigent jamais Pro."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sfogliare la tua collezione, l'elenco Vicino a te, le schede sul campo e Game Center non richiedono mai Pro."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "コレクション、「近く」の一覧、フィールドの記録、Game Center の閲覧には Pro は不要です。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "컬렉션, '주변' 목록, 필드 기록, Game Center는 둘러볼 때 Pro가 필요하지 않아요."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Przeglądanie kolekcji, listy W pobliżu, wpisów terenowych i Game Center nigdy nie wymaga Pro."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Navegar pela sua coleção, pela lista Por perto, pelas entradas de campo e pelo Game Center nunca exige o Pro."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "浏览你的收藏、“附近”列表、野外条目和 Game Center 永远无需 Pro。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "瀏覽你的收藏、「附近」列表、野外條目和 Game Center 永遠不需要 Pro。"
           }
         }
       }
@@ -9325,6 +9325,70 @@
         }
       }
     },
+    "Every bird on the walk, every bug in the garden. No credits to count." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jeder Vogel beim Spaziergang, jeder Käfer im Garten. Keine Credits zu zählen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada pájaro del paseo, cada bicho del jardín. Sin créditos que contar."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chaque oiseau de la balade, chaque insecte du jardin. Aucun crédit à compter."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ogni uccello della passeggiata, ogni insetto del giardino. Nessun credito da contare."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "散歩で見かける鳥も、庭の虫も全部。クレジットを数える必要はありません。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "산책길의 모든 새, 정원의 모든 벌레까지. 크레딧을 셀 필요가 없어요."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Każdy ptak na spacerze, każdy owad w ogrodzie. Bez liczenia kredytów."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cada pássaro na caminhada, cada inseto no jardim. Sem créditos para contar."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "散步时的每一只鸟，花园里的每一只虫。无需计算积分。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "散步時的每一隻鳥，花園裡的每一隻蟲。無需計算點數。"
+          }
+        }
+      }
+    },
     "Every Dex begins with one real species. Swipe, then pick the one that calls to you." : {
       "localizations" : {
         "de" : {
@@ -9513,70 +9577,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "每台裝置起始贈送 30 次免費識別。"
-          }
-        }
-      }
-    },
-    "Every device starts with 30 free identifications. Pro is for people who identify a lot — everything you collect stays yours either way." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Jedes Gerät startet mit 30 kostenlosen Identifizierungen. Pro ist für Leute gedacht, die viel identifizieren. Alles, was du sammelst, bleibt in jedem Fall deins."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cada dispositivo empieza con 30 identificaciones gratuitas. Pro es para quien identifica mucho; lo que coleccionas sigue siendo tuyo en cualquier caso."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Chaque appareil commence avec 30 identifications gratuites. Pro est destiné aux personnes qui identifient beaucoup. Tout ce que vous collectez vous appartient dans tous les cas."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ogni dispositivo inizia con 30 identificazioni gratuite. Pro è pensato per chi identifica molto: tutto ciò che collezioni resta tuo in ogni caso."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "どの端末も最初に無料で30回識別できます。Pro は識別をたくさん行う人向けです。集めたものは、どちらを選んでもあなたのものです。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "모든 기기는 무료 식별 30회로 시작해요. Pro는 식별을 많이 하는 분들을 위한 옵션이에요. 모은 것은 어느 쪽을 선택하든 계속 여러분의 것이에요."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Każde urządzenie zaczyna z 30 darmowymi identyfikacjami. Pro jest dla tych, którzy identyfikują dużo: wszystko, co zbierzesz, i tak pozostaje Twoje."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Todo dispositivo começa com 30 identificações grátis. O Pro é para quem identifica muito: tudo o que você coleciona continua sendo seu, de qualquer forma."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每台设备起始赠送 30 次免费识别。Pro 适合经常识别的用户，无论哪种方式，你收集的内容都归你所有。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每台裝置起始贈送 30 次免費識別。Pro 適合經常識別的人，無論選擇哪種方式，你收集的所有內容都仍屬於你。"
           }
         }
       }
@@ -10345,6 +10345,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "篩選"
+          }
+        }
+      }
+    },
+    "For walks where every hedge hides something new." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Für Spaziergänge, bei denen hinter jeder Hecke etwas Neues wartet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para paseos en los que cada seto esconde algo nuevo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour les balades où chaque haie cache quelque chose de nouveau."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per le passeggiate in cui ogni siepe nasconde qualcosa di nuovo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "どの茂みにも新しい発見が隠れている、そんな散歩のために。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "덤불마다 새로운 무언가가 숨어 있는 산책을 위해."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Na spacery, na których za każdym żywopłotem kryje się coś nowego."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para caminhadas em que cada arbusto esconde algo novo."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "献给每丛灌木后都藏着新发现的散步。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "獻給每叢灌木後都藏著新發現的散步。"
           }
         }
       }
@@ -11945,70 +12009,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用雲端 AI 識別"
-          }
-        }
-      }
-    },
-    "Identify without limits, anywhere life turns up." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Identifiziere ohne Grenzen, überall, wo Leben auftaucht."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Identifica sin límites, allí donde aparezca la vida."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Identifiez sans limites, partout où la vie se manifeste."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Identifica senza limiti, ovunque compaia la vita."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "生命が現れる場所で、制限なく識別しよう。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "생명이 나타나는 곳이라면 어디서든 제한 없이 식별하세요."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Identyfikuj bez limitów, gdziekolwiek pojawi się życie."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Identifique sem limites, onde quer que a vida apareça."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在任何出现生命的地方无限制识别。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在任何有生命出現的地方，都能無限制識別。"
           }
         }
       }
@@ -15981,70 +15981,6 @@
         }
       }
     },
-    "Out of identifications" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keine Identifizierungen mehr"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sin identificaciones"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plus d'identifications"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Identificazioni esaurite"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "識別回数を使い切りました"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "식별 횟수를 모두 썼어요"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Brak identyfikacji"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sem identificações"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "识别次数已用完"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "識別次數已用完"
-          }
-        }
-      }
-    },
     "Out of identifications — add credits or go Pro" : {
       "localizations" : {
         "de" : {
@@ -16745,70 +16681,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "對準任何生物"
-          }
-        }
-      }
-    },
-    "Point at anything alive and identify it as often as you like — no credit balance to top up." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Richte die Kamera auf alles Lebendige und identifiziere es so oft du willst, ohne Credit-Guthaben aufzuladen."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apunta a cualquier ser vivo e identifícalo tantas veces como quieras, sin saldo de créditos que recargar."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pointez n'importe quel être vivant et identifiez-le autant de fois que vous voulez, sans crédit à recharger."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Punta su qualsiasi essere vivente e identificalo quante volte vuoi, senza saldo crediti da ricaricare."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "生きているものに向けて、好きなだけ識別できます。チャージするクレジット残高は必要ありません。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "살아 있는 무엇이든 가리키고 원하는 만큼 식별하세요. 채워 넣을 크레딧 잔액은 필요 없어요."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Celuj w dowolny żywy organizm i identyfikuj go, ile chcesz, bez doładowywania salda kredytów."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aponte para qualquer ser vivo e identifique quantas vezes quiser, sem saldo de créditos para recarregar."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "对准任何生物，想识别多少次就识别多少次，无需为积分余额充值。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "對準任何生物，想識別多少次就識別多少次，無需為點數餘額儲值。"
           }
         }
       }
@@ -18409,6 +18281,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "恢復此 Apple ID 先前的 Living Dex Pro 購買項目"
+          }
+        }
+      }
+    },
+    "Retakes cost nothing" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neue Versuche kosten nichts"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Repetir no cuesta nada"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recommencer ne coûte rien"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Riprovare non costa nulla"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "撮り直しは無料"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "다시 찍어도 무료"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Powtórki nic nie kosztują"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tentar de novo não custa nada"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重拍不花一分"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重拍不花一分"
           }
         }
       }
@@ -21550,6 +21486,70 @@
         }
       }
     },
+    "This iPhone has no Apple Intelligence, so Pro writes each catch's entry in the cloud." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieses iPhone hat keine Apple Intelligence, deshalb schreibt Pro den Eintrag jedes Fangs in der Cloud."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este iPhone no tiene Apple Intelligence, así que Pro redacta la ficha de cada captura en la nube."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cet iPhone n'a pas Apple Intelligence, alors Pro rédige la fiche de chaque capture dans le cloud."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Questo iPhone non ha Apple Intelligence, quindi Pro scrive la scheda di ogni cattura nel cloud."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "この iPhone には Apple Intelligence がないため、Pro が捕獲ごとの記録をクラウドで作成します。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "이 iPhone에는 Apple Intelligence가 없어서 Pro가 포획마다 기록을 클라우드에서 작성해요."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ten iPhone nie ma Apple Intelligence, więc Pro pisze wpis każdego złapanego okazu w chmurze."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este iPhone não tem Apple Intelligence, então o Pro escreve a entrada de cada captura na nuvem."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这台 iPhone 不支持 Apple Intelligence，因此 Pro 会在云端为每次捕获撰写条目。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "這台 iPhone 不支援 Apple Intelligence，因此 Pro 會在雲端為每次捕獲撰寫條目。"
+          }
+        }
+      }
+    },
     "This permanently deletes your Dex, photos, progress, credits and your Living Dex account on our server. It can't be undone.\n\nAn App Store subscription is not cancelled by this. Manage it in iOS Settings, Apple Account, Subscriptions." : {
       "localizations" : {
         "de" : {
@@ -22318,66 +22318,66 @@
         }
       }
     },
-    "Try a sample photo to watch a real identification, no creature needed." : {
+    "Try a sample photo to see how a catch works, no creature needed." : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Probiere ein Beispielfoto aus, um eine echte Identifizierung zu sehen, ganz ohne Lebewesen."
+            "value" : "Probiere ein Beispielfoto aus, um zu sehen, wie ein Fang funktioniert, ganz ohne Lebewesen."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prueba una foto de muestra para ver una identificación real, sin necesidad de ninguna criatura."
+            "value" : "Prueba una foto de muestra para ver cómo funciona una captura, sin necesidad de ninguna criatura."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Essayez une photo d'exemple pour voir une vraie identification, sans être obligé d'avoir un animal sous la main."
+            "value" : "Essayez une photo d'exemple pour voir comment se passe une capture, sans avoir d'animal sous la main."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Prova una foto di esempio per vedere un'identificazione reale, senza bisogno di alcuna creatura."
+            "value" : "Prova una foto di esempio per vedere come funziona una cattura, senza bisogno di alcuna creatura."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "サンプル写真を試して、実際の識別を見てみましょう。生き物は必要ありません。"
+            "value" : "サンプル写真を試して、捕獲の流れを見てみましょう。生き物は必要ありません。"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "샘플 사진으로 실제 식별 과정을 확인해 보세요. 생명체는 필요 없어요."
+            "value" : "샘플 사진으로 포획이 어떻게 이루어지는지 확인해 보세요. 생명체는 필요 없어요."
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Wypróbuj przykładowe zdjęcie, by zobaczyć prawdziwą identyfikację, bez potrzeby żadnego stworzenia."
+            "value" : "Wypróbuj przykładowe zdjęcie, by zobaczyć, jak wygląda złapanie, bez potrzeby żadnego stworzenia."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Experimente uma foto de exemplo para ver uma identificação real, sem precisar de nenhum animal."
+            "value" : "Experimente uma foto de exemplo para ver como funciona uma captura, sem precisar de nenhum animal."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "试用示例照片，观看真实的识别过程，无需对准任何生物。"
+            "value" : "试用示例照片，看看捕获是怎样进行的，无需对准任何生物。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "試用示例照片，觀看真實的識別過程，無需對準任何生物。"
+            "value" : "試用示例照片，看看捕獲是怎麼進行的，無需對準任何生物。"
           }
         }
       }
@@ -23726,134 +23726,6 @@
         }
       }
     },
-    "You've used your free identifications. Go Pro for unlimited identifications, or add credits to keep identifying." : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Du hast deine kostenlosen Identifizierungen aufgebraucht. Werde Pro für unbegrenzte Identifizierungen oder kaufe Credits, um weiter zu identifizieren."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Has usado tus identificaciones gratuitas. Hazte Pro para identificaciones ilimitadas o añade créditos para seguir identificando."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vous avez utilisé vos identifications gratuites. Passez à Pro pour des identifications illimitées, ou ajoutez des crédits pour continuer à identifier."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hai esaurito le identificazioni gratuite. Passa a Pro per identificazioni illimitate o aggiungi crediti per continuare a identificare."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無料の識別回数を使い切りました。Pro にして識別し放題にするか、クレジットを追加して識別を続けてください。"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "무료 식별 횟수를 모두 사용했어요. Pro로 식별을 무제한으로 쓰거나, 크레딧을 추가해 계속 식별하세요."
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Wykorzystano darmowe identyfikacje. Przejdź na Pro, by identyfikować bez limitów, lub dokup kredyty, by dalej identyfikować."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Você usou suas identificações grátis. Assine o Pro para identificações ilimitadas ou adicione créditos para continuar identificando."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你已用完免费识别次数。升级 Pro 即可无限次识别，或添加积分以继续识别。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你已用完免費識別次數。升級 Pro 即可無限次識別，或新增點數以繼續識別。"
-          }
-        }
-      }
-    },
-    "Your Dex is always free" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dein Dex ist immer kostenlos"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tu Dex siempre es gratis"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Votre Dex est toujours gratuit"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Il tuo Dex è sempre gratis"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dex はいつも無料です"
-          }
-        },
-        "ko" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dex는 항상 무료예요"
-          }
-        },
-        "pl" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Twój Dex jest zawsze bezpłatny"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Seu Dex é sempre grátis"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你的 Dex 始终免费"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你的 Dex 永遠免費"
-          }
-        }
-      }
-    },
     "Your Dex is growing. Pro keeps you identifying without limits, anywhere life turns up." : {
       "localizations" : {
         "de" : {
@@ -23914,6 +23786,134 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你的 Dex 正在成長。Pro 讓你無論在哪裡遇到生命，都能無限制識別。"
+          }
+        }
+      }
+    },
+    "Your Dex is ready. Pro lets you fill it as fast as you find things." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Dex ist bereit. Mit Pro füllst du ihn so schnell, wie du Neues entdeckst."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu Dex está listo. Con Pro lo llenas tan rápido como encuentras cosas."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre Dex est prêt. Avec Pro, remplissez-le aussi vite que vous faites des découvertes."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo Dex è pronto. Con Pro lo riempi alla stessa velocità con cui scopri le cose."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dex の準備ができました。Pro なら、見つけた分だけどんどん埋められます。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dex가 준비됐어요. Pro와 함께라면 발견하는 만큼 빠르게 채울 수 있어요."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twój Dex jest gotowy. Z Pro wypełnisz go tak szybko, jak odkrywasz nowe rzeczy."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu Dex está pronto. Com o Pro, você o preenche tão rápido quanto encontra coisas."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的 Dex 已就绪。有了 Pro，发现多快，就能填得多快。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的 Dex 已就緒。有了 Pro，發現多快，就能填得多快。"
+          }
+        }
+      }
+    },
+    "Your Dex, Nearby and field entries stay free. Every device starts with 30 free identifications, and everything you catch stays yours." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Dex, „In der Nähe“ und die Feldeinträge bleiben kostenlos. Jedes Gerät startet mit 30 kostenlosen Identifizierungen, und alles, was du fängst, bleibt deins."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu Dex, Cercanos y las fichas de campo siguen siendo gratis. Cada dispositivo empieza con 30 identificaciones gratuitas, y todo lo que captures sigue siendo tuyo."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Votre Dex, « À proximité » et les fiches de terrain restent gratuits. Chaque appareil commence avec 30 identifications gratuites, et tout ce que vous capturez vous appartient."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Il tuo Dex, Vicino a te e le schede sul campo restano gratis. Ogni dispositivo inizia con 30 identificazioni gratuite, e tutto ciò che catturi resta tuo."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dex、「近く」、フィールドの記録はずっと無料です。どの端末も最初に無料で30回識別でき、捕獲したものはずっとあなたのものです。"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dex, '주변', 필드 기록은 계속 무료예요. 모든 기기는 무료 식별 30회로 시작하고, 포획한 것은 모두 계속 여러분의 것이에요."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twój Dex, W pobliżu i wpisy terenowe pozostają darmowe. Każde urządzenie zaczyna z 30 darmowymi identyfikacjami, a wszystko, co złapiesz, pozostaje Twoje."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seu Dex, Por perto e as entradas de campo continuam grátis. Todo dispositivo começa com 30 identificações grátis, e tudo o que você capturar continua sendo seu."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的 Dex、“附近”和野外条目始终免费。每台设备起始赠送 30 次免费识别，你捕获的一切都归你所有。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的 Dex、「附近」和野外條目始終免費。每台裝置起始贈送 30 次免費識別，你捕獲的一切都屬於你。"
           }
         }
       }

@@ -9,6 +9,14 @@ final class FieldPhotoTests: XCTestCase {
         }
     }
 
+    func testEverySampleKnowsTheSpeciesItShows() throws {
+        for (index, name) in SampleLibrary.names.enumerated() {
+            let sample = try XCTUnwrap(SampleLibrary.sample(at: index), name)
+            XCTAssertEqual(sample.species.photoResource, name)
+            XCTAssertEqual(sample.species.candidate.confidence, 1)
+        }
+    }
+
     func testSampleRotationWrapsAroundInBothDirections() {
         let count = SampleLibrary.names.count
         XCTAssertEqual(SampleLibrary.image(at: 0)?.size, SampleLibrary.image(at: count)?.size)
@@ -17,8 +25,8 @@ final class FieldPhotoTests: XCTestCase {
 
     func testNextAdvancesTheCursor() {
         AppSettings.sampleCursor = 0
-        _ = SampleLibrary.next()
-        _ = SampleLibrary.next()
+        XCTAssertEqual(SampleLibrary.next()?.species.id, "robin")
+        XCTAssertEqual(SampleLibrary.next()?.species.id, "fox")
         XCTAssertEqual(AppSettings.sampleCursor, 2)
         AppSettings.sampleCursor = 0
     }
