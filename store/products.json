@@ -398,50 +398,5 @@
       },
       "reviewScreenshotMd5": "324a609b6e34bd3bdac08b22f522fcc6"
     }
-  ],
-  "revenueCat": {
-    "project": "proj9bb7bd93",
-    "secretEnv": "RC_SECRET_LIVINGDEX",
-    "entitlements": [
-      {
-        "lookupKey": "pro",
-        "productIds": [
-          "com.guitaripod.livingdex.pro.annual",
-          "com.guitaripod.livingdex.pro.monthly"
-        ]
-      }
-    ],
-    "offerings": [
-      {
-        "lookupKey": "default",
-        "isCurrent": true,
-        "packages": [
-          {
-            "lookupKey": "$rc_annual",
-            "productId": "com.guitaripod.livingdex.pro.annual"
-          },
-          {
-            "lookupKey": "$rc_monthly",
-            "productId": "com.guitaripod.livingdex.pro.monthly"
-          },
-          {
-            "lookupKey": "propack",
-            "productId": "com.guitaripod.livingdex.credits.propack"
-          },
-          {
-            "lookupKey": "regular",
-            "productId": "com.guitaripod.livingdex.credits.regular"
-          },
-          {
-            "lookupKey": "science",
-            "productId": "com.guitaripod.livingdex.credits.science"
-          },
-          {
-            "lookupKey": "starter",
-            "productId": "com.guitaripod.livingdex.credits.starter"
-          }
-        ]
-      }
-    ]
-  }
+  ]
 }
