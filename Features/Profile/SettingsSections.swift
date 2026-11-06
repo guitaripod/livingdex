@@ -2,8 +2,6 @@ import MidgarUI
 import UIKit
 
 extension SettingsViewController {
-    private static let supportAddress = "support@midgarcorp.cc"
-
     func makeSections() -> [MidgarSettingsSection] {
         [appearanceSection(), privacySection(), purchasesSection(), diagnosticsSection(), legalSection(), accountSection()]
     }
@@ -59,7 +57,7 @@ extension SettingsViewController {
             rows: [
                 .privacyPolicy(url: LegalLinks.privacy),
                 .termsOfUse(url: LegalLinks.terms),
-                .support(address: Self.supportAddress),
+                .support(),
                 .custom(id: "credits", title: String(localized: "Credits"), systemImage: "heart.text.square.fill") { [weak self] in
                     self?.navigationController?.pushViewController(CreditsViewController(), animated: true)
                 },
