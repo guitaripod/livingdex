@@ -6,7 +6,7 @@ Idempotent creation of Living Dex's consumable credit-pack IAPs in ASC.
 The mako backend already defines the packs (migrations/014_seed_livingdex.sql):
 product id = com.guitaripod.livingdex.credits.<pack_id>, mapped to a credit
 amount. This script creates the matching App Store consumables — each with an
-en-US localization and a USD base price — so RevenueCat can surface live pricing
+en-US localization and a USD base price — so the App Store can surface live pricing
 and the in-app credit store stops showing blank prices. Skips anything whose
 productId already exists, so it is safe to re-run.
 
