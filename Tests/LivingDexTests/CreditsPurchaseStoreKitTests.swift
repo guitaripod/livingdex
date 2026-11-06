@@ -24,7 +24,7 @@ extension StoreKitSuites {
     struct CreditsPurchaseStoreKitTests {
         private nonisolated static let legacyKey = "legacy-aicredits-key"
         private static let starterProductID = "com.guitaripod.livingdex.credits.starter"
-        private static let validatePath = "/v1/credits/purchase/revenuecat/validate"
+        private static let validatePath = "/v1/credits/purchase/validate"
 
         private struct Harness {
             let store: MidgarStore
