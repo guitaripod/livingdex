@@ -88,7 +88,17 @@ final class SpeciesEnricher: Sendable {
             items.append(URLQueryItem(name: "lat", value: String(coarsened(lat))))
             items.append(URLQueryItem(name: "lng", value: String(coarsened(lng))))
         }
+        if let language = factLanguage {
+            items.append(URLQueryItem(name: "lang", value: language))
+        }
         return items
+    }
+
+    /// The language the worker writes the fact sheet in: the interface language when the worker carries local names
+    /// for it (the Nordic languages), else none, which keeps the English names and summary.
+    static var factLanguage: String? {
+        let code = Bundle.main.preferredLocalizations.first ?? "en"
+        return ["sv", "da", "nb", "fi", "is"].contains(code) ? code : nil
     }
 
     /// The worker answers 404 with a plain `{"error": "unresolved species"}` when GBIF rejects the name, which carries

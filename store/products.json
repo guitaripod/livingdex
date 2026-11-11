@@ -4,6 +4,10 @@
     {
       "referenceName": "Living Dex Pro",
       "localizations": {
+        "da": {
+          "name": "Living Dex Pro",
+          "customAppName": "Living Dex"
+        },
         "de-DE": {
           "name": "Living Dex Pro",
           "customAppName": "Living Dex"
@@ -13,6 +17,10 @@
           "customAppName": "Living Dex"
         },
         "es-ES": {
+          "name": "Living Dex Pro",
+          "customAppName": "Living Dex"
+        },
+        "fi": {
           "name": "Living Dex Pro",
           "customAppName": "Living Dex"
         },
@@ -32,11 +40,19 @@
           "name": "Living Dex Pro",
           "customAppName": "Living Dex"
         },
+        "no": {
+          "name": "Living Dex Pro",
+          "customAppName": "Living Dex"
+        },
         "pl": {
           "name": "Living Dex Pro",
           "customAppName": "Living Dex"
         },
         "pt-BR": {
+          "name": "Living Dex Pro",
+          "customAppName": "Living Dex"
+        },
+        "sv": {
           "name": "Living Dex Pro",
           "customAppName": "Living Dex"
         },
@@ -62,6 +78,10 @@
           },
           "introductoryOffers": [],
           "localizations": {
+            "da": {
+              "name": "Living Dex Pro Årligt",
+              "description": "Ubegrænsede cloud-identifikationer, betales årligt"
+            },
             "de-DE": {
               "name": "Living Dex Pro Jährlich",
               "description": "Unbegrenzte Cloud-Bestimmungen, jährliche Abrechnung"
@@ -73,6 +93,10 @@
             "es-ES": {
               "name": "Living Dex Pro Anual",
               "description": "Identificaciones ilimitadas, facturación anual"
+            },
+            "fi": {
+              "name": "Living Dex Pro Vuosittain",
+              "description": "Rajoittamattomat pilvitunnistukset, vuosilaskutus"
             },
             "fr-FR": {
               "name": "Living Dex Pro Annuel",
@@ -90,6 +114,10 @@
               "name": "Living Dex Pro 연간",
               "description": "클라우드 식별 무제한, 연간 결제"
             },
+            "no": {
+              "name": "Living Dex Pro Årlig",
+              "description": "Ubegrensede sky-identifiseringer, faktureres årlig"
+            },
             "pl": {
               "name": "Living Dex Pro Rocznie",
               "description": "Bez limitu identyfikacji, płatność roczna"
@@ -97,6 +125,10 @@
             "pt-BR": {
               "name": "Living Dex Pro Anual",
               "description": "Identificações ilimitadas, cobrança anual"
+            },
+            "sv": {
+              "name": "Living Dex Pro Årsvis",
+              "description": "Obegränsade molnidentifieringar, betalas årsvis"
             },
             "zh-Hans": {
               "name": "Living Dex Pro 年度",
@@ -122,6 +154,10 @@
           },
           "introductoryOffers": [],
           "localizations": {
+            "da": {
+              "name": "Living Dex Pro Månedligt",
+              "description": "Ubegrænsede cloud-identifikationer, betales månedligt"
+            },
             "de-DE": {
               "name": "Living Dex Pro Monatlich",
               "description": "Unbegrenzte Cloud-Bestimmungen, monatliche Abrechnung"
@@ -133,6 +169,10 @@
             "es-ES": {
               "name": "Living Dex Pro Mensual",
               "description": "Identificaciones ilimitadas, facturación mensual"
+            },
+            "fi": {
+              "name": "Living Dex Pro Kuukausittain",
+              "description": "Rajoittamattomat pilvitunnistukset, kuukausilaskutus"
             },
             "fr-FR": {
               "name": "Living Dex Pro Mensuel",
@@ -150,6 +190,10 @@
               "name": "Living Dex Pro 월간",
               "description": "클라우드 식별 무제한, 월간 결제"
             },
+            "no": {
+              "name": "Living Dex Pro Månedlig",
+              "description": "Ubegrensede sky-identifiseringer, faktureres månedlig"
+            },
             "pl": {
               "name": "Living Dex Pro Miesięcznie",
               "description": "Bez limitu identyfikacji, płatność miesięczna"
@@ -157,6 +201,10 @@
             "pt-BR": {
               "name": "Living Dex Pro Mensal",
               "description": "Identificações ilimitadas, cobrança mensal"
+            },
+            "sv": {
+              "name": "Living Dex Pro Månadsvis",
+              "description": "Obegränsade molnidentifieringar, betalas månadsvis"
             },
             "zh-Hans": {
               "name": "Living Dex Pro 月度",
@@ -183,6 +231,10 @@
         "amount": "24.99"
       },
       "localizations": {
+        "da": {
+          "name": "Opdager · 1200 kreditter",
+          "description": "1.200 identifikationer til den utrættelige samler."
+        },
         "de-DE": {
           "name": "Entdecker · 1200 Credits",
           "description": "1.200 Bestimmungen für unermüdliche Sammler."
@@ -194,6 +246,10 @@
         "es-ES": {
           "name": "Explorador · 1200 créditos",
           "description": "1200 identificaciones para coleccionistas incansables."
+        },
+        "fi": {
+          "name": "Tutkija · 1200 krediittiä",
+          "description": "1 200 tunnistusta sitkeälle keräilijälle."
         },
         "fr-FR": {
           "name": "Explorateur · 1200 crédits",
@@ -211,6 +267,10 @@
           "name": "탐험가 · 1200 크레딧",
           "description": "지칠 줄 모르는 수집가를 위한 1,200회 식별."
         },
+        "no": {
+          "name": "Oppdager · 1200 kreditter",
+          "description": "1 200 identifiseringer til den ubøyelige samleren."
+        },
         "pl": {
           "name": "Odkrywca · 1200 kredytów",
           "description": "1200 identyfikacji dla niestrudzonych kolekcjonerów."
@@ -218,6 +278,10 @@
         "pt-BR": {
           "name": "Explorador · 1200 créditos",
           "description": "1.200 identificações para colecionadores incansáveis."
+        },
+        "sv": {
+          "name": "Upptäckare · 1200 krediter",
+          "description": "1 200 identifieringar för den outtröttlige samlaren."
         },
         "zh-Hans": {
           "name": "探险家 · 1200 点数",
@@ -239,6 +303,10 @@
         "amount": "9.99"
       },
       "localizations": {
+        "da": {
+          "name": "Standard · 400 kreditter",
+          "description": "400 identifikationer, en sæson med opdagelser."
+        },
         "de-DE": {
           "name": "Regulär · 400 Credits",
           "description": "400 Bestimmungen, eine Saison voller Entdeckungen."
@@ -250,6 +318,10 @@
         "es-ES": {
           "name": "Habitual · 400 créditos",
           "description": "400 identificaciones, una temporada de hallazgos."
+        },
+        "fi": {
+          "name": "Tavallinen · 400 krediittiä",
+          "description": "400 tunnistusta, kokonainen löytökausi."
         },
         "fr-FR": {
           "name": "Régulier · 400 crédits",
@@ -267,6 +339,10 @@
           "name": "레귤러 · 400 크레딧",
           "description": "400회 식별, 한 계절의 발견."
         },
+        "no": {
+          "name": "Standard · 400 kreditter",
+          "description": "400 identifiseringer, en sesong med oppdagelser."
+        },
         "pl": {
           "name": "Regularny · 400 kredytów",
           "description": "400 identyfikacji, cały sezon odkryć."
@@ -274,6 +350,10 @@
         "pt-BR": {
           "name": "Regular · 400 créditos",
           "description": "400 identificações, uma temporada de descobertas."
+        },
+        "sv": {
+          "name": "Standard · 400 krediter",
+          "description": "400 identifieringar, en säsong av upptäckter."
         },
         "zh-Hans": {
           "name": "常规 · 400 点数",
@@ -295,6 +375,10 @@
         "amount": "49.99"
       },
       "localizations": {
+        "da": {
+          "name": "Naturforsker · 2600 kreditter",
+          "description": "2.600 identifikationer: identificér alt."
+        },
         "de-DE": {
           "name": "Naturforscher · 2600 Credits",
           "description": "2.600 Bestimmungen: Bestimme einfach alles."
@@ -306,6 +390,10 @@
         "es-ES": {
           "name": "Naturalista · 2600 créditos",
           "description": "2600 identificaciones: identifícalo todo."
+        },
+        "fi": {
+          "name": "Luonnontutkija · 2600 krediittiä",
+          "description": "2600 tunnistusta: tunnista kaikki."
         },
         "fr-FR": {
           "name": "Naturaliste · 2600 crédits",
@@ -323,6 +411,10 @@
           "name": "박물학자 · 2600 크레딧",
           "description": "2,600회 식별: 무엇이든 식별하세요."
         },
+        "no": {
+          "name": "Naturforsker · 2600 kreditter",
+          "description": "2 600 identifiseringer: identifiser alt."
+        },
         "pl": {
           "name": "Przyrodnik · 2600 kredytów",
           "description": "2600 identyfikacji: rozpoznaj wszystko."
@@ -330,6 +422,10 @@
         "pt-BR": {
           "name": "Naturalista · 2600 créditos",
           "description": "2.600 identificações: identifique tudo."
+        },
+        "sv": {
+          "name": "Naturforskare · 2600 krediter",
+          "description": "2 600 identifieringar: identifiera allt."
         },
         "zh-Hans": {
           "name": "博物学家 · 2600 点数",
@@ -351,6 +447,10 @@
         "amount": "2.99"
       },
       "localizations": {
+        "da": {
+          "name": "Begynder · 100 kreditter",
+          "description": "100 identifikationer."
+        },
         "de-DE": {
           "name": "Starter · 100 Credits",
           "description": "100 Bestimmungen."
@@ -362,6 +462,10 @@
         "es-ES": {
           "name": "Inicial · 100 créditos",
           "description": "100 identificaciones."
+        },
+        "fi": {
+          "name": "Aloittelija · 100 krediittiä",
+          "description": "100 tunnistusta."
         },
         "fr-FR": {
           "name": "Débutant · 100 crédits",
@@ -379,6 +483,10 @@
           "name": "스타터 · 100 크레딧",
           "description": "100회 식별."
         },
+        "no": {
+          "name": "Nybegynner · 100 kreditter",
+          "description": "100 identifiseringer."
+        },
         "pl": {
           "name": "Starter · 100 kredytów",
           "description": "100 identyfikacji."
@@ -386,6 +494,10 @@
         "pt-BR": {
           "name": "Inicial · 100 créditos",
           "description": "100 identificações."
+        },
+        "sv": {
+          "name": "Nybörjare · 100 krediter",
+          "description": "100 identifieringar."
         },
         "zh-Hans": {
           "name": "入门 · 100 点数",

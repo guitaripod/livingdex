@@ -575,7 +575,7 @@ final class FieldViewController: UIViewController {
     private func showZoomChip(_ factor: CGFloat) {
         zoomChipHide?.cancel()
         zoomChip.isHidden = false
-        zoomChip.setText(String(format: "%.1f×", factor), animated: false)
+        zoomChip.setText(String(format: "%.1f×", locale: .current, factor), animated: false)
     }
 
     private func scheduleZoomChipHide() {
