@@ -11,7 +11,11 @@
     "pl",
     "pt-BR",
     "zh-Hans",
-    "zh-Hant"
+    "zh-Hant",
+    "sv",
+    "da",
+    "no",
+    "fi"
   ],
   "leaderboards": [
     {
@@ -54,6 +58,18 @@
         },
         "zh-Hant": {
           "name": "收集物種數"
+        },
+        "sv": {
+          "name": "Fångade arter"
+        },
+        "da": {
+          "name": "Fangede arter"
+        },
+        "no": {
+          "name": "Fangede arter"
+        },
+        "fi": {
+          "name": "Kerätyt lajit"
         }
       }
     }
@@ -121,6 +137,26 @@
           "name": "初次捕捉",
           "before": "捕捉你的第一個物種。",
           "after": "你的 Living Dex 已經開始了。搞定一隻，還有數百萬隻等著你。"
+        },
+        "sv": {
+          "name": "Första fångsten",
+          "before": "Fånga din allra första art.",
+          "after": "Ditt Living Dex har börjat. En klar, miljoner kvar."
+        },
+        "da": {
+          "name": "Første fangst",
+          "before": "Fang din allerførste art.",
+          "after": "Dit Living Dex er begyndt. Én klaret, millioner tilbage."
+        },
+        "no": {
+          "name": "Første fangst",
+          "before": "Fang din aller første art.",
+          "after": "Living Dex-en din har begynt. Én klar, millioner igjen."
+        },
+        "fi": {
+          "name": "Ensimmäinen saalis",
+          "before": "Saa kiinni ensimmäinen lajisi.",
+          "after": "Living Dexisi on alkanut. Yksi saatu, miljoonia jäljellä."
         }
       }
     },
@@ -186,6 +222,26 @@
           "name": "十種物種",
           "before": "收集 10 種不同的物種。",
           "after": "圖鑑裡已經有十種了。你越來越上手了。"
+        },
+        "sv": {
+          "name": "Tio arter",
+          "before": "Fånga 10 olika arter.",
+          "after": "Tio arter i boken. Du börjar få kläm på det här."
+        },
+        "da": {
+          "name": "Ti arter",
+          "before": "Fang 10 forskellige arter.",
+          "after": "Ti arter i bogen. Du er ved at få styr på det."
+        },
+        "no": {
+          "name": "Ti arter",
+          "before": "Fang 10 forskjellige arter.",
+          "after": "Ti arter i boka. Du begynner å få taket på dette."
+        },
+        "fi": {
+          "name": "Kymmenen lajia",
+          "before": "Saa kiinni 10 eri lajia.",
+          "after": "Kymmenen lajia kirjassa. Alat päästä jyvälle."
         }
       }
     },
@@ -251,6 +307,26 @@
           "name": "五十種物種",
           "before": "收集 50 種不同的物種。",
           "after": "五十種了。你的圖鑑開始像一本真正的野外圖鑑了。"
+        },
+        "sv": {
+          "name": "Femtio arter",
+          "before": "Fånga 50 olika arter.",
+          "after": "Femtio arter. Ditt Dex börjar likna en riktig fälthandbok."
+        },
+        "da": {
+          "name": "Halvtreds arter",
+          "before": "Fang 50 forskellige arter.",
+          "after": "Halvtreds arter. Dit Dex begynder at ligne en rigtig feltguide."
+        },
+        "no": {
+          "name": "Femti arter",
+          "before": "Fang 50 forskjellige arter.",
+          "after": "Femti arter. Dex-en din begynner å ligne en ekte feltguide."
+        },
+        "fi": {
+          "name": "Viisikymmentä lajia",
+          "before": "Saa kiinni 50 eri lajia.",
+          "after": "Viisikymmentä lajia. Dexisi alkaa näyttää oikealta kenttäoppaalta."
         }
       }
     },
@@ -316,6 +392,26 @@
           "name": "百種達人",
           "before": "收集 100 種不同的物種。",
           "after": "一百種！大自然都該來向你請教了。"
+        },
+        "sv": {
+          "name": "Centurion",
+          "before": "Fånga 100 olika arter.",
+          "after": "Hundra arter. Naturen borde be dig om tips."
+        },
+        "da": {
+          "name": "Centurion",
+          "before": "Fang 100 forskellige arter.",
+          "after": "Hundrede arter. Naturen burde spørge dig til råds."
+        },
+        "no": {
+          "name": "Centurion",
+          "before": "Fang 100 forskjellige arter.",
+          "after": "Hundre arter. Naturen burde spørre deg om tips."
+        },
+        "fi": {
+          "name": "Sadanpäämies",
+          "before": "Saa kiinni 100 eri lajia.",
+          "after": "Sata lajia. Luonnon pitäisi kysyä sinulta neuvoa."
         }
       }
     },
@@ -381,6 +477,26 @@
           "name": "全界收集",
           "before": "捕捉一種動物、一種植物和一種真菌。",
           "after": "動物、植物、真菌，三界都已收進你的圖鑑。"
+        },
+        "sv": {
+          "name": "Alla riken",
+          "before": "Fånga ett djur, en växt och en svamp.",
+          "after": "Djur, växt och svamp: alla tre riken finns i ditt Dex."
+        },
+        "da": {
+          "name": "Alle riger",
+          "before": "Fang et dyr, en plante og en svamp.",
+          "after": "Dyr, plante og svamp: alle tre riger er i dit Dex."
+        },
+        "no": {
+          "name": "Alle riker",
+          "before": "Fang et dyr, en plante og en sopp.",
+          "after": "Dyr, plante og sopp: alle tre riker er i Dex-en din."
+        },
+        "fi": {
+          "name": "Kaikki valtakunnat",
+          "before": "Saa kiinni eläin, kasvi ja sieni.",
+          "after": "Eläin, kasvi ja sieni: kaikki kolme valtakuntaa ovat Dexissäsi."
         }
       }
     },
@@ -446,6 +562,26 @@
           "name": "稀有發現",
           "before": "發現你的第一個稀有或更高級別的物種。",
           "after": "一次稀有發現。不是每個人都遇得到。"
+        },
+        "sv": {
+          "name": "Sällsynt fynd",
+          "before": "Hitta din första art som är Sällsynt eller bättre.",
+          "after": "Ett Sällsynt fynd. Det är inte alla som ser en sådan."
+        },
+        "da": {
+          "name": "Sjældent fund",
+          "before": "Find din første art, der er Sjælden eller bedre.",
+          "after": "Et Sjældent fund. Det er ikke alle, der får øje på sådan en."
+        },
+        "no": {
+          "name": "Sjeldent funn",
+          "before": "Finn din første art som er Sjelden eller bedre.",
+          "after": "Et Sjeldent funn. Det er ikke alle som får øye på en slik."
+        },
+        "fi": {
+          "name": "Harvinainen löytö",
+          "before": "Löydä ensimmäinen vähintään Harvinainen lajisi.",
+          "after": "Harvinainen löytö. Kaikki eivät huomaa sellaista."
         }
       }
     },
@@ -511,6 +647,26 @@
           "name": "傳說發現",
           "before": "發現你的第一個傳說級物種。",
           "after": "傳說級發現！快去告訴別人，他們肯定不信。"
+        },
+        "sv": {
+          "name": "Legendariskt fynd",
+          "before": "Hitta din första Legendariska art.",
+          "after": "Ett Legendariskt fynd. Berätta för någon, de kommer inte att tro dig."
+        },
+        "da": {
+          "name": "Legendarisk fund",
+          "before": "Find din første Legendariske art.",
+          "after": "Et Legendarisk fund. Fortæl det til nogen, de vil ikke tro dig."
+        },
+        "no": {
+          "name": "Legendarisk funn",
+          "before": "Finn din første Legendariske art.",
+          "after": "Et Legendarisk funn. Fortell det til noen, de kommer ikke til å tro deg."
+        },
+        "fi": {
+          "name": "Legendaarinen löytö",
+          "before": "Löydä ensimmäinen Legendaarinen lajisi.",
+          "after": "Legendaarinen löytö. Kerro jollekulle, kukaan ei usko sinua."
         }
       }
     },
@@ -576,6 +732,26 @@
           "name": "連續一週",
           "before": "連續 7 天每天都捕捉到東西。",
           "after": "連續七天。野外從不休息，你也沒有。"
+        },
+        "sv": {
+          "name": "Veckoserie",
+          "before": "Fånga något varje dag 7 dagar i rad.",
+          "after": "Sju dagar i rad. Naturen sover aldrig, och det gör inte du heller."
+        },
+        "da": {
+          "name": "Ugerække",
+          "before": "Fang noget hver dag 7 dage i træk.",
+          "after": "Syv dage i træk. Naturen sover aldrig, og det gør du heller ikke."
+        },
+        "no": {
+          "name": "Ukesrekke",
+          "before": "Fang noe hver dag 7 dager på rad.",
+          "after": "Sju dager på rad. Naturen sover aldri, og det gjør ikke du heller."
+        },
+        "fi": {
+          "name": "Viikon putki",
+          "before": "Saa jotain kiinni joka päivä 7 päivää putkeen.",
+          "after": "Seitsemän päivää putkeen. Luonto ei koskaan nuku, etkä sinäkään."
         }
       }
     }
