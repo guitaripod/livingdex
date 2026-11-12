@@ -713,5 +713,265 @@
       ],
       "sub": "連續紀錄、經驗值與日益豐富的收藏"
     }
+  },
+  "sv": {
+    "field": {
+      "headline": [
+        "Rikta mot",
+        "allt som lever"
+      ],
+      "sub": "Fåglar, växter, insekter och svampar, namngivna på sekunder"
+    },
+    "starter": {
+      "headline": [
+        "Inget i närheten?",
+        "Välj en startart"
+      ],
+      "sub": "Varje Dex börjar med en riktig art"
+    },
+    "reveal": {
+      "headline": [
+        "Varje fångst",
+        "blir ett kort"
+      ],
+      "sub": "Äkta sällsynthet, från Vanlig till Legendarisk"
+    },
+    "caught": {
+      "headline": [
+        "Bygg ditt",
+        "Dex"
+      ],
+      "sub": "Sortera dina fynd över livets riken"
+    },
+    "nearby": {
+      "headline": [
+        "Hitta det som",
+        "lever nära dig"
+      ],
+      "sub": "Låsta platser visar vad du ska jaga härnäst"
+    },
+    "guide": {
+      "headline": [
+        "Möt livets",
+        "riken"
+      ],
+      "sub": "En illustrerad fälthandbok som ingår"
+    },
+    "card": {
+      "headline": [
+        "Lär dig om",
+        "det du hittat"
+      ],
+      "sub": "Fältposter, läten och hotstatus"
+    },
+    "cards": {
+      "headline": [
+        "Dela ett",
+        "samlarkort"
+      ],
+      "sub": "Samlarkort värda att visa upp"
+    },
+    "profile": {
+      "headline": [
+        "Gå upp i nivå",
+        "utomhus"
+      ],
+      "sub": "Serier, XP och en samling som växer med dig"
+    }
+  },
+  "da": {
+    "field": {
+      "headline": [
+        "Peg på",
+        "alt levende"
+      ],
+      "sub": "Fugle, planter, insekter og svampe, navngivet på sekunder"
+    },
+    "starter": {
+      "headline": [
+        "Intet i nærheden?",
+        "Vælg en startart"
+      ],
+      "sub": "Hvert Dex begynder med en ægte art"
+    },
+    "reveal": {
+      "headline": [
+        "Hver fangst",
+        "bliver et kort"
+      ],
+      "sub": "Ægte sjældenhed, fra Almindelig til Legendarisk"
+    },
+    "caught": {
+      "headline": [
+        "Byg dit",
+        "Dex"
+      ],
+      "sub": "Sortér dine fund på tværs af livets riger"
+    },
+    "nearby": {
+      "headline": [
+        "Find det, der",
+        "lever nær dig"
+      ],
+      "sub": "Låste pladser viser, hvad du skal jage næste gang"
+    },
+    "guide": {
+      "headline": [
+        "Mød livets",
+        "riger"
+      ],
+      "sub": "En illustreret feltguide, der er inkluderet"
+    },
+    "card": {
+      "headline": [
+        "Lær om det,",
+        "du fandt"
+      ],
+      "sub": "Feltposter, lyde og bevaringsstatus"
+    },
+    "cards": {
+      "headline": [
+        "Del et",
+        "samlerkort"
+      ],
+      "sub": "Samlerkort, der er værd at vise frem"
+    },
+    "profile": {
+      "headline": [
+        "Stig i niveau",
+        "udendørs"
+      ],
+      "sub": "Rækker, XP og en samling, der vokser med dig"
+    }
+  },
+  "no": {
+    "field": {
+      "headline": [
+        "Pek på",
+        "alt som lever"
+      ],
+      "sub": "Fugler, planter, insekter og sopp, navngitt på sekunder"
+    },
+    "starter": {
+      "headline": [
+        "Ingenting i nærheten?",
+        "Velg en startart"
+      ],
+      "sub": "Hver Dex begynner med en ekte art"
+    },
+    "reveal": {
+      "headline": [
+        "Hver fangst",
+        "blir et kort"
+      ],
+      "sub": "Ekte sjeldenhet, fra Vanlig til Legendarisk"
+    },
+    "caught": {
+      "headline": [
+        "Bygg din",
+        "Dex"
+      ],
+      "sub": "Sorter funnene dine på tvers av livets riker"
+    },
+    "nearby": {
+      "headline": [
+        "Finn det som",
+        "lever nær deg"
+      ],
+      "sub": "Låste plasser viser hva du skal jakte på neste gang"
+    },
+    "guide": {
+      "headline": [
+        "Møt livets",
+        "riker"
+      ],
+      "sub": "En illustrert feltguide som er inkludert"
+    },
+    "card": {
+      "headline": [
+        "Lær om det",
+        "du fant"
+      ],
+      "sub": "Feltposter, lyder og vernestatus"
+    },
+    "cards": {
+      "headline": [
+        "Del et",
+        "samlekort"
+      ],
+      "sub": "Samlekort som er verdt å vise frem"
+    },
+    "profile": {
+      "headline": [
+        "Gå opp i nivå",
+        "utendørs"
+      ],
+      "sub": "Rekker, XP og en samling som vokser med deg"
+    }
+  },
+  "fi": {
+    "field": {
+      "headline": [
+        "Osoita mitä",
+        "tahansa elävää"
+      ],
+      "sub": "Linnut, kasvit, hyönteiset ja sienet tunnistettuina sekunneissa"
+    },
+    "starter": {
+      "headline": [
+        "Ei mitään lähellä?",
+        "Valitse aloituslaji"
+      ],
+      "sub": "Jokainen Dex alkaa yhdestä oikeasta lajista"
+    },
+    "reveal": {
+      "headline": [
+        "Jokainen saalis",
+        "on kortti"
+      ],
+      "sub": "Aito harvinaisuus, Yleisestä Legendaariseen"
+    },
+    "caught": {
+      "headline": [
+        "Rakenna",
+        "Dexisi"
+      ],
+      "sub": "Lajittele löytösi elämän valtakuntiin"
+    },
+    "nearby": {
+      "headline": [
+        "Löydä, mitä",
+        "lähelläsi elää"
+      ],
+      "sub": "Lukitut paikat näyttävät, mitä etsiä seuraavaksi"
+    },
+    "guide": {
+      "headline": [
+        "Tutustu elämän",
+        "valtakuntiin"
+      ],
+      "sub": "Kuvitettu kenttäopas kuuluu mukaan"
+    },
+    "card": {
+      "headline": [
+        "Opi, mitä",
+        "löysit"
+      ],
+      "sub": "Kenttämerkinnät, äänet ja uhanalaisuus"
+    },
+    "cards": {
+      "headline": [
+        "Jaa",
+        "keräilykortti"
+      ],
+      "sub": "Keräilykortit, joita kehtaa esitellä"
+    },
+    "profile": {
+      "headline": [
+        "Nouse tasoja",
+        "ulkona"
+      ],
+      "sub": "Putket, XP ja kokoelma, joka kasvaa kanssasi"
+    }
   }
 }
