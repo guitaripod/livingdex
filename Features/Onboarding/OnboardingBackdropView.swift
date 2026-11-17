@@ -56,7 +56,7 @@ final class OnboardingBackdropView: UIView {
 
     /// Crossfades to the named illustration; the first call just appears.
     func show(art name: String, animated: Bool) {
-        guard name != currentArt, let image = UIImage(named: name) else { return }
+        guard name != currentArt, let image = RealmArt.image(named: name) else { return }
         currentArt = name
         back.image = front.image
         back.alpha = front.alpha

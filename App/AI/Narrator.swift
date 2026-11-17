@@ -1,5 +1,6 @@
 import Foundation
 import LivingDexCore
+import MidgarCore
 
 /// Produces a grounded "Pokédex entry" for a caught species. Implementations:
 /// on-device (Apple Foundation Models, free/offline), cloud (mako → Claude), and a
@@ -20,19 +21,24 @@ final class NarratorService: Narrator {
     private let onDevice: Narrator?
     private let cloud: Narrator
     private let isPro: @Sendable () async -> Bool
+    /// Whether the on-device model may write entries: never for a China mainland App Store account, where Apple's
+    /// China AI declaration answers No, so those accounts read the sourced summary instead.
+    private let onDeviceAllowed: @Sendable () -> Bool
 
     init(
         onDevice: Narrator? = OnDeviceNarrator.makeIfAvailable(),
         cloud: Narrator = SpeciesNarrator(),
-        isPro: @escaping @Sendable () async -> Bool = { await MainActor.run { ProAccess.shared.isPro } }
+        isPro: @escaping @Sendable () async -> Bool = { await MainActor.run { ProAccess.shared.isPro } },
+        onDeviceAllowed: @escaping @Sendable () -> Bool = { MidgarModelRegion.shared.onDeviceGenerationAvailable }
     ) {
         self.onDevice = onDevice
         self.cloud = cloud
         self.isPro = isPro
+        self.onDeviceAllowed = onDeviceAllowed
     }
 
     func entry(for candidate: SpeciesCandidate, grounding: String?) async -> PokedexEntry? {
-        if let onDevice, let entry = await onDevice.entry(for: candidate, grounding: grounding) {
+        if onDeviceAllowed(), let onDevice, let entry = await onDevice.entry(for: candidate, grounding: grounding) {
             return entry
         }
         if await isPro(), let entry = await cloud.entry(for: candidate, grounding: grounding) {

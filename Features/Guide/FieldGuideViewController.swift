@@ -157,7 +157,7 @@ final class FieldGuideViewController: UIViewController {
         container.layer.cornerCurve = .continuous
         container.clipsToBounds = true
 
-        let image = UIImageView(image: UIImage(named: info.assetName))
+        let image = UIImageView(image: RealmArt.image(named: info.assetName))
         image.translatesAutoresizingMaskIntoConstraints = false
         image.contentMode = .scaleAspectFill
         image.clipsToBounds = true

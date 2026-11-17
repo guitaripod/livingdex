@@ -153,6 +153,18 @@ final class NarratorServiceTests: XCTestCase {
         XCTAssertNil(entry)
     }
 
+    func testChinaMainlandAccountsReadTheSourcedSummaryInsteadOfTheOnDeviceModel() async {
+        let service = NarratorService(onDevice: Stub(text: "device"), cloud: Stub(text: "cloud"), isPro: { false }, onDeviceAllowed: { false })
+        let entry = await service.entry(for: candidate, grounding: "A small thrush.")
+        XCTAssertTrue(entry?.entry.hasPrefix("A small thrush.") ?? false)
+    }
+
+    func testOnDeviceModelStillWinsWhereItIsAllowed() async {
+        let service = NarratorService(onDevice: Stub(text: "device"), cloud: Stub(text: "cloud"), isPro: { false }, onDeviceAllowed: { true })
+        let entry = await service.entry(for: candidate, grounding: "A small thrush.")
+        XCTAssertEqual(entry?.entry, "device")
+    }
+
     func testProFallsBackToTheSourcedSummaryWhenTheCloudFails() async {
         let service = NarratorService(onDevice: nil, cloud: Stub(text: nil), isPro: { true })
         let entry = await service.entry(for: candidate, grounding: "A small thrush.")
