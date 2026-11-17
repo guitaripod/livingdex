@@ -61,13 +61,20 @@ final class PhotoImporter: NSObject, PHPickerViewControllerDelegate {
 }
 
 /// The "identify a photo instead" choices, shared by the Field HUD and the camera
-/// gate so both offer exactly the same two paths.
+/// gate so both offer exactly the same paths. The library is identified in the cloud,
+/// so it is left out where the models do not work and only the on-device sample stays.
 @MainActor
 enum PhotoSourceMenu {
-    static func make(onLibrary: @escaping @MainActor () -> Void, onSample: @escaping @MainActor () -> Void) -> UIMenu {
-        UIMenu(children: [
-            UIAction(title: String(localized: "Choose from Photos"), image: UIImage(systemName: "photo.on.rectangle")) { _ in onLibrary() },
-            UIAction(title: String(localized: "Try a sample photo"), image: UIImage(systemName: "sparkles")) { _ in onSample() },
-        ])
+    static func make(
+        includesLibrary: Bool = true,
+        onLibrary: @escaping @MainActor () -> Void,
+        onSample: @escaping @MainActor () -> Void
+    ) -> UIMenu {
+        var children: [UIAction] = []
+        if includesLibrary {
+            children.append(UIAction(title: String(localized: "Choose from Photos"), image: UIImage(systemName: "photo.on.rectangle")) { _ in onLibrary() })
+        }
+        children.append(UIAction(title: String(localized: "Try a sample photo"), image: UIImage(systemName: "sparkles")) { _ in onSample() })
+        return UIMenu(children: children)
     }
 }

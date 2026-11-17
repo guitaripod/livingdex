@@ -36,6 +36,8 @@ public enum IdentifyError: Error, Sendable, Equatable {
     case creditsExhausted(shortfall: Int)
     case serverError
     case noSpecies
+    /// Midgar's servers do not offer model features in the country the device connects from.
+    case unavailableInRegion
 }
 
 public struct IdentificationResult: Sendable {

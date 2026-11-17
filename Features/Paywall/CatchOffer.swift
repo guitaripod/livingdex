@@ -10,7 +10,7 @@ enum CatchOffer {
 
     /// Counts a catch the player just closed and offers Pro over `host` when the policy says it is the moment.
     static func offerIfDue(over host: UIViewController) {
-        guard policy.noteValue(isOwned: ProAccess.shared.isPro) else { return }
+        guard ModelFeatureVisibility.current.presentsPaywall, policy.noteValue(isOwned: ProAccess.shared.isPro) else { return }
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             guard host.presentedViewController == nil, host.view.window != nil else { return }
             policy.noteOffered()

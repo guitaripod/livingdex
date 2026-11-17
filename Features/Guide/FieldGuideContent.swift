@@ -9,6 +9,7 @@ enum FieldGuide {
         let symbol: String
         let title: String
         let body: String
+        var needsModels = false
     }
 
     struct RealmInfo {
@@ -29,6 +30,17 @@ enum FieldGuide {
     struct Concept {
         let title: String
         let body: String
+        var needsModels = false
+    }
+
+    /// The steps the guide shows: the ones that describe the models are left out where Midgar's servers offer none.
+    static func visibleSteps(modelsAvailable: Bool) -> [Step] {
+        steps.filter { modelsAvailable || !$0.needsModels }
+    }
+
+    /// The concepts the guide shows: the ones that describe the models are left out where Midgar's servers offer none.
+    static func visibleConcepts(modelsAvailable: Bool) -> [Concept] {
+        concepts.filter { modelsAvailable || !$0.needsModels }
     }
 
     static let introTitle = String(localized: "Field Guide")
@@ -37,13 +49,13 @@ enum FieldGuide {
     static let steps: [Step] = [
         .init(
             symbol: "camera.viewfinder", title: String(localized: "Point & catch"),
-            body: String(localized: "Aim your camera at any living thing — a bird, a wildflower, a mushroom, a bug — and tap to catch. No creature in reach? Identify a photo from your library instead.")),
+            body: String(localized: "Aim your camera at any living thing — a bird, a wildflower, a mushroom, a bug — and tap to catch. No creature in reach? Identify a photo from your library instead."), needsModels: true),
         .init(
             symbol: "sparkle.magnifyingglass", title: String(localized: "Named by cloud AI"),
-            body: String(localized: "Your photo is sent over an encrypted connection to a vision AI that names the species and says how sure it is. You start with 30 free identifications; each one uses a credit.")),
+            body: String(localized: "Your photo is sent over an encrypted connection to a vision AI that names the species and says how sure it is. You start with 30 free identifications; each one uses a credit."), needsModels: true),
         .init(
             symbol: "checkmark.seal", title: String(localized: "Checked against real science"),
-            body: String(localized: "The name is verified against GBIF, the world's biodiversity database. A misspelled or invented species never reaches your Dex — and Pro members identify without limits.")),
+            body: String(localized: "The name is verified against GBIF, the world's biodiversity database. A misspelled or invented species never reaches your Dex — and Pro members identify without limits."), needsModels: true),
         .init(
             symbol: "square.grid.2x2", title: String(localized: "Build your Dex"),
             body: String(localized: "Every confirmed catch is saved to your collection, sorted by realm — animals, plants, fungi, protists, and more — each with a rarity tier drawn from real ecological data.")),
@@ -126,18 +138,18 @@ enum FieldGuide {
     static let concepts: [Concept] = [
         .init(
             title: String(localized: "How identification works"),
-            body: String(localized: "A vision AI looks at your photo and proposes a species with a confidence score. Living Dex then verifies that name against GBIF and rejects anything that isn't a real, accepted species. The photo is sent only when you identify, over an encrypted connection, and is used only for that — it needs a connection.")),
+            body: String(localized: "A vision AI looks at your photo and proposes a species with a confidence score. Living Dex then verifies that name against GBIF and rejects anything that isn't a real, accepted species. The photo is sent only when you identify, over an encrypted connection, and is used only for that — it needs a connection."), needsModels: true),
         .init(
             title: String(localized: "Credits & Pro"),
-            body: String(localized: "Each identification costs one credit, even when the AI finds nothing clear. Every device starts with 30 free; after that you can buy a credit pack or go Pro for unlimited identifications. Browsing your Dex, Nearby and field entries is always free.")),
+            body: String(localized: "Each identification costs one credit, even when the AI finds nothing clear. Every device starts with 30 free; after that you can buy a credit pack or go Pro for unlimited identifications. Browsing your Dex, Nearby and field entries is always free."), needsModels: true),
         .init(
             title: String(localized: "Regional (Nearby) Dex"),
             body: String(localized: "Your personal checklist of species that realistically occur near your location, built from real occurrence records. Uncaught species appear as locked silhouettes; catching one in the wild reveals its full entry. It's a map of what you could find, not just what you have.")),
         .init(
             title: String(localized: "Confidence"),
-            body: String(localized: "Every identification carries a confidence level — how sure the model is about the match. A low-confidence result isn't added to your Dex: you'll be asked for a clearer, closer shot, so your collection holds answers rather than guesses.")),
+            body: String(localized: "Every identification carries a confidence level — how sure the model is about the match. A low-confidence result isn't added to your Dex: you'll be asked for a clearer, closer shot, so your collection holds answers rather than guesses."), needsModels: true),
         .init(
             title: String(localized: "Where the data comes from"),
-            body: String(localized: "Living Dex is built on real science, not invented facts. Species lists, ranges, and fact-sheets come from GBIF. Animal calls and photos come from Wikimedia Commons and Xeno-canto. Field entries are written by on-device AI where your phone supports it (by cloud AI for Pro members), otherwise they quote the sourced Wikipedia summary — the facts underneath are always sourced.")),
+            body: String(localized: "Living Dex is built on real science, not invented facts. Species lists, ranges, and fact-sheets come from GBIF. Animal calls and photos come from Wikimedia Commons and Xeno-canto. Field entries are written by on-device AI where your phone supports it (by cloud AI for Pro members), otherwise they quote the sourced Wikipedia summary — the facts underneath are always sourced."), needsModels: true),
     ]
 }

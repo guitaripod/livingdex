@@ -12,6 +12,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = scene as? UIWindowScene else { return }
 
         CreditsModel.shared.start()
+        Task { await ModelRegionModel.shared.refresh() }
 
         let window = UIWindow(windowScene: windowScene)
         window.overrideUserInterfaceStyle = AppSettings.appearance
@@ -29,6 +30,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func sceneWillEnterForeground(_ scene: UIScene) {
         LocationProvider.shared.warmUp()
         Task { await CreditsModel.shared.refresh() }
+        Task { await ModelRegionModel.shared.refresh() }
     }
 
     func sceneDidEnterBackground(_ scene: UIScene) {

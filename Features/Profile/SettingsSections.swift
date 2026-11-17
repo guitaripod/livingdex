@@ -3,7 +3,11 @@ import UIKit
 
 extension SettingsViewController {
     func makeSections() -> [MidgarSettingsSection] {
-        [appearanceSection(), privacySection(), purchasesSection(), diagnosticsSection(), legalSection(), accountSection()]
+        var sections = [appearanceSection()]
+        if ModelFeatureVisibility.current.showsCloudConsentSetting {
+            sections.append(privacySection())
+        }
+        return sections + [purchasesSection(), diagnosticsSection(), legalSection(), accountSection()]
     }
 
     private func appearanceSection() -> MidgarSettingsSection {

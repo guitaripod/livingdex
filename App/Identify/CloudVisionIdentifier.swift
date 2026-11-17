@@ -24,6 +24,9 @@ final class CloudVisionIdentifier: SpeciesIdentifier {
     }
 
     func identify(_ image: UIImage, context: CaptureContext) async -> IdentificationResult {
+        guard MidgarModelRegion.shared.modelsAvailable else {
+            return IdentificationResult(candidates: [], error: .unavailableInRegion)
+        }
         guard let base64 = Self.visionJPEG(image)?.base64EncodedString() else {
             return IdentificationResult(candidates: [], error: .serverError)
         }
@@ -45,6 +48,7 @@ final class CloudVisionIdentifier: SpeciesIdentifier {
             MidgarLog.info("cloud vision -> \(candidate.scientificName) \(String(format: "%.2f", candidate.confidence))", category: .identify)
             return IdentificationResult(candidates: [candidate])
         } catch {
+            ModelRegionRefusal.record(error)
             let mapped = Self.identifyError(from: error)
             MidgarLog.notice("cloud vision failed (\(mapped)): \(error.localizedDescription)", category: .identify)
             return IdentificationResult(candidates: [], error: mapped)
@@ -75,6 +79,9 @@ final class CloudVisionIdentifier: SpeciesIdentifier {
 
     static func identifyError(from error: Error) -> IdentifyError {
         if let creditsError = error as? AICreditsError {
+            if creditsError.isUnavailableInRegion {
+                return .unavailableInRegion
+            }
             switch creditsError {
             case .insufficientCredits(let required, let available):
                 return .creditsExhausted(shortfall: CreditShortfall.of(required: required, available: available))

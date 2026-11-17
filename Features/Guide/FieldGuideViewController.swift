@@ -66,7 +66,7 @@ final class FieldGuideViewController: UIViewController {
         stack.addArrangedSubview(heroHeader())
 
         stack.addArrangedSubview(sectionHeader(String(localized: "How it works")))
-        for (index, step) in FieldGuide.steps.enumerated() {
+        for (index, step) in FieldGuide.visibleSteps(modelsAvailable: ModelFeatureVisibility.current.modelsAvailable).enumerated() {
             stack.addArrangedSubview(stepRow(step, number: index + 1))
         }
 
@@ -322,7 +322,7 @@ final class FieldGuideViewController: UIViewController {
 
     private func conceptsCard() -> UIView {
         var blocks: [UIView] = []
-        for (index, concept) in FieldGuide.concepts.enumerated() {
+        for (index, concept) in FieldGuide.visibleConcepts(modelsAvailable: ModelFeatureVisibility.current.modelsAvailable).enumerated() {
             if index > 0 { blocks.append(divider()) }
             let title = UILabel()
             title.text = concept.title

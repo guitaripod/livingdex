@@ -226,6 +226,14 @@ final class PaywallViewController: UIViewController {
                 self?.dismissPaywall()
             }
             .store(in: &cancellables)
+
+        ModelRegionModel.shared.modelsAvailablePublisher
+            .dropFirst()
+            .filter { !$0 }
+            .sink { [weak self] _ in
+                self?.dismissPaywall()
+            }
+            .store(in: &cancellables)
     }
 
     private func render(_ state: PaywallPlansState) {

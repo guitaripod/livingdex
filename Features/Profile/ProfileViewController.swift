@@ -1,5 +1,6 @@
 import Combine
 import LivingDexCore
+import MidgarCore
 import UIKit
 
 /// Profile & progress: the collection's headline stats, a rarity breakdown, the
@@ -64,6 +65,16 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
         CreditsModel.shared.knownBalancePublisher
             .dropFirst()
             .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self, self.isViewLoaded, self.view.window != nil else { return }
+                self.rebuild()
+                self.tableView.reloadData()
+            }
+            .store(in: &cancellables)
+
+        ModelRegionModel.shared.modelsAvailablePublisher
+            .dropFirst()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self, self.isViewLoaded, self.view.window != nil else { return }
@@ -156,7 +167,7 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
         sections = [
             Section(header: nil, rows: [.guide]),
             Section(header: String(localized: "Collection"), rows: collection),
-            Section(header: String(localized: "Identify"), rows: [.pro(balance: balance, isPro: pro.isPro)]),
+            Section(header: String(localized: "Identify"), rows: identifyRows(balance: balance)),
             Section(header: String(localized: "Compete"), rows: [
                 .action(title: String(localized: "Leaderboards & achievements"), symbol: "trophy.fill") { [weak self] in
                     guard let self else { return }
@@ -164,6 +175,15 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
                 },
             ]),
         ]
+    }
+
+    /// The identification row for the plan the person holds. Where the models do not work, a plan that is not Pro gets
+    /// the neutral line in place of the row that sells credits, and Pro keeps its row to manage the subscription.
+    private func identifyRows(balance: Int?) -> [Row] {
+        if ModelFeatureVisibility.current.showsCredits || pro.isPro {
+            return [.pro(balance: balance, isPro: pro.isPro)]
+        }
+        return [.info(title: String(localized: "Identifications"), value: MidgarModelRegion.unavailableMessage)]
     }
 
     private static var appVersion: String {
@@ -209,7 +229,11 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
             content.text = String(localized: "Identifications")
             content.image = UIImage(systemName: isPro ? "sparkles.rectangle.stack.fill" : "sparkles")
             content.imageProperties.tintColor = DesignSystem.Color.accent
-            if isPro {
+            if isPro, !ModelFeatureVisibility.current.showsCredits {
+                content.secondaryText = String(localized: "Pro")
+                content.secondaryTextProperties.color = DesignSystem.Color.accent
+                content.secondaryTextProperties.font = Self.boldSubheadline
+            } else if isPro {
                 content.secondaryText = String(localized: "Pro — unlimited")
                 content.secondaryTextProperties.color = DesignSystem.Color.accent
                 content.secondaryTextProperties.font = Self.boldSubheadline

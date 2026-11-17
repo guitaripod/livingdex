@@ -72,6 +72,7 @@ final class FieldViewController: UIViewController {
         setupHUD()
         setupGestures()
         observeCredits()
+        observeModelRegion()
 
         camera.onFirstFrame = { [weak self] in self?.revealPreview() }
         camera.onInterrupted = { [weak self] in self?.handleInterruption() }
@@ -258,10 +259,6 @@ final class FieldViewController: UIViewController {
         photosButton.isHidden = true
         photosButton.setSymbol("photo.on.rectangle")
         photosButton.accessibilityLabel = String(localized: "Identify a photo")
-        photosButton.accessibilityHint = String(localized: "Choose a photo from your library or try a sample")
-        photosButton.menu = PhotoSourceMenu.make(
-            onLibrary: { [weak self] in self?.chooseFromLibrary() },
-            onSample: { [weak self] in self?.trySample() })
         view.addSubview(photosButton)
 
         creditsButton.translatesAutoresizingMaskIntoConstraints = false
@@ -279,9 +276,6 @@ final class FieldViewController: UIViewController {
             guard let url = URL(string: UIApplication.openSettingsURLString) else { return }
             UIApplication.shared.open(url)
         }
-        permissionView.setPhotoActions(
-            onLibrary: { [weak self] in self?.chooseFromLibrary() },
-            onSample: { [weak self] in self?.trySample() })
         view.addSubview(permissionView)
 
         let statusCentering = statusChip.centerXAnchor.constraint(equalTo: view.centerXAnchor)
@@ -440,7 +434,8 @@ final class FieldViewController: UIViewController {
     /// The first time the HUD appears after onboarding, points out the photo button — for the player
     /// with nothing in reach — once, a moment after the camera settles.
     private func scheduleFirstRunHint() {
-        guard AppSettings.hasOnboarded, !AppSettings.hasSeenFieldHint, photoHint == nil else { return }
+        guard AppSettings.hasOnboarded, !AppSettings.hasSeenFieldHint, photoHint == nil,
+              ModelFeatureVisibility.current.showsLibraryIdentification else { return }
         AppSettings.hasSeenFieldHint = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.6) { [weak self] in
             guard let self, !self.photosButton.isHidden, self.presentedViewController == nil else { return }
@@ -487,11 +482,12 @@ final class FieldViewController: UIViewController {
     }
 
     private func dismissGates() {
+        let visibility = ModelFeatureVisibility.current
         permissionView.isHidden = true
-        captureButton.isHidden = false
+        captureButton.isHidden = !visibility.showsCloudIdentification
         statusChip.isHidden = false
         photosButton.isHidden = false
-        creditsButton.isHidden = !creditsKnown
+        creditsButton.isHidden = !creditsKnown || !visibility.showsCredits
     }
 
     /// Enables the live controls once a device is confirmed attached — driven by
@@ -709,7 +705,7 @@ final class FieldViewController: UIViewController {
                 for: capture.sighting, image: capture.image, isNew: capture.isNew, progress: capture.progress,
                 caption: capture.saved ? nil : String(localized: "Sample photo — not added to your Dex"),
                 reportsNewEntry: capture.saved && capture.isNew)
-            finishCapture(reset: String(localized: "Point at anything alive"), isFailure: false)
+            finishCapture(reset: ModelFeatureVisibility.current.idleStatus, isFailure: false)
             if capture.saved {
                 narrate(capture.candidate, sightingId: capture.sighting.id, grounding: capture.grounding)
             }
@@ -744,6 +740,7 @@ final class FieldViewController: UIViewController {
         case .creditsExhausted: return String(localized: "Out of identifications — add credits or go Pro")
         case .serverError: return String(localized: "Identification hiccup — try again in a moment")
         case .noSpecies: return lowConfidenceMessage
+        case .unavailableInRegion: return MidgarModelRegion.unavailableMessage
         }
     }
 
@@ -800,6 +797,36 @@ final class FieldViewController: UIViewController {
         let alert = UIAlertController(title: nil, message: text, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: String(localized: "OK"), style: .default))
         present(alert, animated: true)
+    }
+
+    /// Follows Midgar's model-region answer for the life of the Field, so the cloud controls and the credits meter go the
+    /// moment the models stop working here, and come back when they work again.
+    private func observeModelRegion() {
+        ModelRegionModel.shared.modelsAvailablePublisher
+            .sink { [weak self] _ in self?.applyModelAvailability() }
+            .store(in: &cancellables)
+    }
+
+    /// Offers the photo library only where the models work, and shows the idle line the answer calls for. Once the
+    /// preview is up, the capture control and the credits meter follow the answer as well.
+    private func applyModelAvailability() {
+        let visibility = ModelFeatureVisibility.current
+        photosButton.menu = PhotoSourceMenu.make(
+            includesLibrary: visibility.showsLibraryIdentification,
+            onLibrary: { [weak self] in self?.chooseFromLibrary() },
+            onSample: { [weak self] in self?.trySample() })
+        photosButton.accessibilityHint = visibility.showsLibraryIdentification
+            ? String(localized: "Choose a photo from your library or try a sample") : nil
+        permissionView.setPhotoActions(
+            includesLibrary: visibility.showsLibraryIdentification,
+            onLibrary: { [weak self] in self?.chooseFromLibrary() },
+            onSample: { [weak self] in self?.trySample() })
+        if !isBusy {
+            statusChip.setText(visibility.idleStatus)
+        }
+        if isPreviewRevealed {
+            dismissGates()
+        }
     }
 
     // MARK: Credits

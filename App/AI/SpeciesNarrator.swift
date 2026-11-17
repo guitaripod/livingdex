@@ -34,6 +34,7 @@ final class SpeciesNarrator: Narrator {
     }
 
     func entry(for candidate: SpeciesCandidate, grounding: String?) async -> PokedexEntry? {
+        guard MidgarModelRegion.shared.modelsAvailable else { return nil }
         let prompt = Self.prompt(for: candidate, grounding: grounding)
         let request = CapabilityRequest.chat(
             messages: [ChatTurn(role: "user", content: prompt)],
@@ -52,6 +53,10 @@ final class SpeciesNarrator: Narrator {
             MidgarLog.info("narrated \(candidate.commonName)", category: .ai)
             return entry
         } catch {
+            if ModelRegionRefusal.record(error) {
+                MidgarLog.info("narration stopped: model features unavailable in region", category: .ai)
+                return nil
+            }
             MidgarLog.error("narration request failed: \(error.localizedDescription)", category: .ai)
             return nil
         }

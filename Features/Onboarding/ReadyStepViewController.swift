@@ -1,3 +1,4 @@
+import MidgarCore
 import UIKit
 
 /// Step 4: the three ways in, the free allowance and the consent promise, then the camera.
@@ -21,11 +22,18 @@ final class ReadyStepViewController: OnboardingStepViewController {
         super.viewDidLoad()
         titleLabel.accessibilityTraits = .header
 
-        let options: [(String, String, String)] = [
-            ("camera.viewfinder", String(localized: "Point the camera"), String(localized: "Tap the shutter at anything alive: a bird, a bug, a mushroom, a flower.")),
-            ("photo.on.rectangle", String(localized: "Nothing in reach?"), String(localized: "Choose a nature photo from your library with the photo button on the Field tab.")),
-            ("sparkles", String(localized: "Just curious?"), String(localized: "Try a sample photo to see how a catch works, no creature needed.")),
-        ]
+        let visibility = ModelFeatureVisibility.current
+        if !visibility.modelsAvailable {
+            subtitle.text = MidgarModelRegion.unavailableMessage
+        }
+        var options: [(String, String, String)] = []
+        if visibility.showsCloudIdentification {
+            options.append(("camera.viewfinder", String(localized: "Point the camera"), String(localized: "Tap the shutter at anything alive: a bird, a bug, a mushroom, a flower.")))
+        }
+        if visibility.showsLibraryIdentification {
+            options.append(("photo.on.rectangle", String(localized: "Nothing in reach?"), String(localized: "Choose a nature photo from your library with the photo button on the Field tab.")))
+        }
+        options.append(("sparkles", String(localized: "Just curious?"), String(localized: "Try a sample photo to see how a catch works, no creature needed.")))
         rows = options.map(optionRow)
 
         let allowance = OnboardingGlassCard(cornerRadius: 18)
@@ -44,7 +52,9 @@ final class ReadyStepViewController: OnboardingStepViewController {
         allowance.addSubview(allowanceRow)
         allowanceRow.pinEdges(to: allowance, insets: UIEdgeInsets(top: 12, left: 14, bottom: 12, right: 14))
         allowanceIcon.widthAnchor.constraint(equalToConstant: 26).isActive = true
-        rows.append(allowance)
+        if visibility.showsCloudIdentification {
+            rows.append(allowance)
+        }
 
         let list = UIStackView(arrangedSubviews: [titleLabel, subtitle] + rows)
         list.axis = .vertical

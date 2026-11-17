@@ -158,8 +158,14 @@ final class CameraPermissionView: UIView {
 
     /// Wires the "identify a photo instead" menu to the Field's two photo paths.
     @MainActor
-    func setPhotoActions(onLibrary: @escaping @MainActor () -> Void, onSample: @escaping @MainActor () -> Void) {
-        photoButton.menu = PhotoSourceMenu.make(onLibrary: onLibrary, onSample: onSample)
+    func setPhotoActions(
+        includesLibrary: Bool,
+        onLibrary: @escaping @MainActor () -> Void,
+        onSample: @escaping @MainActor () -> Void
+    ) {
+        photoButton.menu = PhotoSourceMenu.make(includesLibrary: includesLibrary, onLibrary: onLibrary, onSample: onSample)
+        photoButton.configuration?.title = includesLibrary
+            ? String(localized: "Identify a photo instead") : String(localized: "Try a sample photo")
     }
 
     func configure(_ state: State) {

@@ -10,7 +10,8 @@ enum PaywallPresenter {
     static let defaultReason = String(localized: "For walks where every hedge hides something new.")
 
     /// Presents the paywall as a page sheet in the dark look of the first run. No-op when the user is already Pro
-    /// (the caller should instead reflect the active entitlement), and then `onDismiss` is not called.
+    /// (the caller should instead reflect the active entitlement) and where Midgar's servers offer no model features,
+    /// since Pro and the credit packs sell nothing else. Then `onDismiss` is not called.
     @discardableResult
     static func present(
         from presenter: UIViewController,
@@ -21,7 +22,7 @@ enum PaywallPresenter {
         placement: MidgarSignal.Placement = .feature,
         onDismiss: (@MainActor () -> Void)? = nil
     ) -> Bool {
-        guard !access.isPro else { return false }
+        guard !access.isPro, ModelFeatureVisibility.current.presentsPaywall else { return false }
         let paywall = PaywallViewController(
             access: access, reason: reason, shortfall: shortfall, fixedPlans: fixedPlans, placement: placement)
         paywall.onDidDismiss = onDismiss
