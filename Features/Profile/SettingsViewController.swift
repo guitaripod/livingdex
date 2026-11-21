@@ -1,6 +1,7 @@
 import MidgarPortal
 import MidgarUI
 import UIKit
+import MidgarCore
 
 /// Settings: the Midgar portal card on top of MidgarUI's settings list with Living Dex's sections, hosted as a child
 /// so the screen keeps pushing onto the Profile tab's navigation stack. Opened from the Profile tab. Deliberately
@@ -21,6 +22,11 @@ final class SettingsViewController: UIViewController {
         title = String(localized: "Settings")
         view.backgroundColor = .systemGroupedBackground
         embedList()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        MidgarSignals.noteScreen("settings")
     }
 
     override func viewWillAppear(_ animated: Bool) {

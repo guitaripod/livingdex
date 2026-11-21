@@ -59,6 +59,9 @@ extension SettingsViewController {
             id: "legal",
             title: String(localized: "Legal"),
             rows: [
+                .usageCountsDetail { [weak self] in
+                    self?.navigationController?.pushViewController(MidgarUsageCountsViewController(theme: .livingDex), animated: true)
+                },
                 .privacyPolicy(url: LegalLinks.privacy),
                 .termsOfUse(url: LegalLinks.terms),
                 .support(),

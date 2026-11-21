@@ -144,6 +144,7 @@ final class FieldViewController: UIViewController {
     /// first-run user isn't prompted behind onboarding.
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        MidgarSignals.noteScreen("field", feature: true)
         #if DEBUG
         if DemoSeeder.showsFieldBackdrop { return }
         if DemoSeeder.route == "sample" { runDemoSample() }

@@ -142,6 +142,7 @@ final class ProfileViewController: UIViewController, UITableViewDataSource, UITa
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        MidgarSignals.noteScreen("profile")
         guard DemoSeeder.route == "paywall", !didPresentDemoPaywall else { return }
         didPresentDemoPaywall = true
         DemoSeeder.presentPaywall(from: self)

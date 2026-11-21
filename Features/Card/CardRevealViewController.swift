@@ -1,5 +1,6 @@
 import LivingDexCore
 import UIKit
+import MidgarCore
 
 /// The card-mint reveal — the dopamine beat after a catch. A glass card scales in
 /// over a dimmed field with the captured image, a confidence signal, rarity drama
@@ -68,6 +69,8 @@ final class CardRevealViewController: UIViewController {
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        MidgarSignals.noteScreen("card_reveal")
+        MidgarSignals.noteValue()
         Haptics.caught(rarity: sighting.rarity, isNew: isNewDexEntry)
         announce()
         animateIn()

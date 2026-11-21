@@ -81,6 +81,7 @@ final class DexViewController: UIViewController, UICollectionViewDelegate, UISea
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        MidgarSignals.noteScreen("dex")
         if regionState != .loading { fetchRegion(force: false) }
         #if DEBUG
         if DemoSeeder.route == "card", !didDemoPush, let entry = DemoSeeder.cardEntry(in: caught) {

@@ -1,5 +1,6 @@
 import LivingDexCore
 import UIKit
+import MidgarCore
 
 /// The in-app Field Guide — an educational hub that explains the whole app and
 /// the real science behind it: how catching works, what each realm of life
@@ -37,6 +38,11 @@ final class FieldGuideViewController: UIViewController {
         ])
 
         buildContent()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        MidgarSignals.noteScreen("field_guide", feature: true)
     }
 
     override func viewSafeAreaInsetsDidChange() {

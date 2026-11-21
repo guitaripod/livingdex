@@ -1,5 +1,6 @@
 import LivingDexCore
 import UIKit
+import MidgarCore
 
 /// The full species card, opened from the Dex. Hero image, an evocative category
 /// ("the ___" epithet), rarity + realm, typical size, the narrated Pokédex entry,
@@ -43,6 +44,11 @@ final class CardDetailViewController: UIViewController {
         configureNavigationActions()
         buildLayout()
         fetchCall()
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        MidgarSignals.noteScreen("card_detail", feature: true)
     }
 
     private func configureNavigationActions() {
