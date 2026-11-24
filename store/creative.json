@@ -1,0 +1,14 @@
+{
+  "root": "..",
+  "ground": ["#2A1E12", "#6B4A2A", "#1C1610"],
+  "glow": "#E6A85C",
+  "header": [
+    {"master": "store/creative/masters/caught.png", "height": 1560, "center": 650, "top": 560, "angle": 7},
+    {"master": "store/creative/masters/dex.png", "height": 1980, "center": 1920, "top": 230, "angle": 0},
+    {"master": "store/creative/masters/card.png", "height": 1560, "center": 3110, "top": 560, "angle": -7}
+  ],
+  "search": [
+    {"master": "store/creative/masters/dex.png", "height": 2520, "center": 2320, "top": 300, "angle": 0},
+    {"master": "store/creative/masters/caught.png", "height": 1820, "center": 1440, "top": 850, "angle": -6}
+  ]
+}
